@@ -9,7 +9,11 @@ const mockProducts = [
     id: "1",
     title: "Elegant Summer Dress",
     price: 89.99,
-    image: "https://images.unsplash.com/photo-1595777457583-95e059d581b8?w=500&h=500&fit=crop",
+    images: [
+      "https://images.unsplash.com/photo-1595777457583-95e059d581b8?w=500&h=500&fit=crop",
+      "https://images.unsplash.com/photo-1566479179817-c4fdb8c50a8e?w=500&h=500&fit=crop",
+      "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=500&h=500&fit=crop"
+    ],
     description: "Beautiful flowing dress perfect for summer occasions",
     colors: ["#FF69B4", "#FFB6C1", "#FFA0C9"],
     sizes: ["XS", "S", "M", "L", "XL"]
@@ -18,7 +22,11 @@ const mockProducts = [
     id: "2", 
     title: "Chic Blouse Collection",
     price: 59.99,
-    image: "https://images.unsplash.com/photo-1551488831-00ddcb6c6bd3?w=500&h=500&fit=crop",
+    images: [
+      "https://images.unsplash.com/photo-1551488831-00ddcb6c6bd3?w=500&h=500&fit=crop",
+      "https://images.unsplash.com/photo-1581090464777-f3220bbe1b8b?w=500&h=500&fit=crop",
+      "https://images.unsplash.com/photo-1465146344425-f00d5f5c8f07?w=500&h=500&fit=crop"
+    ],
     description: "Versatile blouse for work and casual wear",
     colors: ["#FFF", "#FFB6C1", "#F0F0F0"],
     sizes: ["XS", "S", "M", "L", "XL"]
@@ -27,7 +35,10 @@ const mockProducts = [
     id: "3",
     title: "Designer Handbag",
     price: 129.99, 
-    image: "https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=500&h=500&fit=crop",
+    images: [
+      "https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=500&h=500&fit=crop",
+      "https://images.unsplash.com/photo-1509316975850-ff9c5deb0cd9?w=500&h=500&fit=crop"
+    ],
     description: "Luxurious handbag to complement any outfit",
     colors: ["#D2691E", "#8B4513", "#A0522D"]
   },
@@ -35,7 +46,10 @@ const mockProducts = [
     id: "4",
     title: "Casual Denim Jacket",
     price: 79.99,
-    image: "https://images.unsplash.com/photo-1544441893-675973e31985?w=500&h=500&fit=crop", 
+    images: [
+      "https://images.unsplash.com/photo-1544441893-675973e31985?w=500&h=500&fit=crop",
+      "https://images.unsplash.com/photo-1500673922987-e212871fec22?w=500&h=500&fit=crop"
+    ],
     description: "Classic denim jacket for layering",
     colors: ["#4682B4", "#6495ED", "#87CEEB"],
     sizes: ["XS", "S", "M", "L", "XL"]
@@ -44,7 +58,10 @@ const mockProducts = [
     id: "5",
     title: "Floral Print Skirt",
     price: 49.99,
-    image: "https://images.unsplash.com/photo-1583496661160-fb5886a13d24?w=500&h=500&fit=crop",
+    images: [
+      "https://images.unsplash.com/photo-1583496661160-fb5886a13d24?w=500&h=500&fit=crop",
+      "https://images.unsplash.com/photo-1582562124811-c09040d0a901?w=500&h=500&fit=crop"
+    ],
     description: "Romantic floral skirt for spring and summer",
     colors: ["#FFB6C1", "#FF69B4", "#DDA0DD"],
     sizes: ["XS", "S", "M", "L", "XL"]
@@ -53,7 +70,10 @@ const mockProducts = [
     id: "6",
     title: "Cozy Knit Sweater",
     price: 69.99,
-    image: "https://images.unsplash.com/photo-1434389677669-e08b4cac3105?w=500&h=500&fit=crop",
+    images: [
+      "https://images.unsplash.com/photo-1434389677669-e08b4cac3105?w=500&h=500&fit=crop",
+      "https://images.unsplash.com/photo-1721322800607-8c38375eef04?w=500&h=500&fit=crop"
+    ],
     description: "Soft and warm sweater for cooler days",
     colors: ["#F5DEB3", "#DEB887", "#D2B48C"],
     sizes: ["XS", "S", "M", "L", "XL"]

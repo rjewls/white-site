@@ -6,7 +6,8 @@ interface Product {
   id: string;
   title: string;
   price: number;
-  image: string;
+  image?: string; // Keep for backward compatibility
+  images?: string[];
   description: string;
   colors?: string[];
   sizes?: string[];
@@ -21,7 +22,7 @@ export const ProductCard = ({ product }: ProductCardProps) => {
     <Card className="group cursor-pointer overflow-hidden bg-gradient-card shadow-md hover:shadow-xl transition-all duration-300 hover:scale-105">
       <div className="aspect-square overflow-hidden">
         <img
-          src={product.image}
+          src={product.images?.[0] || product.image}
           alt={product.title}
           className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
         />

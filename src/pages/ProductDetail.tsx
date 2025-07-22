@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { Heart, ShoppingCart, Star } from "lucide-react";
+import ImageCarousel from "@/components/ImageCarousel";
 
 // Mock product data - will be replaced with Supabase
 const mockProducts = [
@@ -18,13 +19,32 @@ const mockProducts = [
     price: 89.99,
     images: [
       "https://images.unsplash.com/photo-1595777457583-95e059d581b8?w=800&h=800&fit=crop",
-      "https://images.unsplash.com/photo-1566479179817-c4fdb8c50a8e?w=800&h=800&fit=crop"
+      "https://images.unsplash.com/photo-1566479179817-c4fdb8c50a8e?w=800&h=800&fit=crop",
+      "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=800&h=800&fit=crop",
+      "https://images.unsplash.com/photo-1509316975850-ff9c5deb0cd9?w=800&h=800&fit=crop",
+      "https://images.unsplash.com/photo-1465146344425-f00d5f5c8f07?w=800&h=800&fit=crop"
     ],
     description: "Beautiful flowing dress perfect for summer occasions. Made from premium cotton blend with a comfortable fit that flatters every body type.",
     colors: ["Pink", "Light Pink", "Rose"],
     sizes: ["XS", "S", "M", "L", "XL"],
     inStock: true,
     rating: 4.8
+  },
+  {
+    id: "2",
+    title: "Chic Blouse Collection",
+    price: 59.99,
+    images: [
+      "https://images.unsplash.com/photo-1551488831-00ddcb6c6bd3?w=800&h=800&fit=crop",
+      "https://images.unsplash.com/photo-1581090464777-f3220bbe1b8b?w=800&h=800&fit=crop",
+      "https://images.unsplash.com/photo-1500673922987-e212871fec22?w=800&h=800&fit=crop",
+      "https://images.unsplash.com/photo-1582562124811-c09040d0a901?w=800&h=800&fit=crop"
+    ],
+    description: "Versatile blouse perfect for both professional and casual settings. Premium fabric with elegant design details.",
+    colors: ["White", "Light Pink", "Gray"],
+    sizes: ["XS", "S", "M", "L", "XL"],
+    inStock: true,
+    rating: 4.6
   }
 ];
 
@@ -32,7 +52,7 @@ const ProductDetail = () => {
   const { id } = useParams();
   const { toast } = useToast();
   const [product, setProduct] = useState(null);
-  const [selectedImage, setSelectedImage] = useState(0);
+  
   const [selectedColor, setSelectedColor] = useState("");
   const [selectedSize, setSelectedSize] = useState("");
   const [quantity, setQuantity] = useState(1);
@@ -95,32 +115,14 @@ const ProductDetail = () => {
       
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-          {/* Product Images */}
-          <div className="space-y-4">
-            <div className="aspect-square overflow-hidden rounded-lg bg-background">
-              <img
-                src={product.images[selectedImage]}
-                alt={product.title}
-                className="w-full h-full object-cover"
-              />
-            </div>
-            <div className="grid grid-cols-4 gap-4">
-              {product.images.map((image, index) => (
-                <button
-                  key={index}
-                  onClick={() => setSelectedImage(index)}
-                  className={`aspect-square overflow-hidden rounded-lg border-2 ${
-                    selectedImage === index ? 'border-primary' : 'border-transparent'
-                  }`}
-                >
-                  <img
-                    src={image}
-                    alt={`${product.title} ${index + 1}`}
-                    className="w-full h-full object-cover"
-                  />
-                </button>
-              ))}
-            </div>
+          {/* Product Images Carousel */}
+          <div>
+            <ImageCarousel 
+              images={product.images} 
+              title={product.title}
+              autoPlay={true}
+              showThumbnails={true}
+            />
           </div>
 
           {/* Product Info & Purchase Form */}

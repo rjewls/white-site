@@ -14,7 +14,11 @@ const initialProducts = [
     id: "1",
     title: "Elegant Summer Dress",
     price: 89.99,
-    image: "https://images.unsplash.com/photo-1595777457583-95e059d581b8?w=300&h=300&fit=crop",
+    images: [
+      "https://images.unsplash.com/photo-1595777457583-95e059d581b8?w=800&h=800&fit=crop",
+      "https://images.unsplash.com/photo-1566479179817-c4fdb8c50a8e?w=800&h=800&fit=crop",
+      "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=800&h=800&fit=crop"
+    ],
     description: "Beautiful flowing dress perfect for summer occasions",
     colors: ["Pink", "Light Pink", "Rose"],
     sizes: ["XS", "S", "M", "L", "XL"],
@@ -24,7 +28,11 @@ const initialProducts = [
     id: "2",
     title: "Chic Blouse Collection", 
     price: 59.99,
-    image: "https://images.unsplash.com/photo-1551488831-00ddcb6c6bd3?w=300&h=300&fit=crop",
+    images: [
+      "https://images.unsplash.com/photo-1551488831-00ddcb6c6bd3?w=800&h=800&fit=crop",
+      "https://images.unsplash.com/photo-1581090464777-f3220bbe1b8b?w=800&h=800&fit=crop",
+      "https://images.unsplash.com/photo-1465146344425-f00d5f5c8f07?w=800&h=800&fit=crop"
+    ],
     description: "Versatile blouse for work and casual wear",
     colors: ["White", "Light Pink", "Gray"],
     sizes: ["XS", "S", "M", "L", "XL"],
@@ -40,7 +48,7 @@ const Admin = () => {
   const [formData, setFormData] = useState({
     title: "",
     price: "",
-    image: "",
+    images: [""],
     description: "",
     colors: "",
     sizes: "",
@@ -51,7 +59,7 @@ const Admin = () => {
     setFormData({
       title: "",
       price: "",
-      image: "",
+      images: [""],
       description: "",
       colors: "",
       sizes: "",
@@ -64,7 +72,7 @@ const Admin = () => {
     setFormData({
       title: product.title,
       price: product.price.toString(),
-      image: product.image,
+      images: [...product.images],
       description: product.description,
       colors: product.colors.join(", "),
       sizes: product.sizes.join(", "),
@@ -86,7 +94,9 @@ const Admin = () => {
     const productData = {
       title: formData.title,
       price: parseFloat(formData.price),
-      image: formData.image || "https://images.unsplash.com/photo-1551488831-00ddcb6c6bd3?w=300&h=300&fit=crop",
+      images: formData.images.filter(img => img.trim() !== "").length > 0 
+        ? formData.images.filter(img => img.trim() !== "")
+        : ["https://images.unsplash.com/photo-1551488831-00ddcb6c6bd3?w=800&h=800&fit=crop"],
       description: formData.description,
       colors: formData.colors.split(",").map(c => c.trim()).filter(c => c),
       sizes: formData.sizes.split(",").map(s => s.trim()).filter(s => s),
@@ -186,11 +196,21 @@ const Admin = () => {
                   />
                 ) : (
                   <div className="flex items-center gap-6">
-                    <img
-                      src={product.image}
-                      alt={product.title}
-                      className="w-24 h-24 object-cover rounded-lg"
-                    />
+                    <div className="flex gap-2">
+                      {product.images.slice(0, 3).map((image, index) => (
+                        <img
+                          key={index}
+                          src={image}
+                          alt={`${product.title} ${index + 1}`}
+                          className="w-16 h-16 object-cover rounded-lg"
+                        />
+                      ))}
+                      {product.images.length > 3 && (
+                        <div className="w-16 h-16 bg-muted rounded-lg flex items-center justify-center text-xs text-muted-foreground">
+                          +{product.images.length - 3}
+                        </div>
+                      )}
+                    </div>
                     <div className="flex-1">
                       <h3 className="font-playfair font-semibold text-xl mb-2">
                         {product.title}
@@ -258,13 +278,44 @@ const ProductForm = ({ formData, setFormData, onSave, onCancel }) => {
       </div>
 
       <div className="md:col-span-2">
-        <Label htmlFor="image">Image URL</Label>
-        <Input
-          id="image"
-          value={formData.image}
-          onChange={(e) => setFormData({...formData, image: e.target.value})}
-          placeholder="https://example.com/image.jpg"
-        />
+        <Label>Product Images</Label>
+        <div className="space-y-2">
+          {formData.images.map((image, index) => (
+            <div key={index} className="flex gap-2">
+              <Input
+                value={image}
+                onChange={(e) => {
+                  const newImages = [...formData.images];
+                  newImages[index] = e.target.value;
+                  setFormData({...formData, images: newImages});
+                }}
+                placeholder={`Image URL ${index + 1}`}
+              />
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  const newImages = formData.images.filter((_, i) => i !== index);
+                  setFormData({...formData, images: newImages.length ? newImages : [""]});
+                }}
+                disabled={formData.images.length === 1}
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+          ))}
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => setFormData({...formData, images: [...formData.images, ""]})}
+            className="flex items-center gap-2"
+          >
+            <Plus className="h-4 w-4" />
+            Add Image
+          </Button>
+        </div>
       </div>
 
       <div className="md:col-span-2">
