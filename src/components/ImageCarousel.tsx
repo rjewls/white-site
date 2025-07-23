@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
+import { ChevronLeft, ChevronRight, X } from "lucide-react";
 
 interface ImageCarouselProps {
   images: string[];
@@ -13,6 +14,8 @@ const ImageCarousel = ({ images, title, autoPlay = true, showThumbnails = true }
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isAnimating, setIsAnimating] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [modalImageIndex, setModalImageIndex] = useState(0);
   const touchStartX = useRef(0);
   const touchCurrentX = useRef(0);
   const [isDragging, setIsDragging] = useState(false);
@@ -84,6 +87,25 @@ const ImageCarousel = ({ images, title, autoPlay = true, showThumbnails = true }
     setTimeout(() => setIsAnimating(false), 300);
   };
 
+  const openModal = (index: number) => {
+    setModalImageIndex(index);
+    setIsModalOpen(true);
+    setIsPaused(true);
+  };
+
+  const closeModal = () => {
+    setIsModalOpen(false);
+    setIsPaused(false);
+  };
+
+  const nextModalImage = () => {
+    setModalImageIndex((prev) => (prev + 1) % images.length);
+  };
+
+  const prevModalImage = () => {
+    setModalImageIndex((prev) => (prev - 1 + images.length) % images.length);
+  };
+
   if (!images.length) {
     return (
       <div className="aspect-square bg-muted rounded-lg flex items-center justify-center">
@@ -114,8 +136,9 @@ const ImageCarousel = ({ images, title, autoPlay = true, showThumbnails = true }
               key={index}
               src={image}
               alt={`${title} ${index + 1}`}
-              className="w-full h-full object-cover flex-shrink-0 select-none"
+              className="w-full h-full object-cover flex-shrink-0 select-none cursor-pointer"
               draggable={false}
+              onClick={() => openModal(index)}
             />
           ))}
         </div>
@@ -186,6 +209,67 @@ const ImageCarousel = ({ images, title, autoPlay = true, showThumbnails = true }
           ))}
         </div>
       )}
+
+      {/* Full-Screen Modal */}
+      <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+        <DialogContent className="max-w-none w-screen h-screen p-0 bg-black/95 flex items-center justify-center">
+          <div className="relative w-full h-full flex items-center justify-center">
+            {/* Close Button */}
+            <Button
+              variant="outline"
+              size="icon"
+              className="absolute top-4 right-4 z-50 bg-background/80 backdrop-blur-sm hover-scale"
+              onClick={closeModal}
+            >
+              <X className="h-4 w-4" />
+            </Button>
+
+            {/* Modal Image */}
+            <img
+              src={images[modalImageIndex]}
+              alt={`${title} ${modalImageIndex + 1}`}
+              className="max-w-full max-h-full object-contain"
+            />
+
+            {/* Modal Navigation */}
+            {images.length > 1 && (
+              <>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="absolute left-4 top-1/2 -translate-y-1/2 bg-background/80 backdrop-blur-sm hover-scale"
+                  onClick={prevModalImage}
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="absolute right-4 top-1/2 -translate-y-1/2 bg-background/80 backdrop-blur-sm hover-scale"
+                  onClick={nextModalImage}
+                >
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+
+                {/* Modal Dots Indicator */}
+                <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex gap-2">
+                  {images.map((_, index) => (
+                    <button
+                      key={index}
+                      onClick={() => setModalImageIndex(index)}
+                      className={`w-3 h-3 rounded-full transition-all duration-200 ${
+                        index === modalImageIndex 
+                          ? 'bg-white scale-125' 
+                          : 'bg-white/50 hover:bg-white/70'
+                      }`}
+                    />
+                  ))}
+                </div>
+              </>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
