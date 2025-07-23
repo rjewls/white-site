@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
@@ -9,18 +9,59 @@ interface ImageCarouselProps {
   showThumbnails?: boolean;
 }
 
-const ImageCarousel = ({ images, title, autoPlay = false, showThumbnails = true }: ImageCarouselProps) => {
+const ImageCarousel = ({ images, title, autoPlay = true, showThumbnails = true }: ImageCarouselProps) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isAnimating, setIsAnimating] = useState(false);
+  const [isPaused, setIsPaused] = useState(false);
+  const touchStartX = useRef(0);
+  const touchCurrentX = useRef(0);
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragOffset, setDragOffset] = useState(0);
 
+  // Continuous auto-play animation
   useEffect(() => {
-    if (autoPlay && images.length > 1) {
+    if (autoPlay && images.length > 1 && !isPaused && !isDragging) {
       const interval = setInterval(() => {
-        nextSlide();
-      }, 4000);
+        setCurrentIndex((prev) => (prev + 1) % images.length);
+      }, 3000);
       return () => clearInterval(interval);
     }
-  }, [currentIndex, autoPlay, images.length]);
+  }, [autoPlay, images.length, isPaused, isDragging]);
+
+  // Touch event handlers for swipe functionality
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartX.current = e.touches[0].clientX;
+    touchCurrentX.current = e.touches[0].clientX;
+    setIsDragging(true);
+    setIsPaused(true);
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (!isDragging) return;
+    touchCurrentX.current = e.touches[0].clientX;
+    const diff = touchCurrentX.current - touchStartX.current;
+    setDragOffset(diff);
+  };
+
+  const handleTouchEnd = () => {
+    if (!isDragging) return;
+    const diff = touchCurrentX.current - touchStartX.current;
+    const threshold = 50; // Minimum swipe distance
+    
+    if (Math.abs(diff) > threshold) {
+      if (diff > 0) {
+        // Swiped right - go to previous
+        setCurrentIndex((prev) => (prev - 1 + images.length) % images.length);
+      } else {
+        // Swiped left - go to next
+        setCurrentIndex((prev) => (prev + 1) % images.length);
+      }
+    }
+    
+    setIsDragging(false);
+    setDragOffset(0);
+    setTimeout(() => setIsPaused(false), 500); // Resume auto-play after swipe
+  };
 
   const nextSlide = () => {
     if (isAnimating) return;
@@ -54,17 +95,27 @@ const ImageCarousel = ({ images, title, autoPlay = false, showThumbnails = true 
   return (
     <div className="space-y-4">
       {/* Main Image Carousel */}
-      <div className="relative aspect-square overflow-hidden rounded-lg bg-background group">
+      <div 
+        className="relative aspect-square overflow-hidden rounded-lg bg-background group cursor-grab active:cursor-grabbing"
+        onMouseEnter={() => setIsPaused(true)}
+        onMouseLeave={() => setIsPaused(false)}
+      >
         <div 
-          className="flex transition-transform duration-300 ease-out h-full"
-          style={{ transform: `translateX(-${currentIndex * 100}%)` }}
+          className={`flex h-full ${isDragging ? 'transition-none' : 'transition-transform duration-500 ease-out'}`}
+          style={{ 
+            transform: `translateX(calc(-${currentIndex * 100}% + ${dragOffset}px))` 
+          }}
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
         >
           {images.map((image, index) => (
             <img
               key={index}
               src={image}
               alt={`${title} ${index + 1}`}
-              className="w-full h-full object-cover flex-shrink-0"
+              className="w-full h-full object-cover flex-shrink-0 select-none"
+              draggable={false}
             />
           ))}
         </div>
