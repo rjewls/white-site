@@ -20,6 +20,18 @@ const ImageCarousel = ({ images, title, autoPlay = true, showThumbnails = true }
   const touchCurrentX = useRef(0);
   const [isDragging, setIsDragging] = useState(false);
   const [dragOffset, setDragOffset] = useState(0);
+  
+  // Modal zoom and pan state
+  const [modalZoom, setModalZoom] = useState(1);
+  const [modalPanX, setModalPanX] = useState(0);
+  const [modalPanY, setModalPanY] = useState(0);
+  const [isModalPanning, setIsModalPanning] = useState(false);
+  const modalTouchStartX = useRef(0);
+  const modalTouchStartY = useRef(0);
+  const modalTouchCurrentX = useRef(0);
+  const modalTouchCurrentY = useRef(0);
+  const modalLastTouchDistance = useRef(0);
+  const modalLastTapTime = useRef(0);
 
   // Continuous auto-play animation
   useEffect(() => {
@@ -96,14 +108,126 @@ const ImageCarousel = ({ images, title, autoPlay = true, showThumbnails = true }
   const closeModal = () => {
     setIsModalOpen(false);
     setIsPaused(false);
+    resetModalZoom();
+  };
+
+  const resetModalZoom = () => {
+    setModalZoom(1);
+    setModalPanX(0);
+    setModalPanY(0);
   };
 
   const nextModalImage = () => {
     setModalImageIndex((prev) => (prev + 1) % images.length);
+    resetModalZoom();
   };
 
   const prevModalImage = () => {
     setModalImageIndex((prev) => (prev - 1 + images.length) % images.length);
+    resetModalZoom();
+  };
+
+  // Modal touch event handlers
+  const handleModalTouchStart = (e: React.TouchEvent) => {
+    if (e.touches.length === 1) {
+      // Single touch - check for double tap or start panning
+      const now = Date.now();
+      const timeSinceLastTap = now - modalLastTapTime.current;
+      
+      if (timeSinceLastTap < 300) {
+        // Double tap - toggle zoom
+        if (modalZoom === 1) {
+          setModalZoom(2);
+        } else {
+          resetModalZoom();
+        }
+        return;
+      }
+      
+      modalLastTapTime.current = now;
+      modalTouchStartX.current = e.touches[0].clientX;
+      modalTouchStartY.current = e.touches[0].clientY;
+      modalTouchCurrentX.current = e.touches[0].clientX;
+      modalTouchCurrentY.current = e.touches[0].clientY;
+      setIsModalPanning(true);
+    } else if (e.touches.length === 2) {
+      // Pinch zoom
+      const touch1 = e.touches[0];
+      const touch2 = e.touches[1];
+      const distance = Math.sqrt(
+        Math.pow(touch2.clientX - touch1.clientX, 2) + 
+        Math.pow(touch2.clientY - touch1.clientY, 2)
+      );
+      modalLastTouchDistance.current = distance;
+    }
+  };
+
+  const handleModalTouchMove = (e: React.TouchEvent) => {
+    if (e.touches.length === 1 && isModalPanning) {
+      modalTouchCurrentX.current = e.touches[0].clientX;
+      modalTouchCurrentY.current = e.touches[0].clientY;
+      
+      if (modalZoom > 1) {
+        // Pan the image when zoomed
+        const deltaX = modalTouchCurrentX.current - modalTouchStartX.current;
+        const deltaY = modalTouchCurrentY.current - modalTouchStartY.current;
+        setModalPanX(deltaX);
+        setModalPanY(deltaY);
+      }
+    } else if (e.touches.length === 2) {
+      // Pinch zoom
+      const touch1 = e.touches[0];
+      const touch2 = e.touches[1];
+      const distance = Math.sqrt(
+        Math.pow(touch2.clientX - touch1.clientX, 2) + 
+        Math.pow(touch2.clientY - touch1.clientY, 2)
+      );
+      
+      if (modalLastTouchDistance.current > 0) {
+        const scale = distance / modalLastTouchDistance.current;
+        const newZoom = Math.min(Math.max(modalZoom * scale, 0.5), 4);
+        setModalZoom(newZoom);
+        
+        if (newZoom === 1) {
+          setModalPanX(0);
+          setModalPanY(0);
+        }
+      }
+      
+      modalLastTouchDistance.current = distance;
+    }
+  };
+
+  const handleModalTouchEnd = () => {
+    if (!isModalPanning) return;
+    
+    const deltaX = modalTouchCurrentX.current - modalTouchStartX.current;
+    const deltaY = modalTouchCurrentY.current - modalTouchStartY.current;
+    const threshold = 50;
+    
+    // If not zoomed and horizontal swipe is significant, navigate
+    if (modalZoom === 1 && Math.abs(deltaX) > threshold && Math.abs(deltaX) > Math.abs(deltaY)) {
+      if (deltaX > 0) {
+        prevModalImage();
+      } else {
+        nextModalImage();
+      }
+    }
+    
+    setIsModalPanning(false);
+  };
+
+  // Mouse wheel zoom for modal
+  const handleModalWheel = (e: React.WheelEvent) => {
+    e.preventDefault();
+    const zoomDelta = e.deltaY > 0 ? 0.9 : 1.1;
+    const newZoom = Math.min(Math.max(modalZoom * zoomDelta, 0.5), 4);
+    setModalZoom(newZoom);
+    
+    if (newZoom === 1) {
+      setModalPanX(0);
+      setModalPanY(0);
+    }
   };
 
   if (!images.length) {
@@ -225,11 +349,24 @@ const ImageCarousel = ({ images, title, autoPlay = true, showThumbnails = true }
             </Button>
 
             {/* Modal Image */}
-            <img
-              src={images[modalImageIndex]}
-              alt={`${title} ${modalImageIndex + 1}`}
-              className="max-w-full max-h-full object-contain"
-            />
+            <div
+              className="flex items-center justify-center w-full h-full overflow-hidden"
+              onTouchStart={handleModalTouchStart}
+              onTouchMove={handleModalTouchMove}
+              onTouchEnd={handleModalTouchEnd}
+              onWheel={handleModalWheel}
+            >
+              <img
+                src={images[modalImageIndex]}
+                alt={`${title} ${modalImageIndex + 1}`}
+                className="max-w-full max-h-full object-contain transition-transform duration-200 select-none"
+                style={{
+                  transform: `scale(${modalZoom}) translate(${modalPanX / modalZoom}px, ${modalPanY / modalZoom}px)`,
+                  cursor: modalZoom > 1 ? (isModalPanning ? 'grabbing' : 'grab') : 'default'
+                }}
+                draggable={false}
+              />
+            </div>
 
             {/* Modal Navigation */}
             {images.length > 1 && (
