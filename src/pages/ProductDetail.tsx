@@ -15,7 +15,7 @@ import ImageCarousel from "@/components/ImageCarousel";
 const mockProducts = [
   {
     id: "1",
-    title: "Elegant Summer Dress",
+    title: "Elegant Summer Dress yyyyyoooooo wassup",
     price: 89.99,
     images: [
       "https://images.unsplash.com/photo-1595777457583-95e059d581b8?w=800&h=800&fit=crop",
