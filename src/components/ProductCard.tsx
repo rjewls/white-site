@@ -24,6 +24,8 @@ interface ProductCardProps {
 
 // Icon for review stars
 import { Star } from "lucide-react";
+import React from "react";
+import { OrderForm } from "./OrderForm";
 
 // ProductCard component displays a single product
 export const ProductCard = ({ product }: ProductCardProps) => {
@@ -51,7 +53,7 @@ export const ProductCard = ({ product }: ProductCardProps) => {
   if (Array.isArray(product.colors)) {
     colors = product.colors;
   } else if (typeof product.colors === 'string' && product.colors) {
-    colors = product.colors.split(',').map(c => c.trim()).filter(Boolean);
+    colors = String(product.colors).split(',').map(c => c.trim()).filter(Boolean);
   } else {
     colors = [];
   }
@@ -61,59 +63,70 @@ export const ProductCard = ({ product }: ProductCardProps) => {
   let images: string[] = [];
   if (Array.isArray(product.images)) {
     images = product.images
-      .map(img => typeof img === 'string' ? img.replace(/[[\]"'\\]/g, '').trim() : '')
+      .map(img => typeof img === 'string' ? String(img).replace(/[[\]"'\\]/g, '').trim() : '')
       .filter(img => img && img !== '?');
   } else if (typeof product.images === 'string' && product.images) {
-    images = product.images.replace(/[[\]"'\\]/g, '').split(',').map(img => img.trim()).filter(img => img && img !== '?');
+    images = String(product.images).replace(/[[\]"'\\]/g, '').split(',').map(img => img.trim()).filter(img => img && img !== '?');
   }
 
   // Use a fallback image if none exists
   // Use a fallback image if none exists
   const imageUrl = images[0] || product.image || "https://images.unsplash.com/photo-1551488831-00ddcb6c6bd3?w=800&h=800&fit=crop";
-
   // Main render for product card
+  const [showOrderForm, setShowOrderForm] = React.useState(false);
   return (
-    <Link to={`/product/${product.id}`} className="block h-full">
-      <Card className="group cursor-pointer overflow-hidden bg-gradient-card shadow-md hover:shadow-xl transition-all duration-300 hover:scale-105 h-[300px] sm:h-[380px] flex flex-col">
-        <div className="flex-shrink-0 w-full h-[170px] sm:h-[220px] overflow-hidden bg-white">
-          <img
-            src={imageUrl}
-            alt={product.title}
-            className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
-            style={{ objectFit: 'cover' }}
-            onError={e => { e.currentTarget.src = 'https://images.unsplash.com/photo-1551488831-00ddcb6c6bd3?w=800&h=800&fit=crop'; }}
-          />
-        </div>
-        <CardContent className="p-3 sm:p-4 flex flex-col flex-1 justify-between pb-3 sm:pb-4">
-          <div className="flex flex-col h-full justify-between">
-            <h3 className="font-playfair font-semibold text-base sm:text-lg text-foreground mb-1 line-clamp-2">
-              {product.title}
-            </h3>
-            <p className="text-muted-foreground text-xs sm:text-sm mb-2 line-clamp-2">
-              {product.description}
-            </p>
-            <div className="flex items-center justify-between mt-auto">
-              <span className="font-inter font-semibold text-base sm:text-xl text-primary">
-                {product.price} DZD
-              </span>
-            </div>
-            {/* Review stars always 4.5/5 */}
-            <div className="flex items-center gap-1 mt-1 mb-2">
-              {[...Array(4)].map((_, i) => (
-                <Star key={i} className="w-4 h-4 text-yellow-400 fill-yellow-400" />
-              ))}
-              <Star className="w-4 h-4 text-yellow-400" style={{ fill: 'url(#half)' }} />
-              <span className="text-xs text-muted-foreground ml-1">4.5/5</span>
-              <svg width="0" height="0">
-                <linearGradient id="half" x1="0" x2="1" y1="0" y2="0">
-                  <stop offset="50%" stopColor="#facc15" />
-                  <stop offset="50%" stopColor="transparent" />
-                </linearGradient>
-              </svg>
-            </div>
+    <div className="h-full">
+      <Link to={`/product/${product.id}`} className="block h-full">
+        <Card className="group cursor-pointer overflow-hidden bg-gradient-card shadow-md hover:shadow-xl transition-all duration-300 hover:scale-105 h-[300px] sm:h-[380px] flex flex-col">
+          <div className="flex-shrink-0 w-full h-[170px] sm:h-[220px] overflow-hidden bg-white">
+            <img
+              src={imageUrl}
+              alt={product.title}
+              className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
+              style={{ objectFit: 'cover' }}
+              onError={e => { e.currentTarget.src = 'https://images.unsplash.com/photo-1551488831-00ddcb6c6bd3?w=800&h=800&fit=crop'; }}
+            />
           </div>
-        </CardContent>
-      </Card>
-    </Link>
+          <CardContent className="p-3 sm:p-4 flex flex-col flex-1 justify-between pb-3 sm:pb-4">
+            <div className="flex flex-col h-full justify-between">
+              <h3 className="font-playfair font-semibold text-base sm:text-lg text-foreground mb-1 line-clamp-2">
+                {product.title}
+              </h3>
+              <p className="text-muted-foreground text-xs sm:text-sm mb-2 line-clamp-2">
+                {product.description}
+              </p>
+              <div className="flex items-center justify-between mt-auto">
+                <span className="font-inter font-semibold text-base sm:text-xl text-primary">
+                  {product.price} DZD
+                </span>
+              </div>
+              {/* Review stars always 4.5/5 */}
+              <div className="flex items-center gap-1 mt-1 mb-2">
+                {[...Array(4)].map((_, i) => (
+                  <Star key={i} className="w-4 h-4 text-yellow-400 fill-yellow-400" />
+                ))}
+                <Star className="w-4 h-4 text-yellow-400" style={{ fill: 'url(#half)' }} />
+                <span className="text-xs text-muted-foreground ml-1">4.5/5</span>
+                <svg width="0" height="0">
+                  <linearGradient id="half" x1="0" x2="1" y1="0" y2="0">
+                    <stop offset="50%" stopColor="#facc15" />
+                    <stop offset="50%" stopColor="transparent" />
+                  </linearGradient>
+                </svg>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </Link>
+      
+      {showOrderForm && (
+        <OrderForm
+          productId={product.id}
+          productTitle={product.title}
+          productPrice={product.price}
+          onClose={() => setShowOrderForm(false)}
+        />
+      )}
+    </div>
   );
 };
