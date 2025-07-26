@@ -76,30 +76,28 @@ const Admin = () => {
     setEditingProduct(product.id);
     // Helper to clean up array/stringified array
     const cleanArrayField = (field) => {
-      // If field is an array, flatten and clean each value
       if (Array.isArray(field)) {
         return field
-          .map((v) => {
-            // Remove all symbols, extra quotes, and backslashes
-            if (typeof v === "string") {
-              return v.replace(/[[\]"'\\]/g, "").trim();
-            }
-            return v;
-          })
+          .map((v) => typeof v === "string" ? v.replace(/[[\]"'\\]/g, "").trim() : v)
           .filter(Boolean)
           .join(", ");
       }
-      // If field is a string, clean and split
       if (typeof field === "string") {
-        // Remove all symbols, extra quotes, and backslashes
         return field.replace(/[[\]"'\\]/g, "").split(",").map(s => s.trim()).filter(Boolean).join(", ");
       }
       return "";
     };
+    // Ensure images is always an array of URLs
+    let imagesArr = [];
+    if (Array.isArray(product.images)) {
+      imagesArr = product.images.filter(img => typeof img === "string" && img.trim() !== "");
+    } else if (typeof product.images === "string" && product.images.trim() !== "") {
+      imagesArr = product.images.split(",").map(img => img.trim()).filter(Boolean);
+    }
     setFormData({
       title: product.title,
       price: product.price?.toString(),
-      images: Array.isArray(product.images) ? [...product.images] : typeof product.images === "string" ? [product.images] : [],
+      images: imagesArr,
       description: product.description,
       colors: cleanArrayField(product.colors),
       sizes: cleanArrayField(product.sizes),
@@ -309,7 +307,7 @@ const Admin = () => {
                         {product.description}
                       </p>
                       <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                        <span>Price: ${product.price}</span>
+                        <span>Price: {product.price} DZD</span>
                         <span>Stock: {product.stock}</span>
                         <span className="flex items-center gap-1">Colors:
                           {(Array.isArray(product.colors)
@@ -365,6 +363,29 @@ const ProductForm = ({ formData, setFormData, onSave, onCancel }) => {
   // Local state for color picker value
   const [colorPickerValue, setColorPickerValue] = useState("#ffffff");
 
+  // Helper to delete image from Supabase Storage
+  const deleteImageFromSupabase = async (imgUrl) => {
+    try {
+      // Only handle Supabase URLs
+      if (!imgUrl.includes("product-images")) return;
+      // Extract file path from public URL
+      const urlParts = imgUrl.split("/product-images/");
+      if (urlParts.length < 2) return;
+      const filePath = decodeURIComponent(urlParts[1].split("?")[0]);
+      const { error } = await supabase.storage.from('product-images').remove([filePath]);
+      if (error) {
+        if (window && window.toast) window.toast({ title: "Image Delete Error", description: error.message, variant: "destructive" });
+        else alert("Image Delete Error: " + error.message);
+        return false;
+      }
+      return true;
+    } catch (err) {
+      if (window && window.toast) window.toast({ title: "Image Delete Error", description: err.message, variant: "destructive" });
+      else alert("Image Delete Error: " + err.message);
+      return false;
+    }
+  };
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
       <div>
@@ -404,19 +425,27 @@ const ProductForm = ({ formData, setFormData, onSave, onCancel }) => {
         <div className="flex gap-2 mt-2 flex-wrap">
           {formData.images && formData.images.length > 0 && formData.images.map((img, idx) => {
             let src = "";
+            let isSupabaseUrl = false;
             if (img && typeof img === "object" && "name" in img && "size" in img && "type" in img) {
               src = URL.createObjectURL(img);
             } else if (typeof img === "string") {
               src = img;
+              isSupabaseUrl = src.includes("product-images");
             }
             return (
               <div key={idx} className="relative group">
-                <img src={src} alt={`Product ${idx + 1}`} className="w-20 h-20 object-cover rounded" />
+                <img src={src} alt={`Product ${idx + 1}`} className="w-20 h-20 object-cover rounded" onError={e => {e.currentTarget.src = 'https://images.unsplash.com/photo-1551488831-00ddcb6c6bd3?w=200&h=200&fit=crop';}} />
                 <button
                   type="button"
                   className="absolute top-1 right-1 bg-white/80 rounded-full p-1 shadow group-hover:bg-red-500 group-hover:text-white"
                   title="Delete image"
-                  onClick={() => {
+                  onClick={async () => {
+                    // If Supabase URL, delete from bucket first
+                    if (isSupabaseUrl) {
+                      const success = await deleteImageFromSupabase(src);
+                      if (!success) return;
+                    }
+                    // Remove from local array
                     const newImages = formData.images.filter((_, i) => i !== idx);
                     setFormData({ ...formData, images: newImages });
                   }}
@@ -495,17 +524,27 @@ const ProductForm = ({ formData, setFormData, onSave, onCancel }) => {
               id="color-picker"
               value={colorPickerValue || "#ffffff"}
               onChange={e => {
-                const selected = e.target.value;
-                let colorsArr = Array.isArray(formData.colors) ? formData.colors : typeof formData.colors === 'string' && formData.colors ? formData.colors.split(',').map(c => c.trim()).filter(Boolean) : [];
-                // Remove any previous hex color (from picker) before adding new
-                colorsArr = colorsArr.filter(c => !/^#[0-9A-Fa-f]{6}$/.test(c));
-                setFormData({ ...formData, colors: [...colorsArr, selected] });
-                setColorPickerValue(selected);
+                setColorPickerValue(e.target.value);
               }}
               className="w-8 h-8 border rounded cursor-pointer"
               title="Pick a custom color"
             />
-            <span className="text-xs text-muted-foreground">Pick a custom color</span>
+            <Button
+              type="button"
+              variant="soft"
+              size="sm"
+              className="ml-2"
+              onClick={() => {
+                const selected = colorPickerValue;
+                let colorsArr = Array.isArray(formData.colors) ? formData.colors : typeof formData.colors === 'string' && formData.colors ? formData.colors.split(',').map(c => c.trim()).filter(Boolean) : [];
+                if (!colorsArr.includes(selected)) {
+                  setFormData({ ...formData, colors: [...colorsArr, selected] });
+                }
+              }}
+            >
+              Add Color
+            </Button>
+            <span className="text-xs text-muted-foreground">Pick a custom color and click Add</span>
           </div>
         </div>
       </div>

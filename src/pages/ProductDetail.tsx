@@ -174,7 +174,7 @@ const ProductDetail = () => {
                 </h1>
                 <div className="flex items-center gap-4 mb-4">
                   <span className="font-inter text-3xl font-bold text-primary ">
-                    ${product.price}
+                    {product.price} DZD
                   </span>
                 </div>
                 {/* Color circles below price/title */}

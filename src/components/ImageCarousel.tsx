@@ -328,16 +328,17 @@ const ImageCarousel = ({ images, title, autoPlay = true, showThumbnails = true }
       {/* Full-Screen Modal */}
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
         <DialogContent className="max-w-none w-screen h-screen p-0 bg-black/95 flex items-center justify-center">
-          <div className="relative w-full h-full flex items-center justify-center">
-            {/* Close Button */}
-            <Button
-              variant="outline"
-              size="icon"
-              className="absolute top-4 right-4 z-50 bg-background/80 backdrop-blur-sm hover-scale"
+          <div className="relative w-full h-full flex items-center justify-center overflow-visible">
+            {/* Close Button - always visible, large, touch-friendly */}
+            <button
+              type="button"
+              aria-label="Close fullscreen"
               onClick={closeModal}
+              className="absolute top-4 right-4 z-50 bg-white/90 rounded-full p-3 shadow-lg border border-gray-300 flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-primary"
+              style={{ width: 56, height: 56, right: 16, top: 16 }}
             >
-              <X className="h-4 w-4" />
-            </Button>
+              <X className="h-7 w-7 text-black" />
+            </button>
 
             {/* Modal Image */}
             <div
@@ -400,6 +401,7 @@ const ImageCarousel = ({ images, title, autoPlay = true, showThumbnails = true }
                   variant="outline"
                   size="icon"
                   className="absolute right-4 top-1/2 -translate-y-1/2 bg-background/80 backdrop-blur-sm hover-scale"
+                  style={{ right: 16 }}
                   onClick={nextModalImage}
                 >
                   <ChevronRight className="h-4 w-4" />

@@ -29,6 +29,24 @@ import { Star } from "lucide-react";
 export const ProductCard = ({ product }: ProductCardProps) => {
   // Defensive: ensure colors is always an array of valid color strings
   // Use same color logic as ProductDetail page
+  // Map color names to hex codes for display
+  const colorMap: Record<string, string> = {
+    Red: '#ef4444',
+    Blue: '#3b82f6',
+    Green: '#22c55e',
+    Yellow: '#eab308',
+    Black: '#000000',
+    White: '#ffffff',
+    Purple: '#a21caf',
+    Pink: '#ec4899',
+    Orange: '#f97316',
+    Brown: '#92400e',
+    Gray: '#6b7280',
+    Cyan: '#06b6d4',
+    Teal: '#14b8a6',
+    Lime: '#84cc16',
+    Indigo: '#6366f1',
+  };
   let colors: string[] = [];
   if (Array.isArray(product.colors)) {
     colors = product.colors;
@@ -66,7 +84,7 @@ export const ProductCard = ({ product }: ProductCardProps) => {
             onError={e => { e.currentTarget.src = 'https://images.unsplash.com/photo-1551488831-00ddcb6c6bd3?w=800&h=800&fit=crop'; }}
           />
         </div>
-        <CardContent className="p-3 sm:p-4 flex flex-col flex-1 justify-between">
+        <CardContent className="p-3 sm:p-4 flex flex-col flex-1 justify-between pb-3 sm:pb-4">
           <div className="flex flex-col h-full justify-between">
             <h3 className="font-playfair font-semibold text-base sm:text-lg text-foreground mb-1 line-clamp-2">
               {product.title}
@@ -76,28 +94,11 @@ export const ProductCard = ({ product }: ProductCardProps) => {
             </p>
             <div className="flex items-center justify-between mt-auto">
               <span className="font-inter font-semibold text-base sm:text-xl text-primary">
-                ${product.price}
+                {product.price} DZD
               </span>
             </div>
-            {/* Color circles below price/title (copied from ProductDetail) */}
-            {colors.length > 0 && (
-              <div className="flex gap-1 mt-2">
-                {colors.map((color, idx) => {
-                  // Use fallback if color is invalid or empty
-                  const validColor = color && /^#([0-9a-fA-F]{3}){1,2}$|^rgb\(|^hsl\(|^[a-zA-Z]+$/.test(color) ? color : '#e5e7eb'; // Tailwind gray-200
-                  return (
-                    <span
-                      key={idx}
-                      className="w-4 h-4 rounded-full border border-border inline-block"
-                      style={{ backgroundColor: validColor }}
-                      title={color || 'No color'}
-                    />
-                  );
-                })}
-              </div>
-            )}
             {/* Review stars always 4.5/5 */}
-            <div className="flex items-center gap-1 mt-1">
+            <div className="flex items-center gap-1 mt-1 mb-2">
               {[...Array(4)].map((_, i) => (
                 <Star key={i} className="w-4 h-4 text-yellow-400 fill-yellow-400" />
               ))}
