@@ -1,9 +1,14 @@
+// React and Radix UI imports
 import * as React from "react"
+// Slot for custom component composition
 import { Slot } from "@radix-ui/react-slot"
+// Class variance authority for styling variants
 import { cva, type VariantProps } from "class-variance-authority"
 
+// Utility for merging class names
 import { cn } from "@/lib/utils"
 
+// Button style variants using cva
 const buttonVariants = cva(
   "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
   {
@@ -36,6 +41,7 @@ const buttonVariants = cva(
   }
 )
 
+// ButtonProps interface for button component
 export interface ButtonProps
   extends React.ButtonHTMLAttributes<HTMLButtonElement>,
     VariantProps<typeof buttonVariants> {

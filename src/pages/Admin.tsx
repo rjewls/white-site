@@ -153,8 +153,16 @@ const Admin = () => {
       price: parseFloat(formData.price),
       images: imageUrls,
       description: formData.description,
-      colors: formData.colors.split(",").map(c => c.trim()).filter(c => c),
-      sizes: formData.sizes.split(",").map(s => s.trim()).filter(s => s),
+      colors: Array.isArray(formData.colors)
+        ? formData.colors.filter(c => c)
+        : typeof formData.colors === 'string' && formData.colors
+          ? formData.colors.split(',').map(c => c.trim()).filter(c => c)
+          : [],
+      sizes: typeof formData.sizes === 'string'
+        ? formData.sizes.split(',').map(s => s.trim()).filter(s => s)
+        : Array.isArray(formData.sizes)
+          ? formData.sizes.filter(s => s)
+          : [],
       stock: parseInt(formData.stock) || 0
     };
 
@@ -303,14 +311,19 @@ const Admin = () => {
                       <div className="flex items-center gap-4 text-sm text-muted-foreground">
                         <span>Price: ${product.price}</span>
                         <span>Stock: {product.stock}</span>
-                        <span>Colors: {
-                          (Array.isArray(product.colors)
+                        <span className="flex items-center gap-1">Colors:
+                          {(Array.isArray(product.colors)
                             ? product.colors
                             : typeof product.colors === "string"
                               ? product.colors.split(",").map(c => c.trim()).filter(Boolean)
                               : []
-                          ).join(", ")
-                        }</span>
+                          ).map((color, idx) => (
+                            <span key={idx} className="inline-flex items-center gap-1">
+                              <span style={{ background: color, border: '1px solid #ccc', width: 16, height: 16, borderRadius: '50%', display: 'inline-block' }} />
+                              <span className="sr-only">{color}</span>
+                            </span>
+                          ))}
+                        </span>
                         <span>Sizes: {
                           (Array.isArray(product.sizes)
                             ? product.sizes
@@ -349,6 +362,9 @@ const Admin = () => {
 };
 
 const ProductForm = ({ formData, setFormData, onSave, onCancel }) => {
+  // Local state for color picker value
+  const [colorPickerValue, setColorPickerValue] = useState("#ffffff");
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
       <div>
@@ -424,13 +440,74 @@ const ProductForm = ({ formData, setFormData, onSave, onCancel }) => {
       </div>
 
       <div>
-        <Label htmlFor="colors">Colors (comma-separated)</Label>
-        <Input
-          id="colors"
-          value={formData.colors}
-          onChange={(e) => setFormData({...formData, colors: e.target.value})}
-          placeholder="Red, Blue, Green"
-        />
+        <Label htmlFor="colors">Colors</Label>
+        <div className="flex flex-col gap-2">
+          <div className="flex gap-2 flex-wrap min-h-[28px]">
+            {/* Show blank thumbnails if no colors selected */}
+            {(!formData.colors || formData.colors.length === 0) && (
+              <span className="w-7 h-7 rounded-full border border-dashed border-border bg-muted flex items-center justify-center text-xs text-muted-foreground">?</span>
+            )}
+            {/* Show selected color circles with remove button */}
+            {(Array.isArray(formData.colors) ? formData.colors : typeof formData.colors === 'string' && formData.colors ? formData.colors.split(',').map(c => c.trim()).filter(Boolean) : []).map((color, idx) => (
+              <span key={idx} className="relative inline-flex items-center">
+                <span style={{ background: color, border: '1px solid #ccc', width: 28, height: 28, borderRadius: '50%', display: 'inline-block' }} />
+                <button
+                  type="button"
+                  className="absolute -top-1 -right-1 bg-white border border-border rounded-full p-0.5 text-xs text-muted-foreground hover:bg-red-500 hover:text-white"
+                  onClick={() => {
+                    const colorsArr = Array.isArray(formData.colors) ? formData.colors : typeof formData.colors === 'string' ? formData.colors.split(',').map(c => c.trim()).filter(Boolean) : [];
+                    const newColors = colorsArr.filter((_, i) => i !== idx);
+                    setFormData({ ...formData, colors: newColors });
+                  }}
+                  tabIndex={-1}
+                  aria-label="Remove color"
+                >
+                  ×
+                </button>
+              </span>
+            ))}
+          </div>
+          {/* Dropdown to add a new color */}
+          <select
+            id="colors"
+            value=""
+            onChange={e => {
+              const selected = e.target.value;
+              if (!selected) return;
+              const colorsArr = Array.isArray(formData.colors) ? formData.colors : typeof formData.colors === 'string' && formData.colors ? formData.colors.split(',').map(c => c.trim()).filter(Boolean) : [];
+              if (!colorsArr.includes(selected)) {
+                setFormData({ ...formData, colors: [...colorsArr, selected] });
+              }
+            }}
+            className="w-full border rounded px-3 py-2 focus:outline-none focus:ring mt-2"
+          >
+            <option value="">Add color...</option>
+            {['Red', 'Blue', 'Green', 'Yellow', 'Black', 'White', 'Purple', 'Pink', 'Orange', 'Brown', 'Gray', 'Cyan', 'Teal', 'Lime', 'Indigo'].map(color => (
+              <option key={color} value={color}>
+                {color}
+              </option>
+            ))}
+          </select>
+          {/* Color picker to add a custom color */}
+          <div className="flex items-center gap-2 mt-2">
+            <input
+              type="color"
+              id="color-picker"
+              value={colorPickerValue || "#ffffff"}
+              onChange={e => {
+                const selected = e.target.value;
+                let colorsArr = Array.isArray(formData.colors) ? formData.colors : typeof formData.colors === 'string' && formData.colors ? formData.colors.split(',').map(c => c.trim()).filter(Boolean) : [];
+                // Remove any previous hex color (from picker) before adding new
+                colorsArr = colorsArr.filter(c => !/^#[0-9A-Fa-f]{6}$/.test(c));
+                setFormData({ ...formData, colors: [...colorsArr, selected] });
+                setColorPickerValue(selected);
+              }}
+              className="w-8 h-8 border rounded cursor-pointer"
+              title="Pick a custom color"
+            />
+            <span className="text-xs text-muted-foreground">Pick a custom color</span>
+          </div>
+        </div>
       </div>
 
       <div>

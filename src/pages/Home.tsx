@@ -1,26 +1,51 @@
+// React hooks for state and lifecycle
 import { useState, useEffect } from "react";
+// Supabase client for database operations
 import { supabase } from "@/lib/supabaseClient";
+// Top navigation bar
 import { Navigation } from "@/components/Navigation";
+// Product card component
 import { ProductCard } from "@/components/ProductCard";
+// Hero image for homepage
 import heroImage from "@/assets/hero-image.jpg";
 
 
+// Main component for homepage
 const Home = () => {
+  // State for products list
   const [products, setProducts] = useState([]);
 
+  // Fetch products from Supabase when component mounts
   useEffect(() => {
+    // Async function to get products
     const fetchProducts = async () => {
       const { data, error } = await supabase
         .from('products')
         .select('*')
         .order('created_at', { ascending: false });
       if (!error) {
-        setProducts(data || []);
+        // Ensure images field is always a valid array of URLs for each product
+        const cleanArrayField = (field) => {
+          if (Array.isArray(field)) {
+            return field.filter(img => typeof img === 'string' && img.trim() !== '');
+          }
+          if (typeof field === 'string' && field) {
+            return field.replace(/[[\]"'\\]/g, "").split(',').map(img => img.trim()).filter(Boolean);
+          }
+          return [];
+        };
+        const productsWithImages = (data || []).map(product => ({
+      ...product,
+      images: cleanArrayField(product.images),
+      colors: typeof product.colors === 'string' ? product.colors.split(',').map(c => c.trim()).filter(Boolean) : Array.isArray(product.colors) ? product.colors.filter(c => typeof c === 'string' && c.trim() !== '') : []
+    }));
+        setProducts(productsWithImages);
       }
     };
     fetchProducts();
   }, []);
 
+  // Main render for homepage
   return (
     <div className="min-h-screen bg-gradient-soft">
       <Navigation />

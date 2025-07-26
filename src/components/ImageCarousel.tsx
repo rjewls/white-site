@@ -41,14 +41,15 @@ const ImageCarousel = ({ images, title, autoPlay = true, showThumbnails = true }
   const modalLastTapTime = useRef(0);
 
   // Continuous auto-play animation
+  // Auto-play only through valid images
   useEffect(() => {
-    if (autoPlay && images.length > 1 && !isPaused && !isDragging) {
+    if (autoPlay && safeImages.length > 1 && !isPaused && !isDragging) {
       const interval = setInterval(() => {
-        setCurrentIndex((prev) => (prev + 1) % images.length);
+        setCurrentIndex((prev) => (prev + 1) % safeImages.length);
       }, 3000);
       return () => clearInterval(interval);
     }
-  }, [autoPlay, images.length, isPaused, isDragging]);
+  }, [autoPlay, safeImages.length, isPaused, isDragging]);
 
   // Touch event handlers for swipe functionality
   const handleTouchStart = (e: React.TouchEvent) => {
@@ -73,10 +74,10 @@ const ImageCarousel = ({ images, title, autoPlay = true, showThumbnails = true }
     if (Math.abs(diff) > threshold) {
       if (diff > 0) {
         // Swiped right - go to previous
-        setCurrentIndex((prev) => (prev - 1 + images.length) % images.length);
+        setCurrentIndex((prev) => (prev - 1 + safeImages.length) % safeImages.length);
       } else {
         // Swiped left - go to next
-        setCurrentIndex((prev) => (prev + 1) % images.length);
+        setCurrentIndex((prev) => (prev + 1) % safeImages.length);
       }
     }
     
@@ -88,14 +89,14 @@ const ImageCarousel = ({ images, title, autoPlay = true, showThumbnails = true }
   const nextSlide = () => {
     if (isAnimating) return;
     setIsAnimating(true);
-    setCurrentIndex((prev) => (prev + 1) % images.length);
+    setCurrentIndex((prev) => (prev + 1) % safeImages.length);
     setTimeout(() => setIsAnimating(false), 300);
   };
 
   const prevSlide = () => {
     if (isAnimating) return;
     setIsAnimating(true);
-    setCurrentIndex((prev) => (prev - 1 + images.length) % images.length);
+    setCurrentIndex((prev) => (prev - 1 + safeImages.length) % safeImages.length);
     setTimeout(() => setIsAnimating(false), 300);
   };
 
@@ -125,12 +126,12 @@ const ImageCarousel = ({ images, title, autoPlay = true, showThumbnails = true }
   };
 
   const nextModalImage = () => {
-    setModalImageIndex((prev) => (prev + 1) % images.length);
+    setModalImageIndex((prev) => (prev + 1) % safeImages.length);
     resetModalZoom();
   };
 
   const prevModalImage = () => {
-    setModalImageIndex((prev) => (prev - 1 + images.length) % images.length);
+    setModalImageIndex((prev) => (prev - 1 + safeImages.length) % safeImages.length);
     resetModalZoom();
   };
 
@@ -195,7 +196,8 @@ const ImageCarousel = ({ images, title, autoPlay = true, showThumbnails = true }
         const newZoom = Math.min(Math.max(modalZoom * scale, 0.5), 4);
         setModalZoom(newZoom);
         
-        if (newZoom === 1) {
+        // If zoomed all the way out, center the image
+        if (Math.abs(newZoom - 1) < 0.01) {
           setModalPanX(0);
           setModalPanY(0);
         }
@@ -231,13 +233,14 @@ const ImageCarousel = ({ images, title, autoPlay = true, showThumbnails = true }
     const newZoom = Math.min(Math.max(modalZoom * zoomDelta, 0.5), 4);
     setModalZoom(newZoom);
     
-    if (newZoom === 1) {
+    // If zoomed all the way out, center the image
+    if (Math.abs(newZoom - 1) < 0.01) {
       setModalPanX(0);
       setModalPanY(0);
     }
   };
 
-  if (!images.length) {
+  if (!safeImages.length) {
     return (
       <div className="aspect-square bg-muted rounded-lg flex items-center justify-center">
         <p className="text-muted-foreground">No images available</p>
@@ -275,29 +278,7 @@ const ImageCarousel = ({ images, title, autoPlay = true, showThumbnails = true }
           ))}
         </div>
         
-        {/* Navigation Arrows */}
-        {images.length > 1 && (
-          <>
-            <Button
-              variant="outline"
-              size="icon"
-              className="absolute left-4 top-1/2 -translate-y-1/2 bg-background/80 backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity duration-200 hover-scale"
-              onClick={prevSlide}
-              disabled={isAnimating}
-            >
-              <ChevronLeft className="h-4 w-4" />
-            </Button>
-            <Button
-              variant="outline"
-              size="icon"
-              className="absolute right-4 top-1/2 -translate-y-1/2 bg-background/80 backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity duration-200 hover-scale"
-              onClick={nextSlide}
-              disabled={isAnimating}
-            >
-              <ChevronRight className="h-4 w-4" />
-            </Button>
-          </>
-        )}
+        // Navigation arrows removed from main carousel (thumbnails below are used for navigation)
 
         {/* Dots Indicator */}
         {safeImages.length > 1 && (
@@ -321,7 +302,7 @@ const ImageCarousel = ({ images, title, autoPlay = true, showThumbnails = true }
       {/* Thumbnail Gallery */}
       {showThumbnails && safeImages.length > 1 && (
         <div className="grid grid-cols-4 gap-4">
-          {safeImages.map((image, index) => (
+            {safeImages.map((image, index) => (
             <button
               key={index}
               onClick={() => goToSlide(index)}
@@ -364,6 +345,31 @@ const ImageCarousel = ({ images, title, autoPlay = true, showThumbnails = true }
               onTouchMove={handleModalTouchMove}
               onTouchEnd={handleModalTouchEnd}
               onWheel={handleModalWheel}
+              onMouseDown={e => {
+                if (modalZoom > 1) {
+                  setIsModalPanning(true);
+                  modalTouchStartX.current = e.clientX;
+                  modalTouchStartY.current = e.clientY;
+                  modalTouchCurrentX.current = e.clientX;
+                  modalTouchCurrentY.current = e.clientY;
+                }
+              }}
+              onMouseMove={e => {
+                if (modalZoom > 1 && isModalPanning) {
+                  modalTouchCurrentX.current = e.clientX;
+                  modalTouchCurrentY.current = e.clientY;
+                  const deltaX = modalTouchCurrentX.current - modalTouchStartX.current;
+                  const deltaY = modalTouchCurrentY.current - modalTouchStartY.current;
+                  setModalPanX(deltaX);
+                  setModalPanY(deltaY);
+                }
+              }}
+              onMouseUp={() => {
+                setIsModalPanning(false);
+              }}
+              onMouseLeave={() => {
+                setIsModalPanning(false);
+              }}
             >
               <img
                 src={safeImages[modalImageIndex] || "https://images.unsplash.com/photo-1551488831-00ddcb6c6bd3?w=800&h=800&fit=crop"}
@@ -379,7 +385,7 @@ const ImageCarousel = ({ images, title, autoPlay = true, showThumbnails = true }
             </div>
 
             {/* Modal Navigation */}
-            {images.length > 1 && (
+        {safeImages.length > 1 && (
               <>
                 <Button
                   variant="outline"
