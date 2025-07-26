@@ -82,13 +82,18 @@ export const ProductCard = ({ product }: ProductCardProps) => {
             {/* Color circles below price/title (copied from ProductDetail) */}
             {colors.length > 0 && (
               <div className="flex gap-1 mt-2">
-                {colors.map((color, idx) => (
-                  <span
-                    key={idx}
-                    className="w-4 h-4 rounded-full border border-border inline-block"
-                    style={{ backgroundColor: color }}
-                  />
-                ))}
+                {colors.map((color, idx) => {
+                  // Use fallback if color is invalid or empty
+                  const validColor = color && /^#([0-9a-fA-F]{3}){1,2}$|^rgb\(|^hsl\(|^[a-zA-Z]+$/.test(color) ? color : '#e5e7eb'; // Tailwind gray-200
+                  return (
+                    <span
+                      key={idx}
+                      className="w-4 h-4 rounded-full border border-border inline-block"
+                      style={{ backgroundColor: validColor }}
+                      title={color || 'No color'}
+                    />
+                  );
+                })}
               </div>
             )}
             {/* Review stars always 4.5/5 */}
