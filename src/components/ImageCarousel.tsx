@@ -253,6 +253,7 @@ const ImageCarousel = ({ images, title, autoPlay = true, showThumbnails = true }
       {/* Main Image Carousel */}
       <div 
         className="relative aspect-square overflow-hidden rounded-lg bg-background group cursor-grab active:cursor-grabbing"
+        style={{ touchAction: 'pan-y' }}
         onMouseEnter={() => setIsPaused(true)}
         onMouseLeave={() => setIsPaused(false)}
       >
