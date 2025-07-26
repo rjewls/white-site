@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { useEffect } from "react";
+import { supabase } from "@/lib/supabaseClient";
 import { Navigation } from "@/components/Navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -8,41 +10,44 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { Plus, Edit, Trash2, Save, X } from "lucide-react";
 
-// Mock product data - will be replaced with Supabase
-const initialProducts = [
-  {
-    id: "1",
-    title: "Elegant Summer Dress",
-    price: 89.99,
-    images: [
-      "https://images.unsplash.com/photo-1595777457583-95e059d581b8?w=800&h=800&fit=crop",
-      "https://images.unsplash.com/photo-1566479179817-c4fdb8c50a8e?w=800&h=800&fit=crop",
-      "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=800&h=800&fit=crop"
-    ],
-    description: "Beautiful flowing dress perfect for summer occasions",
-    colors: ["Pink", "Light Pink", "Rose"],
-    sizes: ["XS", "S", "M", "L", "XL"],
-    stock: 15
-  },
-  {
-    id: "2",
-    title: "Chic Blouse Collection", 
-    price: 59.99,
-    images: [
-      "https://images.unsplash.com/photo-1551488831-00ddcb6c6bd3?w=800&h=800&fit=crop",
-      "https://images.unsplash.com/photo-1581090464777-f3220bbe1b8b?w=800&h=800&fit=crop",
-      "https://images.unsplash.com/photo-1465146344425-f00d5f5c8f07?w=800&h=800&fit=crop"
-    ],
-    description: "Versatile blouse for work and casual wear",
-    colors: ["White", "Light Pink", "Gray"],
-    sizes: ["XS", "S", "M", "L", "XL"],
-    stock: 20
-  }
-];
+// Products will be fetched from Supabase
 
 const Admin = () => {
   const { toast } = useToast();
-  const [products, setProducts] = useState(initialProducts);
+  const [products, setProducts] = useState([]);
+  // Fetch products from Supabase on mount
+  useEffect(() => {
+    const fetchProducts = async () => {
+      const { data, error } = await supabase
+        .from('products')
+        .select('*')
+        .order('created_at', { ascending: false });
+      if (error) {
+        toast({ title: "Error fetching products", description: error.message, variant: "destructive" });
+      } else {
+        // Clean up colors, sizes, images for every product
+        const cleanArrayField = (field) => {
+          if (Array.isArray(field)) {
+            return field
+              .map((v) => typeof v === "string" ? v.replace(/[[\]"'\\]/g, "").trim() : v)
+              .filter(Boolean)
+              .join(", ");
+          }
+          if (typeof field === "string") {
+            return field.replace(/[[\]"'\\]/g, "").split(",").map(s => s.trim()).filter(Boolean).join(", ");
+          }
+          return "";
+        };
+        setProducts((data || []).map(product => ({
+          ...product,
+          colors: cleanArrayField(product.colors),
+          sizes: cleanArrayField(product.sizes),
+          images: cleanArrayField(product.images)
+        })));
+      }
+    };
+    fetchProducts();
+  }, []);
   const [editingProduct, setEditingProduct] = useState(null);
   const [showAddForm, setShowAddForm] = useState(false);
   const [formData, setFormData] = useState({
@@ -69,19 +74,41 @@ const Admin = () => {
 
   const handleEdit = (product) => {
     setEditingProduct(product.id);
+    // Helper to clean up array/stringified array
+    const cleanArrayField = (field) => {
+      // If field is an array, flatten and clean each value
+      if (Array.isArray(field)) {
+        return field
+          .map((v) => {
+            // Remove all symbols, extra quotes, and backslashes
+            if (typeof v === "string") {
+              return v.replace(/[[\]"'\\]/g, "").trim();
+            }
+            return v;
+          })
+          .filter(Boolean)
+          .join(", ");
+      }
+      // If field is a string, clean and split
+      if (typeof field === "string") {
+        // Remove all symbols, extra quotes, and backslashes
+        return field.replace(/[[\]"'\\]/g, "").split(",").map(s => s.trim()).filter(Boolean).join(", ");
+      }
+      return "";
+    };
     setFormData({
       title: product.title,
-      price: product.price.toString(),
-      images: [...product.images],
+      price: product.price?.toString(),
+      images: Array.isArray(product.images) ? [...product.images] : typeof product.images === "string" ? [product.images] : [],
       description: product.description,
-      colors: product.colors.join(", "),
-      sizes: product.sizes.join(", "),
-      stock: product.stock.toString()
+      colors: cleanArrayField(product.colors),
+      sizes: cleanArrayField(product.sizes),
+      stock: product.stock?.toString()
     });
     setShowAddForm(false);
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!formData.title || !formData.price || !formData.description) {
       toast({
         title: "Missing Information",
@@ -91,12 +118,40 @@ const Admin = () => {
       return;
     }
 
+    // Upload any File objects in formData.images to Supabase Storage
+    let imageUrls = [];
+    for (const img of formData.images) {
+      if (img && typeof img === "object" && "name" in img && "size" in img && "type" in img) {
+        // Validate file type and size
+        if (!img.type.startsWith("image/")) {
+          toast({ title: "Invalid file type", description: "Only image files are allowed.", variant: "destructive" });
+          continue;
+        }
+        if (img.size > 5 * 1024 * 1024) { // 5MB limit
+          toast({ title: "File too large", description: "Max file size is 5MB.", variant: "destructive" });
+          continue;
+        }
+        const filePath = `${Date.now()}-${img.name}`;
+        const { data, error } = await supabase.storage.from('product-images').upload(filePath, img);
+        if (error) {
+          toast({ title: "Image Upload Error", description: error.message, variant: "destructive" });
+          console.error("Supabase upload error:", error, img);
+        } else {
+          const publicUrl = supabase.storage.from('product-images').getPublicUrl(filePath).data.publicUrl;
+          imageUrls.push(publicUrl);
+        }
+      } else if (typeof img === "string" && img.trim() !== "") {
+        imageUrls.push(img);
+      }
+    }
+    if (imageUrls.length === 0) {
+      imageUrls = ["https://images.unsplash.com/photo-1551488831-00ddcb6c6bd3?w=800&h=800&fit=crop"];
+    }
+
     const productData = {
       title: formData.title,
       price: parseFloat(formData.price),
-      images: formData.images.filter(img => img.trim() !== "").length > 0 
-        ? formData.images.filter(img => img.trim() !== "")
-        : ["https://images.unsplash.com/photo-1551488831-00ddcb6c6bd3?w=800&h=800&fit=crop"],
+      images: imageUrls,
       description: formData.description,
       colors: formData.colors.split(",").map(c => c.trim()).filter(c => c),
       sizes: formData.sizes.split(",").map(s => s.trim()).filter(s => s),
@@ -104,31 +159,45 @@ const Admin = () => {
     };
 
     if (editingProduct) {
-      // Update existing product
-      setProducts(products.map(p => 
-        p.id === editingProduct 
-          ? { ...p, ...productData }
-          : p
-      ));
-      toast({
-        title: "Product Updated",
-        description: "Product has been updated successfully"
-      });
-      setEditingProduct(null);
+      // Update existing product in Supabase
+      supabase
+        .from('products')
+        .update(productData)
+        .eq('id', editingProduct)
+        .then(({ error }) => {
+          if (error) {
+            toast({ title: "Error updating product", description: error.message, variant: "destructive" });
+          } else {
+            toast({ title: "Product Updated", description: "Product has been updated successfully" });
+            // Refetch products
+            supabase
+              .from('products')
+              .select('*')
+              .order('created_at', { ascending: false })
+              .then(({ data }) => setProducts(data || []));
+            setEditingProduct(null);
+          }
+        });
     } else {
-      // Add new product
-      const newProduct = {
-        id: Date.now().toString(),
-        ...productData
-      };
-      setProducts([...products, newProduct]);
-      toast({
-        title: "Product Added",
-        description: "New product has been added successfully"
-      });
-      setShowAddForm(false);
+      // Add new product to Supabase
+      supabase
+        .from('products')
+        .insert([productData])
+        .then(({ error }) => {
+          if (error) {
+            toast({ title: "Error adding product", description: error.message, variant: "destructive" });
+          } else {
+            toast({ title: "Product Added", description: "New product has been added successfully" });
+            // Refetch products
+            supabase
+              .from('products')
+              .select('*')
+              .order('created_at', { ascending: false })
+              .then(({ data }) => setProducts(data || []));
+            setShowAddForm(false);
+          }
+        });
     }
-    
     resetForm();
   };
 
@@ -139,11 +208,24 @@ const Admin = () => {
   };
 
   const handleDelete = (productId) => {
-    setProducts(products.filter(p => p.id !== productId));
-    toast({
-      title: "Product Deleted",
-      description: "Product has been removed successfully"
-    });
+    // Delete product from Supabase
+    supabase
+      .from('products')
+      .delete()
+      .eq('id', productId)
+      .then(({ error }) => {
+        if (error) {
+          toast({ title: "Error deleting product", description: error.message, variant: "destructive" });
+        } else {
+          toast({ title: "Product Deleted", description: "Product has been removed successfully" });
+          // Refetch products
+          supabase
+            .from('products')
+            .select('*')
+            .order('created_at', { ascending: false })
+            .then(({ data }) => setProducts(data || []));
+        }
+      });
   };
 
   return (
@@ -197,7 +279,7 @@ const Admin = () => {
                 ) : (
                   <div className="flex items-center gap-6">
                     <div className="flex gap-2">
-                      {product.images.slice(0, 3).map((image, index) => (
+                      {(Array.isArray(product.images) ? product.images : typeof product.images === 'string' && product.images ? (product.images as string).split(',').map(img => img.trim()).filter(Boolean) : []).slice(0, 3).map((image, index) => (
                         <img
                           key={index}
                           src={image}
@@ -205,9 +287,9 @@ const Admin = () => {
                           className="w-16 h-16 object-cover rounded-lg"
                         />
                       ))}
-                      {product.images.length > 3 && (
+                      {(Array.isArray(product.images) ? product.images : typeof product.images === 'string' && product.images ? (product.images as string).split(',').map(img => img.trim()).filter(Boolean) : []).length > 3 && (
                         <div className="w-16 h-16 bg-muted rounded-lg flex items-center justify-center text-xs text-muted-foreground">
-                          +{product.images.length - 3}
+                          +{(Array.isArray(product.images) ? product.images : typeof product.images === 'string' && product.images ? (product.images as string).split(',').map(img => img.trim()).filter(Boolean) : []).length - 3}
                         </div>
                       )}
                     </div>
@@ -221,8 +303,22 @@ const Admin = () => {
                       <div className="flex items-center gap-4 text-sm text-muted-foreground">
                         <span>Price: ${product.price}</span>
                         <span>Stock: {product.stock}</span>
-                        <span>Colors: {product.colors.join(", ")}</span>
-                        <span>Sizes: {product.sizes.join(", ")}</span>
+                        <span>Colors: {
+                          (Array.isArray(product.colors)
+                            ? product.colors
+                            : typeof product.colors === "string"
+                              ? product.colors.split(",").map(c => c.trim()).filter(Boolean)
+                              : []
+                          ).join(", ")
+                        }</span>
+                        <span>Sizes: {
+                          (Array.isArray(product.sizes)
+                            ? product.sizes
+                            : typeof product.sizes === "string"
+                              ? product.sizes.split(",").map(s => s.trim()).filter(Boolean)
+                              : []
+                          ).join(", ")
+                        }</span>
                       </div>
                     </div>
                     <div className="flex gap-2">
@@ -279,42 +375,41 @@ const ProductForm = ({ formData, setFormData, onSave, onCancel }) => {
 
       <div className="md:col-span-2">
         <Label>Product Images</Label>
-        <div className="space-y-2">
-          {formData.images.map((image, index) => (
-            <div key={index} className="flex gap-2">
-              <Input
-                value={image}
-                onChange={(e) => {
-                  const newImages = [...formData.images];
-                  newImages[index] = e.target.value;
-                  setFormData({...formData, images: newImages});
-                }}
-                placeholder={`Image URL ${index + 1}`}
-              />
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={() => {
-                  const newImages = formData.images.filter((_, i) => i !== index);
-                  setFormData({...formData, images: newImages.length ? newImages : [""]});
-                }}
-                disabled={formData.images.length === 1}
-              >
-                <X className="h-4 w-4" />
-              </Button>
-            </div>
-          ))}
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={() => setFormData({...formData, images: [...formData.images, ""]})}
-            className="flex items-center gap-2"
-          >
-            <Plus className="h-4 w-4" />
-            Add Image
-          </Button>
+        <input
+          type="file"
+          multiple
+          accept="image/*"
+          onChange={(e) => {
+            const files = Array.from(e.target.files || []);
+            if (files.length === 0) return;
+            setFormData({ ...formData, images: [...formData.images, ...files] });
+          }}
+        />
+        <div className="flex gap-2 mt-2 flex-wrap">
+          {formData.images && formData.images.length > 0 && formData.images.map((img, idx) => {
+            let src = "";
+            if (img && typeof img === "object" && "name" in img && "size" in img && "type" in img) {
+              src = URL.createObjectURL(img);
+            } else if (typeof img === "string") {
+              src = img;
+            }
+            return (
+              <div key={idx} className="relative group">
+                <img src={src} alt={`Product ${idx + 1}`} className="w-20 h-20 object-cover rounded" />
+                <button
+                  type="button"
+                  className="absolute top-1 right-1 bg-white/80 rounded-full p-1 shadow group-hover:bg-red-500 group-hover:text-white"
+                  title="Delete image"
+                  onClick={() => {
+                    const newImages = formData.images.filter((_, i) => i !== idx);
+                    setFormData({ ...formData, images: newImages });
+                  }}
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+            );
+          })}
         </div>
       </div>
 

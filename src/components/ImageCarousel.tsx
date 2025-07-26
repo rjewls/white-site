@@ -18,6 +18,13 @@ const ImageCarousel = ({ images, title, autoPlay = true, showThumbnails = true }
   const [modalImageIndex, setModalImageIndex] = useState(0);
   const touchStartX = useRef(0);
   const touchCurrentX = useRef(0);
+
+  // Defensive: ensure images is always an array of valid URLs
+  const safeImages = Array.isArray(images)
+    ? images.filter(img => typeof img === "string" && img.trim() !== "")
+    : typeof images === "string"
+      ? images.split(",").map(i => i.trim()).filter(Boolean)
+      : [];
   const [isDragging, setIsDragging] = useState(false);
   const [dragOffset, setDragOffset] = useState(0);
   
@@ -255,7 +262,7 @@ const ImageCarousel = ({ images, title, autoPlay = true, showThumbnails = true }
           onTouchMove={handleTouchMove}
           onTouchEnd={handleTouchEnd}
         >
-          {images.map((image, index) => (
+          {safeImages.map((image, index) => (
             <img
               key={index}
               src={image}
@@ -263,6 +270,7 @@ const ImageCarousel = ({ images, title, autoPlay = true, showThumbnails = true }
               className="w-full h-full object-cover flex-shrink-0 select-none cursor-pointer"
               draggable={false}
               onClick={() => openModal(index)}
+              onError={e => { e.currentTarget.src = "https://images.unsplash.com/photo-1551488831-00ddcb6c6bd3?w=800&h=800&fit=crop"; }}
             />
           ))}
         </div>
@@ -292,9 +300,9 @@ const ImageCarousel = ({ images, title, autoPlay = true, showThumbnails = true }
         )}
 
         {/* Dots Indicator */}
-        {images.length > 1 && (
+        {safeImages.length > 1 && (
           <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2">
-            {images.map((_, index) => (
+            {safeImages.map((_, index) => (
               <button
                 key={index}
                 onClick={() => goToSlide(index)}
@@ -311,9 +319,9 @@ const ImageCarousel = ({ images, title, autoPlay = true, showThumbnails = true }
       </div>
 
       {/* Thumbnail Gallery */}
-      {showThumbnails && images.length > 1 && (
+      {showThumbnails && safeImages.length > 1 && (
         <div className="grid grid-cols-4 gap-4">
-          {images.map((image, index) => (
+          {safeImages.map((image, index) => (
             <button
               key={index}
               onClick={() => goToSlide(index)}
@@ -328,6 +336,7 @@ const ImageCarousel = ({ images, title, autoPlay = true, showThumbnails = true }
                 src={image}
                 alt={`${title} thumbnail ${index + 1}`}
                 className="w-full h-full object-cover"
+                onError={e => { e.currentTarget.src = "https://images.unsplash.com/photo-1551488831-00ddcb6c6bd3?w=800&h=800&fit=crop"; }}
               />
             </button>
           ))}
@@ -357,7 +366,7 @@ const ImageCarousel = ({ images, title, autoPlay = true, showThumbnails = true }
               onWheel={handleModalWheel}
             >
               <img
-                src={images[modalImageIndex]}
+                src={safeImages[modalImageIndex] || "https://images.unsplash.com/photo-1551488831-00ddcb6c6bd3?w=800&h=800&fit=crop"}
                 alt={`${title} ${modalImageIndex + 1}`}
                 className="max-w-full max-h-full object-contain transition-transform duration-200 select-none"
                 style={{
@@ -365,6 +374,7 @@ const ImageCarousel = ({ images, title, autoPlay = true, showThumbnails = true }
                   cursor: modalZoom > 1 ? (isModalPanning ? 'grabbing' : 'grab') : 'default'
                 }}
                 draggable={false}
+                onError={e => { e.currentTarget.src = "https://images.unsplash.com/photo-1551488831-00ddcb6c6bd3?w=800&h=800&fit=crop"; }}
               />
             </div>
 
@@ -390,7 +400,7 @@ const ImageCarousel = ({ images, title, autoPlay = true, showThumbnails = true }
 
                 {/* Modal Dots Indicator */}
                 <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex gap-2">
-                  {images.map((_, index) => (
+                  {safeImages.map((_, index) => (
                     <button
                       key={index}
                       onClick={() => setModalImageIndex(index)}

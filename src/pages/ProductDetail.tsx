@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { supabase } from "@/lib/supabaseClient";
 import { useParams } from "react-router-dom";
 import { Navigation } from "@/components/Navigation";
 import { Button } from "@/components/ui/button";
@@ -12,41 +13,7 @@ import { Heart, ShoppingCart, Star } from "lucide-react";
 import ImageCarousel from "@/components/ImageCarousel";
 
 // Mock product data - will be replaced with Supabase
-const mockProducts = [
-  {
-    id: "1",
-    title: "Elegant Summer Dress yyyyyoooooo wassup",
-    price: 89.99,
-    images: [
-      "https://images.unsplash.com/photo-1595777457583-95e059d581b8?w=800&h=800&fit=crop",
-      "https://images.unsplash.com/photo-1566479179817-c4fdb8c50a8e?w=800&h=800&fit=crop",
-      "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=800&h=800&fit=crop",
-      "https://images.unsplash.com/photo-1509316975850-ff9c5deb0cd9?w=800&h=800&fit=crop",
-      "https://images.unsplash.com/photo-1465146344425-f00d5f5c8f07?w=800&h=800&fit=crop"
-    ],
-    description: "Beautiful flowing dress perfect for summer occasions. Made from premium cotton blend with a comfortable fit that flatters every body type.",
-    colors: ["Pink", "Light Pink", "Rose"],
-    sizes: ["XS", "S", "M", "L", "XL"],
-    inStock: true,
-    rating: 4.8
-  },
-  {
-    id: "2",
-    title: "Chic Blouse Collection",
-    price: 59.99,
-    images: [
-      "https://images.unsplash.com/photo-1551488831-00ddcb6c6bd3?w=800&h=800&fit=crop",
-      "https://images.unsplash.com/photo-1581090464777-f3220bbe1b8b?w=800&h=800&fit=crop",
-      "https://images.unsplash.com/photo-1500673922987-e212871fec22?w=800&h=800&fit=crop",
-      "https://images.unsplash.com/photo-1582562124811-c09040d0a901?w=800&h=800&fit=crop"
-    ],
-    description: "Versatile blouse perfect for both professional and casual settings. Premium fabric with elegant design details.",
-    colors: ["White", "Light Pink", "Gray"],
-    sizes: ["XS", "S", "M", "L", "XL"],
-    inStock: true,
-    rating: 4.6
-  }
-];
+// Removed mockProducts. Now using Supabase.
 
 const ProductDetail = () => {
   const { id } = useParams();
@@ -65,9 +32,38 @@ const ProductDetail = () => {
   });
 
   useEffect(() => {
-    // Find product by ID - will be replaced with Supabase query
-    const foundProduct = mockProducts.find(p => p.id === id);
-    setProduct(foundProduct);
+    const fetchProduct = async () => {
+      if (!id) return;
+      const { data, error } = await supabase
+        .from('products')
+        .select('*')
+        .eq('id', id)
+        .single();
+      if (error || !data) {
+        setProduct(null);
+      } else {
+        // Clean up colors, sizes, images for product detail
+        const cleanArrayField = (field) => {
+          if (Array.isArray(field)) {
+            return field
+              .map((v) => typeof v === "string" ? v.replace(/[[\]"'\\]/g, "").trim() : v)
+              .filter(Boolean)
+              .join(", ");
+          }
+          if (typeof field === "string") {
+            return field.replace(/[[\]"'\\]/g, "").split(",").map(s => s.trim()).filter(Boolean).join(", ");
+          }
+          return "";
+        };
+        setProduct({
+          ...data,
+          colors: cleanArrayField(data.colors),
+          sizes: cleanArrayField(data.sizes),
+          images: cleanArrayField(data.images)
+        });
+      }
+    };
+    fetchProduct();
   }, [id]);
 
   const handlePurchase = async (e) => {
@@ -132,7 +128,7 @@ const ProductDetail = () => {
                 {product.title}
               </h1>
               <div className="flex items-center gap-4 mb-4">
-                <span className="font-inter text-3xl font-bold text-primary">
+                <span className="font-inter text-3xl font-bold text-primary ">
                   ${product.price}
                 </span>
                 <div className="flex items-center gap-1">
@@ -173,9 +169,25 @@ const ProductDetail = () => {
                           <SelectValue placeholder="Choose color" />
                         </SelectTrigger>
                         <SelectContent>
-                          {product.colors.map((color) => (
+                          {(Array.isArray(product.colors)
+                            ? product.colors
+                            : typeof product.colors === "string"
+                              ? product.colors.split(",").map(c => c.trim()).filter(Boolean)
+                              : []
+                          ).map((color) => (
                             <SelectItem key={color} value={color}>
-                              {color}
+                              <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5em' }}>
+                                <span style={{
+                                  display: 'inline-block',
+                                  width: '16px',
+                                  height: '16px',
+                                  borderRadius: '50%',
+                                  background: color,
+                                  border: '1px solid #ccc',
+                                  marginRight: '6px'
+                                }} />
+                                {color}
+                              </span>
                             </SelectItem>
                           ))}
                         </SelectContent>
@@ -189,7 +201,12 @@ const ProductDetail = () => {
                           <SelectValue placeholder="Choose size" />
                         </SelectTrigger>
                         <SelectContent>
-                          {product.sizes.map((size) => (
+                          {(Array.isArray(product.sizes)
+                            ? product.sizes
+                            : typeof product.sizes === "string"
+                              ? product.sizes.split(",").map(s => s.trim()).filter(Boolean)
+                              : []
+                          ).map((size) => (
                             <SelectItem key={size} value={size}>
                               {size}
                             </SelectItem>
