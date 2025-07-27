@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 // Link component for navigation
 import { Link } from "react-router-dom";
+import { wilayasData } from "@/lib/locations";
 
 // Product type definition
 interface Product {
@@ -24,8 +25,11 @@ interface ProductCardProps {
 
 // Icon for review stars
 import { Star } from "lucide-react";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { OrderForm } from "./OrderForm";
+import { OrderFormFields } from "./OrderFormFields";
+import { useForm } from "react-hook-form";
+import { OrderFormValues } from "@/types/product";
 
 // ProductCard component displays a single product
 export const ProductCard = ({ product }: ProductCardProps) => {
@@ -74,6 +78,37 @@ export const ProductCard = ({ product }: ProductCardProps) => {
   const imageUrl = images[0] || product.image || "https://images.unsplash.com/photo-1551488831-00ddcb6c6bd3?w=800&h=800&fit=crop";
   // Main render for product card
   const [showOrderForm, setShowOrderForm] = React.useState(false);
+  const [communes, setCommunes] = useState<string[]>([]);
+  const form = useForm<OrderFormValues>({
+    defaultValues: {
+      name: "",
+      phone: "",
+      wilaya: "",
+      commune: "",
+      deliveryOption: "",
+      address: "",
+    },
+  });
+
+  const watchWilaya = form.watch("wilaya");
+
+  // Update communes based on selected wilaya
+  useEffect(() => {
+    if (watchWilaya) {
+      const selectedWilaya = wilayasData.find(
+        (wilaya) => wilaya.name === watchWilaya
+      );
+      setCommunes(selectedWilaya ? selectedWilaya.communes : []);
+    } else {
+      setCommunes([]);
+    }
+  }, [watchWilaya]);
+
+  const handleOrderSubmit = async (values: OrderFormValues) => {
+    console.log("Order submitted:", values);
+    setShowOrderForm(false);
+  };
+
   return (
     <div className="h-full">
       <Link to={`/product/${product.id}`} className="block h-full">
@@ -118,15 +153,6 @@ export const ProductCard = ({ product }: ProductCardProps) => {
           </CardContent>
         </Card>
       </Link>
-      
-      {showOrderForm && (
-        <OrderForm
-          productId={product.id}
-          productTitle={product.title}
-          productPrice={product.price}
-          onClose={() => setShowOrderForm(false)}
-        />
-      )}
     </div>
   );
 };

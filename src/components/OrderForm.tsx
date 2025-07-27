@@ -4,6 +4,7 @@ import { stations } from "@/lib/stations";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { toast } from "@/components/ui/sonner";
+import { wilayaDeliveryFees } from "@/lib/deliveryFees";
 
 interface OrderFormProps {
   productId: string;
@@ -31,8 +32,19 @@ export const OrderForm: React.FC<OrderFormProps> = ({ productId, productTitle, p
 
   // Filter communes for selected wilaya
   const communes = useMemo(() => {
-    // ...
+    const selectedWilaya = wilayasData.find(w => w.name === wilaya);
+    return selectedWilaya ? selectedWilaya.communes : [];
   }, [wilaya]);
+
+  // Calculate delivery fee
+  const deliveryFee = useMemo(() => {
+    const selectedWilaya = wilayaDeliveryFees.find(w => w.name === wilaya);
+    if (!selectedWilaya) return 0;
+    return deliveryType === "home" ? selectedWilaya.homeDelivery : selectedWilaya.stopdeskDelivery;
+  }, [wilaya, deliveryType]);
+
+  // Calculate total price
+  const totalPrice = useMemo(() => productPrice + deliveryFee, [productPrice, deliveryFee]);
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -49,6 +61,8 @@ export const OrderForm: React.FC<OrderFormProps> = ({ productId, productTitle, p
       name,
       phone,
       address,
+      deliveryFee,
+      totalPrice,
     };
 
     try {
@@ -138,7 +152,7 @@ export const OrderForm: React.FC<OrderFormProps> = ({ productId, productTitle, p
                 onChange={e => setStation(e.target.value)}
               >
                 <option value="">Select Station</option>
-                {wilayaStations.map(s => (
+                {stations.filter(s => s.station_name.includes(wilaya)).map(s => (
                   <option key={s.station_code} value={s.station_name}>{s.station_name}</option>
                 ))}
               </select>
@@ -153,7 +167,10 @@ export const OrderForm: React.FC<OrderFormProps> = ({ productId, productTitle, p
               />
             )}
             <div className="text-center text-pink-700 font-semibold mt-2">
-              Delivery Fee: {getDeliveryFee()} DZD
+              Delivery Fee: {deliveryFee} DZD
+            </div>
+            <div className="text-center text-pink-700 font-semibold">
+              Total Price: {totalPrice} DZD
             </div>
             <Button
               type="submit"

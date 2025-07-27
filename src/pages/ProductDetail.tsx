@@ -18,12 +18,18 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 // Textarea UI component
 import { Textarea } from "@/components/ui/textarea";
-// Custom hook for showing toast notifications
-import { useToast } from "@/hooks/use-toast";
 // Icon components
 import { Heart, ShoppingCart, Star } from "lucide-react";
 // Carousel for product images
 import ImageCarousel from "@/components/ImageCarousel";
+// Order form fields component
+import { OrderFormFields } from "@/components/OrderFormFields";
+// React Hook Form for form handling
+import { useForm } from "react-hook-form";
+// Types
+import { OrderFormValues } from "@/types/product";
+// Wilaya data for location selection
+import { wilayasData } from "@/lib/locations";
 
 // Mock product data - will be replaced with Supabase
 // Removed mockProducts. Now using Supabase.
@@ -32,8 +38,6 @@ import ImageCarousel from "@/components/ImageCarousel";
 const ProductDetail = () => {
   // Get product id from URL
   const { id } = useParams();
-  // Toast notification function
-  const { toast } = useToast();
   // Product state: null means loading, object means loaded, false means not found
   const [product, setProduct] = useState(null);
   
@@ -51,6 +55,21 @@ const ProductDetail = () => {
     address: "",
     notes: ""
   });
+  // State for communes based on selected wilaya
+  const [communes, setCommunes] = useState<string[]>([]);
+
+  // Form handling with react-hook-form
+  const form = useForm<OrderFormValues>({
+    defaultValues: {
+      name: "",
+      phone: "",
+      wilaya: "",
+      commune: "",
+      deliveryOption: "",
+      address: "",
+    },
+  });
+  const watchWilaya = form.watch("wilaya");
 
   // Fetch product data from Supabase when component mounts or id changes
   useEffect(() => {
@@ -90,39 +109,22 @@ const ProductDetail = () => {
     fetchProduct();
   }, [id]);
 
-  // Handle purchase form submission
-  const handlePurchase = async (e) => {
-    // Prevent default form submit
-    e.preventDefault();
-    
-    // Check if color and size are selected
-    if (!selectedColor || !selectedSize) {
-      // Show error toast if missing selection
-      toast({
-        title: "Missing Selection",
-        description: "Please select color and size",
-        variant: "destructive"
-      });
-      return;
+  // Update communes when wilaya changes
+  useEffect(() => {
+    if (watchWilaya) {
+      const selectedWilaya = wilayasData?.find(
+        (wilaya) => wilaya.name === watchWilaya
+      );
+      setCommunes(selectedWilaya?.communes || []);
+    } else {
+      setCommunes([]);
     }
+  }, [watchWilaya]);
 
-    // Check if required customer info is filled
-    if (!customerInfo.name || !customerInfo.phone || !customerInfo.address) {
-      // Show error toast if missing info
-      toast({
-        title: "Missing Information", 
-        description: "Please fill in all required fields",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    // Here you would send the order to Supabase (not implemented)
-    // Show success toast
-    toast({
-      title: "Order Submitted!",
-      description: "We'll contact you soon to confirm your purchase",
-    });
+  // Handle order form submission
+  const handleOrderSubmit = async (values: OrderFormValues) => {
+    console.log("Order submitted:", values);
+    // Toast notification for order submission
   };
 
   // Show loading spinner/message while fetching
@@ -150,7 +152,6 @@ const ProductDetail = () => {
   }
 
   // Main render for product detail page
-  // ...existing code...
   return (
     <>
       <div className="min-h-screen bg-gradient-soft">
@@ -211,138 +212,13 @@ const ProductDetail = () => {
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-6">
-                  <form onSubmit={handlePurchase} className="space-y-4">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <Label htmlFor="color">Color</Label>
-                        <Select onValueChange={setSelectedColor} required>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Choose color" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {(Array.isArray(product.colors)
-                              ? product.colors
-                              : typeof product.colors === "string"
-                                ? product.colors.split(",").map(c => c.trim()).filter(Boolean)
-                                : []
-                            ).map((color) => (
-                              <SelectItem key={color} value={color}>
-                                <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5em' }}>
-                                  <span style={{
-                                    display: 'inline-block',
-                                    width: '16px',
-                                    height: '16px',
-                                    borderRadius: '50%',
-                                    background: color,
-                                    border: '1px solid #ccc',
-                                    marginRight: '6px'
-                                  }} />
-                                  {color}
-                                </span>
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      <div>
-                        <Label htmlFor="size">Size</Label>
-                        <Select onValueChange={setSelectedSize} required>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Choose size" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {(Array.isArray(product.sizes)
-                              ? product.sizes
-                              : typeof product.sizes === "string"
-                                ? product.sizes.split(",").map(s => s.trim()).filter(Boolean)
-                                : []
-                            ).map((size) => (
-                              <SelectItem key={size} value={size}>
-                                {size}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    </div>
-                    <div>
-                      <Label htmlFor="quantity">Quantity</Label>
-                      <Input
-                        type="number"
-                        min="1"
-                        max="10"
-                        value={quantity}
-                        onChange={(e) => setQuantity(parseInt(e.target.value))}
-                        className="w-24"
-                      />
-                    </div>
-                    <div className="space-y-4">
-                      <h3 className="font-semibold text-lg">Customer Information</h3>
-                      <div>
-                        <Label htmlFor="name">Full Name *</Label>
-                        <Input
-                          id="name"
-                          value={customerInfo.name}
-                          onChange={(e) => setCustomerInfo({...customerInfo, name: e.target.value})}
-                          required
-                        />
-                      </div>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                          <Label htmlFor="phone">Phone *</Label>
-                          <Input
-                            id="phone"
-                            type="tel"
-                            value={customerInfo.phone}
-                            onChange={(e) => setCustomerInfo({...customerInfo, phone: e.target.value})}
-                            required
-                          />
-                        </div>
-                        <div>
-                          <Label htmlFor="email">Email</Label>
-                          <Input
-                            id="email"
-                            type="email"
-                            value={customerInfo.email}
-                            onChange={(e) => setCustomerInfo({...customerInfo, email: e.target.value})}
-                          />
-                        </div>
-                      </div>
-                      <div>
-                        <Label htmlFor="address">Delivery Address *</Label>
-                        <Textarea
-                          id="address"
-                          value={customerInfo.address}
-                          onChange={(e) => setCustomerInfo({...customerInfo, address: e.target.value})}
-                          placeholder="Enter your full address"
-                          required
-                        />
-                      </div>
-                      <div>
-                        <Label htmlFor="notes">Special Notes</Label>
-                        <Textarea
-                          id="notes"
-                          value={customerInfo.notes}
-                          onChange={(e) => setCustomerInfo({...customerInfo, notes: e.target.value})}
-                          placeholder="Any special requests or notes"
-                        />
-                      </div>
-                    </div>
-                    <div className="flex gap-4 pt-4">
-                      <Button 
-                        type="submit" 
-                        variant="elegant" 
-                        size="lg" 
-                        className="flex-1 flex items-center gap-2"
-                      >
-                        <ShoppingCart className="h-5 w-5" />
-                        Purchase Now
-                      </Button>
-                      <Button variant="soft" size="lg" type="button">
-                        <Heart className="h-5 w-5" />
-                      </Button>
-                    </div>
-                  </form>
+                  <OrderFormFields
+                    form={form}
+                    onSubmit={handleOrderSubmit}
+                    isSubmitting={false}
+                    communes={communes}
+                    watchWilaya={watchWilaya}
+                  />
                 </CardContent>
               </Card>
             </div>
