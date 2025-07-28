@@ -24,7 +24,7 @@ interface ProductCardProps {
 }
 
 // Icon for review stars
-import { Star } from "lucide-react";
+import { Star, Heart, ShoppingCart } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import { OrderForm } from "./OrderForm";
 import { OrderFormFields } from "./OrderFormFields";
@@ -111,45 +111,150 @@ export const ProductCard = ({ product }: ProductCardProps) => {
 
   return (
     <div className="h-full">
-      <Link to={`/product/${product.id}`} className="block h-full">
-        <Card className="group cursor-pointer overflow-hidden bg-gradient-card shadow-md hover:shadow-xl transition-all duration-300 hover:scale-105 h-[300px] sm:h-[380px] flex flex-col">
-          <div className="flex-shrink-0 w-full h-[170px] sm:h-[220px] overflow-hidden bg-white">
+      <Link to={`/product/${product.id}`} className="block h-full group">
+        <Card className="relative h-full bg-white dark:bg-gray-900 rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-200 hover:scale-[1.01] transform-gpu border-0 ring-1 ring-gray-100 dark:ring-gray-800 flex flex-col">
+          {/* Image Container with modern effects */}
+          <div className="relative w-full h-[200px] sm:h-[220px] flex-shrink-0 overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900">
             <img
               src={imageUrl}
               alt={product.title}
-              className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
-              style={{ objectFit: 'cover' }}
+              className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
               onError={e => { e.currentTarget.src = 'https://images.unsplash.com/photo-1551488831-00ddcb6c6bd3?w=800&h=800&fit=crop'; }}
             />
-          </div>
-          <CardContent className="p-3 sm:p-4 flex flex-col flex-1 justify-between pb-3 sm:pb-4">
-            <div className="flex flex-col h-full justify-between">
-              <h3 className="font-playfair font-semibold text-base sm:text-lg text-foreground mb-1 line-clamp-2">
-                {product.title}
-              </h3>
-              <p className="text-muted-foreground text-xs sm:text-sm mb-2 line-clamp-2">
-                {product.description}
-              </p>
-              <div className="flex items-center justify-between mt-auto">
-                <span className="font-inter font-semibold text-base sm:text-xl text-primary">
-                  {product.price} DZD
-                </span>
-              </div>
-              {/* Review stars always 4.5/5 */}
-              <div className="flex items-center gap-1 mt-1 mb-2">
-                {[...Array(4)].map((_, i) => (
-                  <Star key={i} className="w-4 h-4 text-yellow-400 fill-yellow-400" />
-                ))}
-                <Star className="w-4 h-4 text-yellow-400" style={{ fill: 'url(#half)' }} />
-                <span className="text-xs text-muted-foreground ml-1">4.5/5</span>
-                <svg width="0" height="0">
-                  <linearGradient id="half" x1="0" x2="1" y1="0" y2="0">
-                    <stop offset="50%" stopColor="#facc15" />
-                    <stop offset="50%" stopColor="transparent" />
-                  </linearGradient>
-                </svg>
+            {/* Gradient overlay for modern effect */}
+            <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
+            
+            {/* Modern floating badge */}
+            <div className="absolute top-3 left-3 bg-white/90 backdrop-blur-sm rounded-full px-3 py-1 shadow-lg">
+              <div className="flex items-center gap-1">
+                <Star className="w-3 h-3 text-yellow-500 fill-yellow-500" />
+                <span className="text-xs font-medium text-gray-800">4.5</span>
               </div>
             </div>
+
+            {/* Heart icon for wishlist */}
+            <div className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-all duration-150 transform translate-y-1 group-hover:translate-y-0">
+              <div className="bg-white/90 backdrop-blur-sm rounded-full p-2 shadow-lg hover:bg-white transition-colors duration-100">
+                <Heart className="w-4 h-4 text-gray-600 hover:text-red-500 transition-colors duration-100" />
+              </div>
+            </div>
+          </div>
+
+          {/* Content Container */}
+          <CardContent className="p-4 flex flex-col flex-1 justify-between min-h-0">
+            <div className="space-y-2 flex-1">
+              {/* Title */}
+              <h3 className="font-semibold text-base leading-tight text-gray-900 dark:text-white line-clamp-2 group-hover:text-primary transition-colors duration-150">
+                {product.title}
+              </h3>
+
+              {/* Description */}
+              <p className="text-xs text-gray-600 dark:text-gray-300 line-clamp-2 leading-relaxed">
+                {product.description}
+              </p>
+
+              {/* Color circles */}
+              {colors.length > 0 && (
+                <div className="flex gap-1">
+                  {colors.slice(0, 4).map((color, idx) => {
+                    // Debug: log the actual color values
+                    console.log('Color from database:', color, typeof color);
+                    
+                    // Clean up the color value - remove brackets, quotes, and extra characters
+                    const cleanColor = String(color)
+                      .replace(/[[\]"']/g, '') // Remove brackets and quotes
+                      .trim(); // Remove whitespace
+                    
+                    console.log('Cleaned color:', cleanColor);
+                    
+                    // Check if it's a valid hex color after cleaning
+                    let validColor = '#e5e7eb'; // default gray
+                    
+                    if (cleanColor && /^#[0-9a-fA-F]{6}$/.test(cleanColor)) {
+                      validColor = cleanColor;
+                      console.log('Using hex color:', validColor);
+                    } else if (cleanColor) {
+                      // Try color name mapping as fallback
+                      const colorLower = cleanColor.toLowerCase();
+                      const allColors: Record<string, string> = {
+                        'red': '#ef4444',
+                        'blue': '#3b82f6', 
+                        'green': '#22c55e',
+                        'yellow': '#eab308',
+                        'black': '#000000',
+                        'white': '#ffffff',
+                        'purple': '#a21caf',
+                        'pink': '#ec4899',
+                        'orange': '#f97316',
+                        'brown': '#92400e',
+                        'gray': '#6b7280',
+                        'grey': '#6b7280',
+                        'rouge': '#ef4444',
+                        'bleu': '#3b82f6',
+                        'vert': '#22c55e',
+                        'jaune': '#eab308',
+                        'noir': '#000000',
+                        'blanc': '#ffffff',
+                        'violet': '#a21caf',
+                        'rose': '#ec4899',
+                        'orange': '#f97316',
+                        'marron': '#92400e',
+                        'gris': '#6b7280',
+                      };
+                      
+                      if (allColors[colorLower]) {
+                        validColor = allColors[colorLower];
+                        console.log('Using color name mapping:', validColor);
+                      } else {
+                        console.log('Unknown color after cleaning:', cleanColor);
+                      }
+                    }
+                    
+                    console.log('Final color used:', validColor);
+                    
+                    return (
+                      <div
+                        key={idx}
+                        className="w-4 h-4 rounded-full border-2 border-gray-400 shadow-sm"
+                        style={{ backgroundColor: validColor }}
+                        title={`Color: ${cleanColor} (${validColor})`}
+                      />
+                    );
+                  })}
+                  {colors.length > 4 && (
+                    <div className="w-4 h-4 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center border-2 border-gray-400 shadow-sm">
+                      <span className="text-xs font-medium text-gray-600 dark:text-gray-300">+{colors.length - 4}</span>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* Price and rating row - always at bottom */}
+            <div className="flex items-center justify-between pt-3 mt-auto">
+              <div className="space-y-1">
+                <div className="text-lg font-bold text-gray-900 dark:text-white">
+                  {product.price} <span className="text-sm font-normal text-gray-500">DZD</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <div className="flex">
+                    {[...Array(4)].map((_, i) => (
+                      <Star key={i} className="w-3 h-3 text-yellow-400 fill-yellow-400" />
+                    ))}
+                    <Star className="w-3 h-3 text-yellow-400" style={{ fill: 'url(#half)' }} />
+                  </div>
+                  <span className="text-xs text-gray-500 ml-1">(4.5)</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Hidden gradient for half star */}
+            <svg width="0" height="0">
+              <linearGradient id="half" x1="0" x2="1" y1="0" y2="0">
+                <stop offset="50%" stopColor="#facc15" />
+                <stop offset="50%" stopColor="transparent" />
+              </linearGradient>
+            </svg>
           </CardContent>
         </Card>
       </Link>
