@@ -252,7 +252,7 @@ const ImageCarousel = ({ images, title, autoPlay = true, showThumbnails = true }
     <div className="space-y-4">
       {/* Main Image Carousel */}
       <div 
-        className="relative aspect-square overflow-hidden rounded-lg bg-background group cursor-grab active:cursor-grabbing"
+        className="relative aspect-square overflow-hidden rounded-lg bg-background group cursor-grab active:cursor-grabbing border-2 border-primary shadow-lg transition-all duration-300"
         style={{ touchAction: 'pan-y' }}
         onMouseEnter={() => setIsPaused(true)}
         onMouseLeave={() => setIsPaused(false)}
@@ -260,7 +260,7 @@ const ImageCarousel = ({ images, title, autoPlay = true, showThumbnails = true }
         <div 
           className={`flex h-full ${isDragging ? 'transition-none' : 'transition-transform duration-500 ease-out'}`}
           style={{ 
-            transform: `translateX(calc(-${currentIndex * 100}% + ${dragOffset}px))` 
+            transform: `translateX(calc(-${currentIndex * 100}% + ${dragOffset}px))`
           }}
           onTouchStart={handleTouchStart}
           onTouchMove={handleTouchMove}

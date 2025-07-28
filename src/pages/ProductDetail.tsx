@@ -104,11 +104,25 @@ const ProductDetail = () => {
           }
           return "";
         };
+        
+        // Clean images as array for carousel
+        const cleanImagesArray = (field) => {
+          if (Array.isArray(field)) {
+            return field
+              .map((v) => typeof v === "string" ? v.replace(/[[\]"'\\]/g, "").trim() : v)
+              .filter(Boolean);
+          }
+          if (typeof field === "string") {
+            return field.replace(/[[\]"'\\]/g, "").split(",").map(s => s.trim()).filter(Boolean);
+          }
+          return [];
+        };
+        
         setProduct({
           ...data,
           colors: cleanArrayField(data.colors),
           sizes: cleanArrayField(data.sizes),
-          images: cleanArrayField(data.images)
+          images: cleanImagesArray(data.images) // Keep as array for carousel
         });
       }
     };
