@@ -57,18 +57,40 @@ const Home = () => {
           alt="Rosebud Boutique Hero"
           className="w-full h-full object-cover"
         />
-        <div className="absolute inset-0 bg-gradient-to-r from-background/60 to-transparent flex items-center">
+        <div className="absolute inset-0 bg-gradient-to-r from-black/40 via-black/20 to-transparent flex items-center">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="max-w-lg">
               <h1 className="font-playfair text-4xl md:text-6xl font-bold mb-4 animate-fade-in">
-                <span className="bg-gradient-to-r from-rose-600 via-pink-500 to-purple-600 bg-clip-text text-transparent">
+                <span 
+                  className="bg-gradient-to-r from-rose-700 via-pink-600 to-purple-700 bg-clip-text text-transparent drop-shadow-2xl" 
+                  style={{
+                    textShadow: `
+                      1px 1px 0px rgba(190, 24, 93, 0.4),
+                      2px 2px 0px rgba(190, 24, 93, 0.3),
+                      3px 3px 0px rgba(190, 24, 93, 0.2),
+                      4px 4px 8px rgba(0, 0, 0, 0.4),
+                      0 0 20px rgba(236, 72, 153, 0.3)
+                    `
+                  }}
+                >
                   Discover Your
                 </span>
-                <span className="bg-gradient-to-r from-purple-600 via-pink-500 to-rose-500 bg-clip-text text-transparent block">
+                <span 
+                  className="bg-gradient-to-r from-purple-700 via-pink-600 to-rose-700 bg-clip-text text-transparent block drop-shadow-2xl" 
+                  style={{
+                    textShadow: `
+                      1px 1px 0px rgba(190, 24, 93, 0.4),
+                      2px 2px 0px rgba(190, 24, 93, 0.3),
+                      3px 3px 0px rgba(190, 24, 93, 0.2),
+                      4px 4px 8px rgba(0, 0, 0, 0.4),
+                      0 0 20px rgba(147, 51, 234, 0.3)
+                    `
+                  }}
+                >
                   Perfect Style
                 </span>
               </h1>
-              <p className="font-inter text-lg text-muted-foreground mb-8 animate-fade-in">
+              <p className="font-inter text-lg text-gray-800 mb-8 animate-fade-in font-medium drop-shadow-sm">
                 Curated collection of elegant women's fashion that celebrates your unique beauty
               </p>
             </div>
