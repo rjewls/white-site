@@ -60,9 +60,13 @@ const Home = () => {
         <div className="absolute inset-0 bg-gradient-to-r from-background/60 to-transparent flex items-center">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="max-w-lg">
-              <h1 className="font-playfair text-4xl md:text-6xl font-bold text-foreground mb-4 animate-fade-in">
-                Discover Your
-                <span className="text-primary block">Perfect Style</span>
+              <h1 className="font-playfair text-4xl md:text-6xl font-bold mb-4 animate-fade-in">
+                <span className="bg-gradient-to-r from-rose-600 via-pink-500 to-purple-600 bg-clip-text text-transparent">
+                  Discover Your
+                </span>
+                <span className="bg-gradient-to-r from-purple-600 via-pink-500 to-rose-500 bg-clip-text text-transparent block">
+                  Perfect Style
+                </span>
               </h1>
               <p className="font-inter text-lg text-muted-foreground mb-8 animate-fade-in">
                 Curated collection of elegant women's fashion that celebrates your unique beauty

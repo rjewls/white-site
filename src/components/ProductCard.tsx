@@ -148,9 +148,14 @@ export const ProductCard = ({ product }: ProductCardProps) => {
                 {product.title}
               </h3>
 
-              {/* Description */}
+              {/* Dynamic color count text instead of description */}
               <p className="text-xs text-gray-600 dark:text-gray-300 line-clamp-2 leading-relaxed">
-                {product.description}
+                {colors.length === 0 
+                  ? "No colors available" 
+                  : colors.length === 1 
+                    ? "1 color" 
+                    : `${colors.length} colors`
+                }
               </p>
 
               {/* Color circles */}

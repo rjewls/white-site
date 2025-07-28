@@ -464,7 +464,24 @@ const ProductForm = ({ formData, setFormData, onSave, onCancel }) => {
           id="description"
           value={formData.description}
           onChange={(e) => setFormData({...formData, description: e.target.value})}
-          placeholder="Enter product description"
+          placeholder={(() => {
+            // Get colors count
+            const colorsArr = Array.isArray(formData.colors) 
+              ? formData.colors 
+              : typeof formData.colors === 'string' && formData.colors 
+                ? formData.colors.split(',').map(c => c.trim()).filter(Boolean) 
+                : [];
+            const colorCount = colorsArr.length;
+            
+            // Generate dynamic placeholder
+            if (colorCount === 0) {
+              return "Enter product description";
+            } else if (colorCount === 1) {
+              return "1 color";
+            } else {
+              return `${colorCount} colors`;
+            }
+          })()}
         />
       </div>
 
@@ -536,7 +553,7 @@ const ProductForm = ({ formData, setFormData, onSave, onCancel }) => {
               className="ml-2"
               onClick={() => {
                 const selected = colorPickerValue;
-                let colorsArr = Array.isArray(formData.colors) ? formData.colors : typeof formData.colors === 'string' && formData.colors ? formData.colors.split(',').map(c => c.trim()).filter(Boolean) : [];
+                const colorsArr = Array.isArray(formData.colors) ? formData.colors : typeof formData.colors === 'string' && formData.colors ? formData.colors.split(',').map(c => c.trim()).filter(Boolean) : [];
                 if (!colorsArr.includes(selected)) {
                   setFormData({ ...formData, colors: [...colorsArr, selected] });
                 }

@@ -303,18 +303,29 @@ const ProductDetail = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
             {/* Product Images Carousel */}
-            <div>
+            <div className="space-y-6">
               <ImageCarousel 
                 images={product.images} 
                 title={product.title}
                 autoPlay={true}
                 showThumbnails={true}
               />
+              {/* Product Description - matching carousel style */}
+              {product.description && (
+                <div className="bg-white/50 backdrop-blur-sm border border-white/20 rounded-2xl p-6 shadow-lg">
+                  <h3 className="font-playfair text-xl font-semibold text-rose-600 mb-4">
+                    Description
+                  </h3>
+                  <p className="text-gray-700 text-base leading-relaxed">
+                    {product.description}
+                  </p>
+                </div>
+              )}
             </div>
             {/* Product Info & Purchase Form */}
             <div className="space-y-8">
               <div>
-                <h1 className="font-playfair text-3xl font-bold text-foreground mb-4">
+                <h1 className="font-playfair text-3xl font-bold text-rose-600 mb-4">
                   {product.title}
                 </h1>
                 <div className="flex items-center gap-4 mb-4">
@@ -344,9 +355,6 @@ const ProductDetail = () => {
                     ))}
                   </div>
                 )}
-                <p className="text-muted-foreground text-lg leading-relaxed">
-                  {product.description}
-                </p>
               </div>
               {/* Purchase Form */}
               <Card className="bg-gradient-card">
