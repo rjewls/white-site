@@ -112,74 +112,42 @@ export const ProductCard = ({ product }: ProductCardProps) => {
   return (
     <div className="h-full">
       <Link to={`/product/${product.id}`} className="block h-full">
-        <Card className="group cursor-pointer overflow-hidden border-0 bg-card shadow-lg hover:shadow-2xl transition-all duration-500 hover:scale-[1.02] h-[320px] sm:h-[400px] flex flex-col relative backdrop-blur-sm">
-          {/* Gradient overlay for modern look */}
-          <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 z-10" />
-          
-          <div className="flex-shrink-0 w-full h-[180px] sm:h-[240px] overflow-hidden relative">
+        <Card className="group cursor-pointer overflow-hidden bg-gradient-card shadow-md hover:shadow-xl transition-all duration-300 hover:scale-105 h-[300px] sm:h-[380px] flex flex-col">
+          <div className="flex-shrink-0 w-full h-[170px] sm:h-[220px] overflow-hidden bg-white">
             <img
               src={imageUrl}
               alt={product.title}
-              className="w-full h-full object-cover transition-all duration-700 group-hover:scale-110 group-hover:brightness-105"
+              className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
               style={{ objectFit: 'cover' }}
               onError={e => { e.currentTarget.src = 'https://images.unsplash.com/photo-1551488831-00ddcb6c6bd3?w=800&h=800&fit=crop'; }}
             />
-            {/* Subtle gradient overlay on image */}
-            <div className="absolute inset-0 bg-gradient-to-t from-background/20 to-transparent" />
-            
-            {/* Price badge in top right */}
-            <div className="absolute top-3 right-3 bg-background/95 backdrop-blur-sm border border-border/50 rounded-full px-3 py-1 shadow-lg">
-              <span className="font-inter font-semibold text-sm text-primary">
-                {product.price} DZD
-              </span>
-            </div>
           </div>
-          
-          <CardContent className="p-4 sm:p-5 flex flex-col flex-1 justify-between relative z-20">
-            <div className="flex flex-col space-y-3">
-              <h3 className="font-playfair font-semibold text-lg sm:text-xl text-foreground line-clamp-2 group-hover:text-primary transition-colors duration-300">
+          <CardContent className="p-3 sm:p-4 flex flex-col flex-1 justify-between pb-3 sm:pb-4">
+            <div className="flex flex-col h-full justify-between">
+              <h3 className="font-playfair font-semibold text-base sm:text-lg text-foreground mb-1 line-clamp-2">
                 {product.title}
               </h3>
-              
-              <p className="text-muted-foreground text-sm line-clamp-2 leading-relaxed">
+              <p className="text-muted-foreground text-xs sm:text-sm mb-2 line-clamp-2">
                 {product.description}
               </p>
-              
-              {/* Color variants preview */}
-              {colors.length > 0 && (
-                <div className="flex items-center gap-2">
-                  <span className="text-xs text-muted-foreground">Colors:</span>
-                  <div className="flex gap-1">
-                    {colors.slice(0, 4).map((color, index) => (
-                      <div
-                        key={index}
-                        className="w-4 h-4 rounded-full border border-border/50 shadow-sm"
-                        style={{ backgroundColor: colorMap[color] || '#6b7280' }}
-                        title={color}
-                      />
-                    ))}
-                    {colors.length > 4 && (
-                      <span className="text-xs text-muted-foreground ml-1">+{colors.length - 4}</span>
-                    )}
-                  </div>
-                </div>
-              )}
-              
-              {/* Review stars */}
-              <div className="flex items-center gap-2 mt-auto">
-                <div className="flex items-center gap-1">
-                  {[...Array(4)].map((_, i) => (
-                    <Star key={i} className="w-3.5 h-3.5 text-yellow-400 fill-yellow-400" />
-                  ))}
-                  <Star className="w-3.5 h-3.5 text-yellow-400" style={{ fill: 'url(#half)' }} />
-                  <svg width="0" height="0">
-                    <linearGradient id="half" x1="0" x2="1" y1="0" y2="0">
-                      <stop offset="50%" stopColor="#facc15" />
-                      <stop offset="50%" stopColor="transparent" />
-                    </linearGradient>
-                  </svg>
-                </div>
-                <span className="text-xs text-muted-foreground">4.5 (127)</span>
+              <div className="flex items-center justify-between mt-auto">
+                <span className="font-inter font-semibold text-base sm:text-xl text-primary">
+                  {product.price} DZD
+                </span>
+              </div>
+              {/* Review stars always 4.5/5 */}
+              <div className="flex items-center gap-1 mt-1 mb-2">
+                {[...Array(4)].map((_, i) => (
+                  <Star key={i} className="w-4 h-4 text-yellow-400 fill-yellow-400" />
+                ))}
+                <Star className="w-4 h-4 text-yellow-400" style={{ fill: 'url(#half)' }} />
+                <span className="text-xs text-muted-foreground ml-1">4.5/5</span>
+                <svg width="0" height="0">
+                  <linearGradient id="half" x1="0" x2="1" y1="0" y2="0">
+                    <stop offset="50%" stopColor="#facc15" />
+                    <stop offset="50%" stopColor="transparent" />
+                  </linearGradient>
+                </svg>
               </div>
             </div>
           </CardContent>

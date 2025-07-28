@@ -4,7 +4,7 @@ import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { ChevronLeft, ChevronRight, X } from "lucide-react";
 
 interface ImageCarouselProps {
-  images: string[] | string | never;
+  images: string[];
   title: string;
   autoPlay?: boolean;
   showThumbnails?: boolean;
