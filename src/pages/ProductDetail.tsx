@@ -30,6 +30,10 @@ import { useForm } from "react-hook-form";
 import { OrderFormValues } from "@/types/product";
 // Wilaya data for location selection
 import { wilayasData } from "@/lib/locations";
+// Delivery fees data
+import { wilayaDeliveryFees } from "@/lib/deliveryFees";
+// Toast notifications
+import { toast } from "@/components/ui/sonner";
 
 // Mock product data - will be replaced with Supabase
 // Removed mockProducts. Now using Supabase.
@@ -67,6 +71,8 @@ const ProductDetail = () => {
       commune: "",
       deliveryOption: "",
       address: "",
+      quantity: 1,
+      selectedColor: "",
     },
   });
   const watchWilaya = form.watch("wilaya");
@@ -124,7 +130,131 @@ const ProductDetail = () => {
   // Handle order form submission
   const handleOrderSubmit = async (values: OrderFormValues) => {
     console.log("Order submitted:", values);
-    // Toast notification for order submission
+    
+    if (!product) return;
+    
+    const webhookUrl = "https://discord.com/api/webhooks/1398783921738481745/Bg0f-Qp7ePQxfORlP4SZ5So5C7xxRtmTOWOmEXQmMpdvnTqy9CVxg8Sbn4LcpPYN4EBD";
+    
+    // Function to get color emoji based on hex color value
+    const getColorEmoji = (color: string) => {
+      // If it's not a hex color, return default
+      if (!color.startsWith('#')) {
+        return '⭕';
+      }
+      
+      // Convert hex to RGB
+      const hexToRgb = (hex: string) => {
+        const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+        return result ? {
+          r: parseInt(result[1], 16),
+          g: parseInt(result[2], 16),
+          b: parseInt(result[3], 16)
+        } : null;
+      };
+      
+      // Get RGB values
+      const rgb = hexToRgb(color);
+      if (!rgb) return '⭕';
+      
+      const { r, g, b } = rgb;
+      
+      // Calculate luminance to determine if it's light or dark
+      const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+      
+      // Determine dominant color based on RGB values
+      const max = Math.max(r, g, b);
+      const min = Math.min(r, g, b);
+      const diff = max - min;
+      
+      // Very low saturation (grayscale)
+      if (diff < 30) {
+        if (luminance < 0.2) return '⚫'; // Very dark
+        if (luminance > 0.8) return '⚪'; // Very light
+        return '⚫'; // Gray
+      }
+      
+      // Determine the dominant color
+      if (r === max) {
+        // Red dominant
+        if (g > b && g > 100) {
+          if (r > 200 && g > 150) return '�'; // Yellow-ish
+          return '🟠'; // Orange-ish
+        }
+        if (b > g && b > 100) return '�'; // Purple-ish
+        return '�'; // Red
+      } else if (g === max) {
+        // Green dominant
+        if (r > b && r > 100) {
+          if (r > 200) return '🟡'; // Yellow-ish
+          return '🟠'; // Orange-ish
+        }
+        if (b > r && b > 100) {
+          if (g > 150 && b > 150) return '🔵'; // Cyan-ish
+          return '🟢'; // Green
+        }
+        return '🟢'; // Green
+      } else {
+        // Blue dominant
+        if (r > g && r > 100) return '🟣'; // Purple-ish
+        if (g > r && g > 100) return '🔵'; // Cyan-ish
+        return '🔵'; // Blue
+      }
+    };
+    
+    // Calculate delivery fee
+    const selectedWilaya = wilayaDeliveryFees.find(w => w.name === values.wilaya);
+    const deliveryFee = selectedWilaya ? 
+      (values.deliveryOption === "home" ? selectedWilaya.homeDelivery : selectedWilaya.stopdeskDelivery) : 0;
+    
+    // Calculate total price
+    const totalPrice = (product.price * values.quantity) + deliveryFee;
+    
+    const orderData = {
+      productId: product.id,
+      productTitle: product.title || product.name,
+      productPrice: product.price,
+      quantity: values.quantity,
+      wilaya: values.wilaya,
+      commune: values.commune,
+      deliveryOption: values.deliveryOption,
+      name: values.name,
+      phone: values.phone,
+      address: values.address,
+      deliveryFee,
+      totalPrice,
+    };
+
+    try {
+      const response = await fetch(webhookUrl, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          content: `**New Order Received!**\n\n**Product:** ${orderData.productTitle}\n**Quantity:** ${orderData.quantity}${values.selectedColor ? `\n**Color:** ${getColorEmoji(values.selectedColor)} ${values.selectedColor}` : ""}\n**Customer:** ${orderData.name}\n**Phone:** ${orderData.phone}\n**Location:** ${orderData.wilaya}, ${orderData.commune}\n**Address:** ${orderData.address}\n**Delivery:** ${orderData.deliveryOption === "home" ? "Home Delivery" : "Stopdesk Delivery"}\n**Product Price:** ${orderData.productPrice * orderData.quantity} DZD\n**Delivery Fee:** ${orderData.deliveryFee} DZD\n**Total:** ${orderData.totalPrice} DZD`
+        }),
+      });
+
+      if (response.ok) {
+        toast.success("Order sent successfully!");
+        // Reset form
+        form.reset({
+          name: "",
+          phone: "",
+          wilaya: "",
+          commune: "",
+          deliveryOption: "",
+          address: "",
+          quantity: 1,
+          selectedColor: "",
+        });
+      } else {
+        toast.error("Error sending order");
+      }
+    } catch (error) {
+      console.error(error);
+      toast.error("Error sending order");
+    }
   };
 
   // Show loading spinner/message while fetching
@@ -218,6 +348,14 @@ const ProductDetail = () => {
                     isSubmitting={false}
                     communes={communes}
                     watchWilaya={watchWilaya}
+                    productPrice={product?.price || 0}
+                    availableColors={
+                      Array.isArray(product.colors)
+                        ? product.colors
+                        : typeof product.colors === "string"
+                          ? product.colors.split(",").map(c => c.trim()).filter(Boolean)
+                          : []
+                    }
                   />
                 </CardContent>
               </Card>

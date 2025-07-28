@@ -5,4 +5,6 @@ export interface OrderFormValues {
   commune: string;
   deliveryOption: string;
   address: string;
+  quantity: number;
+  selectedColor: string;
 }

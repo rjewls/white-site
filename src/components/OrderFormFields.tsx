@@ -1,5 +1,6 @@
 import { UseFormReturn } from "react-hook-form";
 import { Loader2 } from "lucide-react";
+import { useMemo } from "react";
 import {
   Form,
   FormControl,
@@ -18,6 +19,7 @@ import {
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { wilayasData } from "@/lib/locations";
+import { wilayaDeliveryFees } from "@/lib/deliveryFees";
 import { OrderFormValues } from "@/types/product";
 
 const t = (key: string) => key; // Simple translation function placeholder
@@ -28,6 +30,8 @@ interface OrderFormFieldsProps {
   isSubmitting: boolean;
   communes: string[];
   watchWilaya: string;
+  productPrice: number;
+  availableColors: string[];
 }
 
 export function OrderFormFields({
@@ -36,7 +40,26 @@ export function OrderFormFields({
   isSubmitting,
   communes,
   watchWilaya,
+  productPrice,
+  availableColors,
 }: OrderFormFieldsProps) {
+  const watchDeliveryOption = form.watch("deliveryOption");
+
+  // Calculate delivery fee based on selected wilaya and delivery type
+  const deliveryFee = useMemo(() => {
+    if (!watchWilaya || !watchDeliveryOption) return 0;
+    
+    const selectedWilaya = wilayaDeliveryFees.find(w => w.name === watchWilaya);
+    if (!selectedWilaya) return 0;
+    
+    return watchDeliveryOption === "home" ? selectedWilaya.homeDelivery : selectedWilaya.stopdeskDelivery;
+  }, [watchWilaya, watchDeliveryOption]);
+
+  // Calculate total price
+  const watchQuantity = form.watch("quantity");
+  const totalPrice = useMemo(() => {
+    return (productPrice * watchQuantity) + deliveryFee;
+  }, [productPrice, deliveryFee, watchQuantity]);
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     console.log("Form submit event triggered");
@@ -182,6 +205,92 @@ export function OrderFormFields({
             </FormItem>
           )}
         />
+
+        <FormField
+          control={form.control}
+          name="quantity"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Quantity (Max 6)</FormLabel>
+              <Select 
+                onValueChange={(value) => field.onChange(parseInt(value))} 
+                value={field.value?.toString()}
+              >
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select quantity" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  <SelectItem value="1">1</SelectItem>
+                  <SelectItem value="2">2</SelectItem>
+                  <SelectItem value="3">3</SelectItem>
+                  <SelectItem value="4">4</SelectItem>
+                  <SelectItem value="5">5</SelectItem>
+                  <SelectItem value="6">6</SelectItem>
+                </SelectContent>
+              </Select>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        {availableColors.length > 0 && (
+          <FormField
+            control={form.control}
+            name="selectedColor"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Select Color</FormLabel>
+                <Select 
+                  onValueChange={field.onChange} 
+                  value={field.value}
+                >
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Choose a color" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {availableColors.map((color) => (
+                      <SelectItem key={color} value={color}>
+                        <div className="flex items-center gap-2">
+                          <span
+                            className="w-4 h-4 rounded-full border border-gray-300"
+                            style={{ backgroundColor: color }}
+                          />
+                          <span className="capitalize">{color}</span>
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        )}
+
+        {/* Price Summary - Always visible */}
+        <div className="space-y-2 p-4 bg-gradient-to-r from-pink-50 to-rose-50 rounded-lg border border-pink-200">
+          <div className="flex justify-between items-center text-sm">
+            <span className="text-gray-600">Product Price ({watchQuantity}x {productPrice} DZD):</span>
+            <span className="font-medium">{productPrice * watchQuantity} DZD</span>
+          </div>
+          <div className="flex justify-between items-center text-sm">
+            <span className="text-gray-600">
+              Delivery Fee{watchDeliveryOption ? ` (${watchDeliveryOption === "home" ? "Home Delivery" : "Stopdesk Delivery"})` : ""}:
+            </span>
+            <span className={`font-medium ${deliveryFee > 0 ? "text-pink-600" : "text-gray-400 italic"}`}>
+              {deliveryFee > 0 ? `${deliveryFee} DZD` : (watchWilaya && watchDeliveryOption ? "0 DZD" : "— Select options above —")}
+            </span>
+          </div>
+          <div className="flex justify-between items-center text-lg font-bold border-t pt-2 border-pink-200">
+            <span className="text-gray-800">Total Price:</span>
+            <span className="text-pink-700">{totalPrice} DZD</span>
+          </div>
+        </div>
+
         <Button type="submit" className="w-full" disabled={isSubmitting}>
           {isSubmitting ? (
             <span className="flex items-center justify-center">

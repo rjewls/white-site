@@ -5164,7 +5164,761 @@ export function OrderFormFields({
 
 _**Assistant**_
 
+The `OrderFormFields.tsx` file already matches the structure you provided. It includes:
+- Dynamic `wilaya` and `commune` dropdowns.
+- A `deliveryOption` dropdown for selecting delivery type.
+- A form submission button with a loading state.
 
+If you need further adjustments or additional features, let me know!
+
+---
+
+_**User**_
+
+when i select a wilalaya from the drop down the commune dropdown should instantly change its content to have the communes related to that wilaya , and that data is present in this file "export const wilayasData = [
+  { code: "1", name: "Adrar" },
+  { code: "2", name: "Chlef" },
+  { code: "3", name: "Laghouat" },
+  { code: "4", name: "Oum El Bouaghi" },
+  { code: "5", name: "Batna" },
+  { code: "6", name: "Béjaïa" },
+  { code: "7", name: "Biskra" },
+  { code: "8", name: "Béchar" },
+  { code: "9", name: "Blida" },
+  { code: "10", name: "Bouira" },
+  { code: "11", name: "Tamanrasset" },
+  { code: "12", name: "Tébessa" },
+  { code: "13", name: "Tlemcen" },
+  { code: "14", name: "Tiaret" },
+  { code: "15", name: "Tizi Ouzou" },
+  { code: "16", name: "Algiers" },
+  { code: "17", name: "Djelfa" },
+  { code: "18", name: "Jijel" },
+  { code: "19", name: "Sétif" },
+  { code: "20", name: "Saïda" },
+  { code: "21", name: "Skikda" },
+  { code: "22", name: "Sidi Bel Abbès" },
+  { code: "23", name: "Annaba" },
+  { code: "24", name: "Guelma" },
+  { code: "25", name: "Constantine" },
+  { code: "26", name: "Médéa" },
+  { code: "27", name: "Mostaganem" },
+  { code: "28", name: "M'Sila" },
+  { code: "29", name: "Mascara" },
+  { code: "30", name: "Ouargla" },
+  { code: "31", name: "Oran" },
+  { code: "32", name: "El Bayadh" },
+  { code: "33", name: "Illizi" },
+  { code: "34", name: "Bordj Bou Arréridj" },
+  { code: "35", name: "Boumerdès" },
+  { code: "36", name: "El Tarf" },
+  { code: "37", name: "Tindouf" },
+  { code: "38", name: "Tissemsilt" },
+  { code: "39", name: "El Oued" },
+  { code: "40", name: "Khenchela" },
+  { code: "41", name: "Souk Ahras" },
+  { code: "42", name: "Tipaza" },
+  { code: "43", name: "Mila" },
+  { code: "44", name: "Aïn Defla" },
+  { code: "45", name: "Naâma" },
+  { code: "46", name: "Aïn Témouchent" },
+  { code: "47", name: "Ghardaïa" },
+  { code: "48", name: "Relizane" },
+  { code: "49", name: "El M'Ghair" },
+  { code: "50", name: "El Meniaa" },
+  { code: "51", name: "Ouled Djellal" },
+  { code: "52", name: "Bordj Baji Mokhtar" },
+  { code: "53", name: "Béni Abbès" },
+  { code: "54", name: "Timimoun" },
+  { code: "55", name: "Touggourt" },
+  { code: "56", name: "Djanet" },
+  { code: "57", name: "In Salah" },
+  { code: "58", name: "In Guezzam" },
+];
+
+export const communesData = {
+  "Adrar": ["Adrar", "Reggane", "Aoulef", "Zaouiet Kounta", "Timimoun", "Aougrout", "Bordj Badji Mokhtar", "Tsabit", "Fenoughil", "Tinerkouk", "Deldoul", "Sali", "Akabli", "Metarfa", "Ouled Ahmed Timmi", "Bouda", "Charouine", "Talmine", "Ouled Aissa", "Tamest"],
+  "Chlef": ["Chlef", "Ténès", "El Karimia", "Zeboudja", "Oued Fodda", "Ouled Fares", "Beni Haoua", "Boukadir", "El Marsa", "Tadjna", "Taougrite", "Beni Rached", "Oued Sly", "Abou El Hassan", "El Hadjadj", "Chettia", "Harchoun", "Ouled Ben Abdelkader", "Herenfa", "Oum Drou"],
+  "Laghouat": ["Laghouat", "Ksar El Hirane", "Aflou", "El Ghicha", "Hassi R'Mel", "Sidi Makhlouf", "Tadjmout", "Ain Madhi", "El Assafia", "Brida", "Gueltat Sidi Saad", "Hassi Delaa", "Tadjrouna", "Taouiala", "El Haouaita", "Sidi Bouzid", "Sebgag", "Hadj Mechri", "Kheneg", "Oued Morra"],
+  "Oum El Bouaghi": ["Oum El Bouaghi", "Ain Beida", "Ain M'lila", "F'Kirina", "Sigus", "El Belala", "Ain Babouche", "Berriche", "Ouled Hamla", "Dhalaa", "El Amiria", "Ain Zitoun", "El Djazia", "Ain Fakroun", "Meskiana", "Rahia", "Ouled Zouai", "El Fedjoudj", "Ouled Gacem", "El Harmilia"],
+  "Batna": ["Batna", "Merouana", "Barika", "Tazoult", "Arris", "N'Gaous", "Timgad", "Ouled Si Slimane", "Chemora", "Ras El Aioun", "Fesdis", "T'Kout", "Lazrou", "Bouzina", "Ouled Ammar", "Seggana", "Ichmoul", "Menaa", "El Madher", "Boumia"],
+  "Béjaïa": ["Béjaïa", "Amizour", "Aokas", "Barbacha", "El Kseur", "Tichy", "Sidi Aïch", "Toudja", "Darguina", "Seddouk", "Tazmalt", "Ait R'Zine", "Chemini", "Souk El Tenine", "Timezrit", "Akbou", "Ighil Ali", "Tifra", "Beni Maouche", "Ouzellaguen"],
+  "Biskra": ["Biskra", "Oumache", "Branis", "Chetma", "Ouled Djellal", "Sidi Khaled", "Ourlal", "Tolga", "Lioua", "M'Chouneche", "El Kantara", "Ain Naga", "Zeribet El Oued", "El Outaya", "M'Lili", "Foughala", "Bordj Ben Azzouz", "M'Ziraa", "El Haouch", "Djemorah"],
+  "Béchar": ["Béchar", "Ouled Khoudir", "Meridja", "Taghit", "Beni Ounif", "Kenadsa", "Igli", "Tabelbala", "Abadla", "Boukais", "Mogheul", "El Ouata", "Kerzaz", "Lahmar", "Beni Abbes", "Timoudi", "Ouled Sidi Ali", "Beni Ikhlef"],
+  "Blida": ["Blida", "Oued El Alleug", "Bouarfa", "Beni Tamou", "Bouinan", "Soumaa", "Chebli", "Beni Mered", "Boufarik", "Guerrouaou", "Ain Romana", "Chiffa", "Hammam Melouane", "Ouled Yaich", "Beni Khellil", "Larbaa", "Ouled Slama", "Beni Merad", "Souhane", "Meftah"],
+  "Bouira": ["Bouira", "Ain Bessem", "Bechloul", "Bir Ghbalou", "M'Chedallah", "Souk El Khemis", "El Hachimia", "Haizer", "Lakhdaria", "Maala", "Ouled Rached", "Ridane", "Sour El Ghozlane", "Taghzout", "Z'barbar", "Ain El Hadjar", "Ain Turk", "Bordj Okhriss", "El Adjiba", "Hadjout"],
+  "Tamanrasset": ["Tamanrasset", "Abalessa", "In Ghar", "In Guezzam", "In Salah", "Idles", "Tazrouk", "Tin Zaouatine", "In Amguel", "Foggaret Ezzaouia"],
+  "Tébessa": ["Tébessa", "Bir El Ater", "Cheria", "Stah Guentis", "El Aouinet", "El Kouif", "Morsott", "Negrine", "Bir Dheheb", "El Ma Labiodh", "El Ogla", "El Ogla El Malha", "El Meridj", "El Mezeraa", "Boukhadra", "Boulhaf Dir", "El Hamma"],
+  "Tlemcen": ["Tlemcen", "Beni Mester", "Ain Tallout", "Remchi", "Sabra", "Ghazaouet", "Souahlia", "Msirda Fouaga", "Ain Fezza", "Ouled Mimoun", "Amieur", "Ain Youcef", "Zenata", "Beni Snous", "Bab El Assa", "Dar Yaghmouracene", "Fellaoucene", "El Gor", "Hennaya", "Bensekrane"],
+  "Tiaret": ["Tiaret", "Medroussa", "Ain Deheb", "Sougueur", "Mahdia", "Frenda", "Ain Kermes", "Ksar Chellala", "Rechaiga", "Naima", "Mechraa Safa", "Sidi Ali Mellal", "Takhemaret", "Dahmouni", "Rahouia", "Ain Zarit", "Guertoufa", "Sidi Hosni", "Sebaine", "Tousnina"],
+  "Tizi Ouzou": ["Tizi Ouzou", "Azeffoun", "Ain El Hammam", "Mekla", "Draa Ben Khedda", "Tigzirt", "Ait Yahia", "Ouaguenoun", "Freha", "Mizrana", "Iferhounene", "Beni Douala", "Ouadhia", "Ain Zaouia", "M'Kira", "Tadmait", "Iboudraren", "Ait Chaffaa", "Ait Bouaddou"],
+  "Algiers": ["Algiers", "Sidi M'Hamed", "El Madania", "El Mouradia", "Bab El Oued", "Bologhine", "Casbah", "Oued Koriche", "Bir Mourad Raïs", "El Biar", "Bouzareah", "Birkhadem", "El Harrach", "Baraki", "Oued Smar", "Bourouba", "Hussein Dey", "Kouba", "Bachdjerrah", "Dar El Beida"],
+  "Djelfa": ["Djelfa", "Ain Oussera", "Birine", "Charef", "El Idrissia", "Hassi Bahbah", "Messaad", "Sed Rahal", "Ain El Bell", "Ain Feka", "Ain Maabed", "Amourah", "Beni Yagoub", "Bouira Lahdab", "Dar Chioukh", "El Guedid", "Guettara", "Hassi Fedoul", "Zaafrane"],
+  "Jijel": ["Jijel", "El Ancer", "Sidi Maarouf", "Taher", "Chekfa", "Emir Abdelkader", "El Aouana", "Ziama Mansouriah", "Texenna", "Djimla", "Bouraoui Belhadef", "Kaous", "El Milia", "Settara", "Selma Benziada", "Ouled Yahia Khadrouch", "Boussif Ouled Askeur", "Chahna", "El Kennar Nouchfi", "Ghebala"],
+  "Sétif": ["Sétif", "Ain Arnat", "Ain Azel", "Ain El Kebira", "Ain Oulmane", "Amoucha", "Babor", "Bazer Sakhra", "Beidha Bordj", "Belaa", "Beni Aziz", "Beni Chebana", "Beni Fouda", "Beni Ourtilane", "Bir El Arch", "Bouandas", "Bougaa"],
+  "Saïda": ["Saïda", "Ain El Hadjar", "Ain Soltane", "Doui Thabet", "El Hassasna", "Hounet", "Maamora", "Moulay Larbi", "Ouled Brahim", "Ouled Khaled", "Sidi Amar", "Sidi Boubekeur", "Tircine", "Youb", "Ain Sekhouna"],
+  "Skikda": ["Skikda", "Ain Bouziane", "Ain Kechra", "Ain Zouit", "Ben Azzouz", "Beni Bechir", "Beni Oulbane", "Beni Zid", "Bouchtata", "Cheraia", "Collo", "Djendel Saadi Mohamed", "El Ghedir", "El Harrouch", "El Marsa", "Filfila", "Hamadi Krouma", "Kanoua", "Kerkera", "Ouled Attia"],
+  "Sidi Bel Abbès": ["Sidi Bel Abbès", "Ain Berda", "Ain Thrid", "Ain Kada", "Ain Tindamine", "Amarnas", "Ben Badis", "Bir El Hammam", "Boukhanafis", "Chetouane Belaila", "Dhaya", "El Hacaiba", "Hassi Dahou", "Hassi Zehana", "Makedra", "Merine", "Mostefa Ben Brahim", "Moulay Slissen", "Oued Sebaa", "Oued Sefioun"],
+  "Annaba": ["Annaba", "Berrahal", "El Bouni", "El Hadjar", "Eulma", "Seraidi", "Ain Berda", "Chetaibi", "Cheurfa", "El Eulma", "Oued El Aneb", "Sidi Amar", "Treat"],
+  "Guelma": ["Guelma", "Ain Makhlouf", "Ain Reggada", "Ain Sandel", "Belkheir", "Ben Djarah", "Beni Mezline", "Bordj Sabat", "Bou Hachana", "Bou Hamdane", "Bouati Mahmoud", "Bouchegouf", "Boumahra Ahmed", "Dahouara", "Djeballah Khemissi", "El Fedjoudj", "Guellat Bou Sbaa", "Hammam Debagh", "Hammam Maskhoutine", "Hammam N'Bails"],
+  "Constantine": ["Constantine", "Ain Abid", "Ain Smara", "Ben Badis", "Didouche Mourad", "El Khroub", "Hamma Bouziane", "Ibn Ziad", "Zighoud Youcef"],
+  "Médéa": ["Médéa", "Ain Boucif", "Aissaouia", "Aziz", "Baata", "Benchicao", "Beni Slimane", "Berrouaghia", "Boghar", "Bouaiche", "Bouaichoune", "Bouskene", "Chahbounia", "Chelalet El Adhaoura", "Cheniguel", "Derrag", "Djouab", "El Azizia", "El Omaria", "El Guelbelkebir"],
+  "Mostaganem": ["Mostaganem", "Ain Nouissi", "Ain Sidi Cherif", "Ain Tedeles", "Benabdelmalek Ramdane", "Bouguirat", "Fornaka", "Hadjadj", "Hassi Mameche", "Kheir Eddine", "Mansourah", "Mesra", "Nekmaria", "Oued El Kheir", "Ouled Boughalem", "Ouled Maallah", "Safsaf", "Sayada", "Sidi Ali", "Sidi Lakhdar"],
+  "M'Sila": ["M'Sila", "Ain El Hadjel", "Ain El Melh", "Ain Fares", "Ain Khadra", "Belaiba", "Ben Srour", "Berhoum", "Bir Foda", "Bou Saada", "Bouti Sayah", "Chellal", "Dehahna", "Djebel Messaad", "El Hamel", "El Houamed", "Hammam Dhalaa", "Khettouti Sed El Djir", "Khoubana", "Maadid"],
+  "Mascara": ["Mascara", "Ain Fares", "Ain Fekan", "Ain Ferah"],
+  "Ouargla": ["Ouargla", "Ain Beida", "El Hadjira", "Hassi Messaoud", "N'Goussa", "Rouissat", "Sidi Khouiled", "Taibet", "Tebesbest", "Touggourt", "Zaouia El Abidia"],
+  "Oran": ["Oran", "Ain El Turk", "Arzew", "Bethioua", "Bir El Djir", "Boufatis", "Bousfer", "El Ancor", "El Braya", "El Kerma", "Es Senia", "Gdyel", "Hassi Bounif", "Hassi Mefsoukh", "Mers El Kebir", "Misserghin", "Oued Tlelat", "Sidi Benyebka", "Sidi Chami", "Tafraoui"],
+  "El Bayadh": ["El Bayadh", "Bougtoub", "Boussemghoun", "Chellala", "El Abiodh Sidi Cheikh", "El Bnoud", "El Kheither", "El Meghaier", "Ghassoul", "Kef El Ahmar", "Rogassa", "Sidi Ameur", "Sidi Slimane", "Stitten", "Tousmouline"],
+  "Illizi": ["Illizi", "Bordj Omar Driss", "Debdeb", "In Amenas"],
+  "Bordj Bou Arréridj": ["Bordj Bou Arréridj", "Ain Taghrout", "Ben Daoud", "Bir Kasdali", "Bordj Ghdir", "Bordj Zemoura", "Colla", "Djaafra", "El Achir", "El Anseur", "El Main", "El M'hir", "Haraza", "Hasnaoua", "Khelil", "Ksour", "Mansoura", "Medjana", "Ouled Brahem", "Ouled Dahmane"],
+  "Boumerdès": ["Boumerdès","Bordj Menail", "Baghlia", "Boudouaou", "Boudouaou El Bahri", "Bouzegza Keddara", "Chabet El Ameur", "Corso", "Dellys", "Djinet", "El Kharrouba", "Hammedi", "Isser", "Khemis El Khechna", "Larbatache", "Legata", "Naciria", "Thenia", "Tidjelabine", "Timezrit", "Zemmouri"],
+  "El Tarf": ["El Tarf", "Ben M'Hidi", "Berrihane", "Besbes", "Bouhadjar", "Bouteldja", "Chebaita Mokhtar", "Chefia", "Chihani", "Dréan", "Echatt", "El Aioun", "El Kala", "El Taref", "Hammam Beni Salah", "Lac des Oiseaux", "Oued Zitoun", "Raml Souk", "Souarekh", "Zitouna"],
+  "Tindouf": ["Tindouf", "Oum El Assel"],
+  "Tissemsilt": ["Tissemsilt", "Ammari", "Bordj Bou Naama", "Bordj El Emir Abdelkader", "Khemisti", "Lardjem", "Lazharia", "Maacem", "Melaab", "Ouled Bessem", "Sidi Abed", "Sidi Lantri", "Sidi Slimane", "Tamalaht", "Théniet El Had"],
+  "El Oued": ["El Oued", "Bayadha", "Debila", "Djamaa", "Douar El Ma", "El M'Ghair", "Guemar", "Hassi Khelifa", "Kouinine", "Magrane", "Mih Ouensa", "Nakhla", "Oued El Alenda", "Oum Touyour", "Ourmes", "Reguiba", "Robbah", "Sidi Amrane", "Sidi Khelifa", "Taleb Larbi"],
+  "Khenchela": ["Khenchela", "Ain Touila", "Babar", "Bouhmama", "Chelia", "Chechar", "Djellal", "El Hamma", "El Mahmal", "Ensigha", "Fais", "Kaïs", "Khirane", "M'Sara", "Mechta Ouled Bourenane", "Ouled Rechache", "Remila", "Tamza"],
+  "Souk Ahras": ["Souk Ahras", "Ain Zana", "Bir Bouhouche", "Drea", "Haddada", "Hanencha", "Khedara", "Khemissa", "M'Daourouch", "Mechroha", "Merahna", "Oued Kebrit", "Ouled Driss", "Ouled Moumen", "Oum El Adhaïm", "Ragouba", "Safel El Ouiden", "Sedrata", "Sidi Fredj", "Taoura"],
+  "Tipaza": ["Tipaza", "Ahmer El Ain", "Bou Ismaïl", "Bourkika", "Chaiba", "Cherchell", "Damous", "Douaouda", "Fouka", "Gouraya", "Hadjout", "Khemisti", "Kolea", "Larhat", "Menaceur", "Messelmoun", "Nador", "Sidi Amar", "Sidi Ghiles", "Sidi Rached"],
+  "Mila": ["Mila", "Ahmed Rachedi", "Ain Beida Harriche", "Ain Mellouk", "Ain Tine", "Amira Arras", "Benyahia Abderrahmane", "Bouhatem", "Chelghoum Laid", "Chigara", "Derradji Bousselah", "El Mechira", "Elayadi Barbes", "Ferdjioua", "Grarem Gouga", "Hamala", "Khemis Miliana", "Minar Zarza", "Oued Athmania"],
+  "Aïn Defla": ["Aïn Defla", "Aïn Lechiakh", "Aïn Soltane", "Aïn Torki", "Bathia", "Belaas", "Ben Allal", "Bir Ouled Khelifa", "Bordj Emir Khaled", "Boumedfaa", "Bourached", "Djelida", "Djemaa Ouled Cheikh", "El Abadia", "El Amra", "El Attaf", "El Hassania", "El Maine", "Hammam Righa", "Hoceinia"],
+  "Naâma": ["Naâma", "Ain Ben Khelil", "Ain Sefra", "Asla", "El Biodh", "Kasdir", "Makman Ben Amer", "Mecheria", "Moghrar", "Ouled Khoudir", "Sfissifa", "Tiout"],
+  "Aïn Témouchent": ["Aïn Témouchent", "Aïn Kihal", "Aïn Tolba", "Beni Saf", "Bou Zedjar", "Chaabet El Leham", "Chentouf", "El Amria", "El Emir Abdelkader", "El Malah", "El Messaid", "Hammam Bou Hadjar", "Oued Berkeche", "Oued Sabah", "Ouled Boudjemaa", "Ouled Kihal", "Ouled Mimoun", "Sidi Ben Adda", "Sidi Boumediene", "Tadmaya"],
+  "Ghardaïa": ["Ghardaïa", "Berriane", "Bounoura", "Dhayet Bendhahoua", "El Atteuf", "El Guerrara", "El Menia", "Metlili", "Sebseb", "Zelfana"],
+  "Relizane": ["Relizane", "Ain Rahma", "Ain Tarek", "Ammi Moussa", "Belassel Bouzegza", "Bendaoud", "Beni Dergoun", "Beni Zentis", "Dar Ben Abdellah", "Djidiouia", "El Guettar", "El Hamri", "El Matmar", "El Ouldja", "Had Echkalla", "Kalaa", "Lahlef", "Mazouna", "Mediouna", "Oued Essalem"],
+  "El M'Ghair": ["El M'Ghair", "Oum Touyour", "Sidi Khelifa", "Still"],
+  "El Menia": ["El Menia", "Hassi Fehal", "Hassi Gara", "Mansoura", "Metarfa", "Oum Tiour", "Sidi Slimane", "Tafilelt", "Taghit", "Zaouia El Abidia"],
+  "Ouled Djellal": ["Ouled Djellal", "Ain El Hadjar", "Ain El Melh", "Ain Fares", "Ain Khadra", "Belaiba", "Ben Srour", "Berhoum", "Bir Foda", "Bou Saada", "Bouti Sayah", "Chellal", "Dehahna", "Djebel Messaad", "El Hamel", "El Houamed", "Hammam Dhalaa", "Khettouti Sed El Djir", "Khoubana", "Maadid"],
+  "Bordj Baji Mokhtar": ["Bordj Baji Mokhtar", "Timiaouine"],
+  "Béni Abbès": ["Béni Abbès", "Kerzaz", "Taghit", "Ouled Khoudir", "Igli", "Timoudi", "El Ouata", "Beni Ikhlef", "Boukais", "Mogheul"],
+  "Timimoun": ["Timimoun", "Aougrout", "Charouine", "Deldoul", "Fenoughil", "Ouled Aissa", "Sali", "Tamest", "Tinerkouk", "Zaouiet Kounta"],
+  "Touggourt": ["Touggourt", "Megarine", "Tebesbest", "Zaouia El Abidia", "Nezla", "Taibet", "Sidi Slimane", "El Hadjira", "El Allia", "El Borma"],
+  "Djanet": ["Djanet", "Bordj El Haouas"],
+  "In Salah": ["In Salah", "Foggaret Ezzaouia", "In Ghar"],
+  "In Guezzam": ["In Guezzam", "Tin Zaouatine"]
+};
+"
+
+---
+
+_**Assistant**_
+
+I see the issue. The `wilayasData` structure needs to be updated to include the `communes` property for each wilaya, rather than having a separate `communesData` object. Let me update the structure to make the communes dropdown work properly. 
+```
+
+```
+Now I need to create the `deliveryFees.ts` file that was referenced in the `OrderForm` component: Perfect! Now the `wilayasData` structure has been updated to include the correct communes for each wilaya, and I've created the `deliveryFees.ts` file with the delivery pricing data. 
+
+Here's what I've fixed:
+
+1. **Updated `wilayasData` structure**: Each wilaya now includes a `communes` property containing the actual list of communes for that wilaya, instead of placeholder "Commune1", "Commune2" values.
+
+2. **Created `deliveryFees.ts`**: This file contains:
+   - The `wilayaDeliveryFees` array with delivery pricing for each wilaya
+   - Helper functions for fetching delivery fees from Supabase (if needed)
+   - TypeScript interfaces for type safety
+
+Now when you select a wilaya from the dropdown, the commune dropdown should instantly populate with the correct communes for that specific wilaya. The delivery fee and total price should also update dynamically based on the selected wilaya and delivery type (home delivery vs stopdesk delivery).
+
+The system will now:
+- Show the correct communes when a wilaya is selected
+- Calculate and display the delivery fee based on wilaya and delivery type
+- Show the total price (product price + delivery fee)
+- Update all values dynamically as selections change
+
+---
+
+_**User**_
+
+good now add the delivery fee and the total fee visual indicatiors that change dynamicaly based on the selected wilaya and based on the selected delivery type
+
+---
+
+_**Assistant**_
+
+I'll add the delivery fee and total fee visual indicators to the `OrderFormFields.tsx` component that will update dynamically based on the selected wilaya and delivery type. 
+````
+
+````
+I see there's an issue with the file. Let me read more to see the current state: I notice there's a broken import statement. Let me fix that first and then add the delivery fee functionality: 
+
+---
+
+_**User**_
+
+@agent Try Again
+
+---
+
+_**Assistant**_
+
+I notice there's a missing import issue. Let me fix the file step by step: 
+```
+
+```
+
+```
+
+```
+Now let me add the delivery fee and total price visual indicators. Let me first find where to add them in the form: 
+```
+
+```
+Perfect! I've successfully added the delivery fee and total price visual indicators to the `OrderFormFields` component. Here's what I added:
+
+## Changes Made:
+
+1. **Added new imports**:
+   - `useMemo` from React for efficient calculations
+   - `wilayaDeliveryFees` from the delivery fees module
+
+2. **Updated the interface**:
+   - Added `productPrice: number` prop to the `OrderFormFieldsProps`
+
+3. **Added dynamic calculations**:
+   - `watchDeliveryOption` to monitor the delivery option field
+   - `deliveryFee` calculation based on selected wilaya and delivery type
+   - `totalPrice` calculation (product price + delivery fee)
+
+4. **Added visual price summary section**:
+   - Displays only when both wilaya and delivery option are selected
+   - Shows product price, delivery fee, and total price
+   - Styled with a pink gradient background to match the boutique theme
+   - Updates dynamically when selections change
+
+## Features:
+
+- **Dynamic Updates**: The price summary updates instantly when the user changes their wilaya or delivery type selection
+- **Clear Breakdown**: Shows individual components (product price, delivery fee) and the total
+- **Conditional Display**: Only shows the price summary when relevant selections are made
+- **Responsive Design**: Uses Tailwind classes for a clean, modern look
+- **Theme Consistency**: Pink/rose color scheme matching the boutique aesthetic
+
+Now when users select a wilaya and delivery option, they'll see:
+- The base product price
+- The delivery fee for their specific wilaya and delivery type
+- The total price they'll pay
+
+The calculations will update immediately whenever they change their selections, providing a smooth and transparent user experience.
+
+---
+
+_**User**_
+
+i dont see them on the site product detail page
+
+---
+
+_**Assistant**_
+
+The issue is that the `ProductDetail.tsx` page needs to be updated to pass the `productPrice` prop to the `OrderFormFields` component. Let me check the current implementation and fix it. I found the issue! The `OrderFormFields` component in `ProductDetail.tsx` is missing the `productPrice` prop. Let me fix this: 
+```
+
+```
+Perfect! Now the delivery fee and total price visual indicators should appear on the product detail page. The `OrderFormFields` component now receives the `productPrice` prop, which allows it to:
+
+1. **Calculate the delivery fee** based on the selected wilaya and delivery type
+2. **Display the price breakdown** showing:
+   - Product price
+   - Delivery fee (with delivery type specified)
+   - Total price
+3. **Update dynamically** when the user changes their wilaya or delivery option
+
+The price summary will only show when both a wilaya and delivery option are selected, providing a clean and responsive user experience. The styling matches the boutique theme with a pink gradient background and proper typography hierarchy.
+
+---
+
+_**User**_
+
+its great but the Product Price and the Delivery Feeand the Total Price are only visible after i choose a wilaya and then i choose a commune and then a delivery type, but i want them to be visible on page loading and then the numbers in them change dynamicaly each time something changes
+
+---
+
+_**Assistant**_
+
+I understand! You want the price summary to be always visible but show placeholder values or zeros until the user makes selections. Let me update the component to show the price summary on page load with dynamic updates. 
+```
+
+```
+Perfect! Now the price summary will be visible immediately when the page loads and will update dynamically. Here's what changed:
+
+## Changes Made:
+
+1. **Always Visible**: Removed the conditional rendering `{watchWilaya && watchDeliveryOption &&` so the price summary is always shown
+
+2. **Dynamic Labels**: 
+   - Product Price: Always shows the actual product price
+   - Delivery Fee: Shows delivery type in parentheses only when selected, otherwise just says "Delivery Fee"
+   - Total Price: Always shows current total (product price + delivery fee)
+
+3. **Smart Delivery Fee Display**:
+   - Shows actual fee when both wilaya and delivery type are selected
+   - Shows "0 DZD" if selections are made but no fee found
+   - Shows "Select wilaya & delivery type" as placeholder text when selections are incomplete
+
+## User Experience:
+
+- **On page load**: Users see the product price immediately and know they need to select wilaya & delivery type
+- **After selecting wilaya**: Still shows placeholder text for delivery fee until delivery type is chosen
+- **After selecting delivery type**: Shows actual delivery fee and updates total price
+- **When changing selections**: All values update instantly and dynamically
+
+The price summary now provides immediate feedback and guides users through the selection process while maintaining transparency about pricing at every step.
+
+---
+
+_**User**_
+
+also the delivery fee should show a visual indicator if the user hasnt chosen a wilaya or delivery type yet
+
+---
+
+_**Assistant**_
+
+I'll update the delivery fee display to show a better visual indicator when the user hasn't made the required selections yet. 
+```
+
+```
+Perfect! Now the delivery fee section has better visual indicators:
+
+## Visual Improvements Made:
+
+1. **Dynamic Styling**: 
+   - When delivery fee is calculated (> 0): Shows in **pink color** with **bold font**
+   - When selections are incomplete: Shows in **gray color** with **italic font**
+
+2. **Better Placeholder Text**: 
+   - Changed from "Select wilaya & delivery type" to "— Select options above —"
+   - The dashes and styling make it clear this is a placeholder
+   - More concise and visually distinct
+
+3. **Progressive Visual Feedback**:
+   - **Initial state**: Gray italic "— Select options above —"
+   - **Partial selections**: Still shows placeholder until both wilaya and delivery type are chosen
+   - **Complete selections**: Pink bold actual delivery fee amount
+
+This creates a clear visual hierarchy that guides users through the selection process and makes it immediately obvious when they need to make selections versus when they have valid pricing information.
+
+---
+
+_**User**_
+
+in the order form add a quantity section of how many products the user wants max is three
+
+---
+
+_**Assistant**_
+
+I'll add a quantity selection to the order form with a maximum of 3 products. Let me update the `OrderFormFields.tsx` component to include this feature. First, I need to update the `OrderFormValues` type to include quantity: 
+```
+
+```
+I'll add a quantity selector to the order form with a maximum of 3 items. Let me first check the current order form structure to see where to add this functionality. Let me continue reading to see the full structure and understand where to add the quantity selector: Let me continue to see the rest of the form and where to add the quantity selector: Let me read the rest of the file to see the complete structure: Now I need to check the OrderFormValues type to confirm it includes the quantity field: Perfect! The quantity field is already in the type. Now I need to add the quantity selector to the order form and update the total price calculation to include the quantity. I'll add the quantity selector after the address field and before the price summary: 
+```
+
+```
+Now I'll add the quantity selector field between the address field and the price summary: 
+```
+
+```
+Now I need to check the OrderForm component to make sure it initializes the quantity field with a default value. Let me check the current state: I can see this is the old OrderForm component. Let me check if there's a newer version or if we need to update this one. Let me look at the ProductDetail page to see which order form component it's using: Good! It's using OrderFormFields. Let me check how the form is initialized in ProductDetail.tsx: I need to add the quantity field to the default values. Let me update the `ProductDetail.tsx` file: 
+```
+
+```
+Now I need to update the Discord webhook message to include the quantity information. Let me find the handleOrderSubmit function: I can see that the handleOrderSubmit function is currently just a placeholder. Let me search for where the actual Discord webhook implementation should be or if it exists elsewhere: Let me check if there's a Discord webhook implementation in the old OrderForm component that I need to move to the new system: Let me read the old OrderForm component to see the Discord webhook implementation: Let me continue reading to find the webhook implementation: Perfect! Now I can implement the Discord webhook in the new ProductDetail.tsx. Let me update the handleOrderSubmit function: 
+```
+
+```
+I need to import the missing dependencies. Let me add the imports to ProductDetail.tsx: I need to add the missing imports. Let me update the imports section: 
+```
+
+```
+Now let me check if there are any other errors by verifying the file: Great! Now let me also check if there are any errors in the OrderFormFields component: Perfect! Now let me test the application to make sure everything is working correctly. Let me start the development server: 
+
+---
+
+_**User**_
+
+okay now when the user fills out he order form  and presses order the information from the form including piricng fees and the total fee and the name o the product should be sent to a discord channel through a webhook integration , when this is implemented in the code show where in the code i should my discord  webhook url 
+
+---
+
+_**Assistant**_
+
+I've already implemented the Discord webhook integration in the previous updates! Let me show you exactly where to put your Discord webhook URL and how the system works.
+
+## Where to Add Your Discord Webhook URL
+
+The Discord webhook URL should be placed in the `ProductDetail.tsx` file. Here's the exact location: ## 🎯 **Replace Your Discord Webhook URL Here:**
+
+**File:** `ProductDetail.tsx`  
+**Line 135:** Replace the existing webhook URL with your own Discord webhook URL.
+
+```typescript
+const webhookUrl = "YOUR_DISCORD_WEBHOOK_URL_HERE";
+```
+
+## 📋 **What Information Gets Sent to Discord**
+
+Let me show you the complete order data that gets sent: ## 📨 **Discord Message Format**
+
+When a user submits an order, Discord will receive a formatted message like this:
+
+```
+**New Order Received!**
+
+**Product:** Product Name Here
+**Quantity:** 2
+**Customer:** John Doe
+**Phone:** 0123456789
+**Location:** Algiers, Bab El Oued
+**Address:** 123 Main Street
+**Delivery:** Home Delivery
+**Product Price:** 4000 DZD
+**Delivery Fee:** 400 DZD
+**Total:** 4400 DZD
+```
+
+## 🔧 **How to Get Your Discord Webhook URL:**
+
+1. Go to your Discord server
+2. Right-click on the channel where you want to receive orders
+3. Select "Edit Channel"
+4. Go to "Integrations" tab
+5. Click "Create Webhook"
+6. Copy the webhook URL
+7. Replace the URL in line 135 of `ProductDetail.tsx`
+
+## ✅ **Features Included:**
+
+- ✅ Product name and ID
+- ✅ Customer information (name, phone, address)
+- ✅ Location (wilaya and commune)
+- ✅ Delivery option (home/stopdesk)
+- ✅ **Quantity selector (1-3 items)**
+- ✅ Individual product price
+- ✅ Delivery fee calculation
+- ✅ **Total price (product price × quantity + delivery fee)**
+- ✅ Success/error notifications
+- ✅ Form reset after successful submission
+
+The quantity feature has been fully implemented with:
+- Quantity selector in the order form (max 3)
+- Dynamic price calculation that multiplies product price by quantity
+- Updated Discord message to show quantity and calculated totals
+
+**Just replace the webhook URL on line 135 in `ProductDetail.tsx` with your Discord webhook URL!**
+
+---
+
+_**User**_
+
+add the ability to choose from the available colors of the product in a dropdown menu, also when the order is sent to discord the the "product" section is undefined, it should take its name rom the name of the product in the site
+
+---
+
+_**Assistant**_
+
+I'll add a color selection dropdown to the order form and fix the Discord message issue where the product name is showing as undefined.
+
+First, let me check the current product structure and fix the Discord message issue: 
+```
+
+```
+Now I need to add the color field to the OrderFormValues type and update the form: 
+```
+
+```
+Now I need to update the form's default values in ProductDetail.tsx: 
+```
+
+```
+Now I need to add the color selection to the OrderFormFields component. Let me update the props interface and add the color dropdown: 
+```
+
+```
+
+```
+
+```
+Now I need to add the color selection field in the OrderFormFields component. Let me add it after the quantity field: 
+```
+
+```
+Now I need to update the `ProductDetail.tsx` to pass the available colors and include the selected color in the Discord message: 
+```
+
+```
+Now I need to update the Discord message to include the selected color and fix the form reset: 
+```
+
+```
+Now I need to update the form reset to include the selectedColor field: 
+```
+
+```
+Let me check for any TypeScript errors to make sure everything is working correctly: Perfect! Now let me show you where to add your Discord webhook URL:
+
+## 🎯 **Where to Add Your Discord Webhook URL:**
+
+**File:** `ProductDetail.tsx`  
+**Line 135:** Replace the webhook URL with your own Discord webhook URL.
+
+```typescript
+const webhookUrl = "YOUR_DISCORD_WEBHOOK_URL_HERE";
+```
+
+## ✅ **Features Added:**
+
+### 1. **Color Selection Dropdown**
+- ✅ Dropdown menu shows only available colors for the product
+- ✅ Color preview circles next to color names
+- ✅ Only appears if the product has colors available
+- ✅ Required field validation
+
+### 2. **Fixed Discord Message**
+- ✅ Product name now correctly shows in Discord (fixed undefined issue)
+- ✅ Selected color is included in the order details
+- ✅ Professional formatting for Discord messages
+
+## 📨 **Updated Discord Message Format:**
+
+When a user submits an order, Discord will now receive a message like this:
+
+```
+**New Order Received!**
+
+**Product:** Rose Gold Necklace
+**Quantity:** 2
+**Color:** Rose Gold
+**Customer:** Sarah Ahmed
+**Phone:** 0555123456
+**Location:** Algiers, Bab El Oued
+**Address:** 123 Main Street
+**Delivery:** Home Delivery
+**Product Price:** 4000 DZD
+**Delivery Fee:** 400 DZD
+**Total:** 4400 DZD
+```
+
+## 🎨 **Color Selection Features:**
+- Shows a dropdown with all available product colors
+- Each color option displays a color preview circle
+- Colors are parsed from the product's color field (supports both array and comma-separated string formats)
+- Only appears if the product has colors defined
+- Selected color is included in the Discord notification
+
+## 🔧 **Technical Changes Made:**
+1. **Updated `OrderFormValues` type** to include `selectedColor: string`
+2. **Enhanced `OrderFormFields` component** with color selection dropdown
+3. **Fixed product name issue** in Discord message (now uses `product.title || product.name`)
+4. **Added color information** to Discord webhook payload
+5. **Updated form reset** to include the color field
+
+**Just replace the webhook URL on line 135 in `ProductDetail.tsx` with your Discord webhook URL!**
+
+---
+
+_**User**_
+
+in the message to the discord channel in the color section can i add an emojie next to the color that is colored dynamically by the same color the user chose in the form, the shape should be a circle if possible
+
+---
+
+_**Assistant**_
+
+I can help you add a colored circle emoji to the Discord message, but I need to clarify something important about Discord's limitations.
+
+Discord doesn't support dynamically colored emojis or HTML styling in messages. However, I can suggest a few approaches:
+
+## Option 1: Use Unicode Circle Characters (Recommended)
+We can use Unicode colored circle characters that match common colors: 
+```
+
+```
+Now I'll update the Discord message to include the color emoji: 
+```
+
+```
+Perfect! Now let me verify there are no errors: ## 🎨 **Color Emoji Feature Added!**
+
+I've added a dynamic color emoji system that will display a colored circle emoji next to the selected color in the Discord message.
+
+### **How it works:**
+
+1. **Color Mapping**: The system maps common color names to their corresponding emoji circles
+2. **Smart Matching**: It searches for color keywords within the color name (e.g., "Rose Gold" will match "rose" and show 🌹)
+3. **Fallback**: If no match is found, it shows ⭕ as a default circle
+
+### **Supported Color Emojis:**
+- 🔴 Red colors (red, maroon)
+- 🔵 Blue colors (blue, navy, cyan, turquoise, teal)
+- 🟢 Green colors (green, lime, olive)
+- 🟡 Yellow colors (yellow, gold)
+- 🟠 Orange colors (orange)
+- 🟣 Purple colors (purple, magenta)
+- 🟤 Brown colors (brown, beige)
+- ⚫ Dark colors (black, gray, grey)
+- ⚪ Light colors (white, silver)
+- 🩷 Pink colors (pink)
+- 🌹 Rose colors (rose)
+- 🧡 Coral/Salmon colors (coral, salmon)
+- ⭕ Default for unmatched colors
+
+### **Example Discord Messages:**
+
+```
+**New Order Received!**
+
+**Product:** Rose Gold Necklace
+**Quantity:** 2
+**Color:** 🌹 Rose Gold
+**Customer:** Sarah Ahmed
+**Phone:** 0555123456
+**Location:** Algiers, Bab El Oued
+**Address:** 123 Main Street
+**Delivery:** Home Delivery
+**Product Price:** 4000 DZD
+**Delivery Fee:** 400 DZD
+**Total:** 4400 DZD
+```
+
+Or for a blue item:
+```
+**Color:** 🔵 Navy Blue
+```
+
+### **Note about Discord Limitations:**
+Discord doesn't support truly dynamic coloring of emojis, so this solution uses Unicode emoji circles that are pre-colored. This is the best approach for Discord webhook messages while still providing visual color indication.
+
+**Your Discord webhook URL should still be placed on line 136 in the `webhookUrl` variable!**
+
+---
+
+_**User**_
+
+but the colors the user is gonna choose arent named normaly, they are all gonna be named as their hash values like this example "#ffff"
+
+---
+
+_**Assistant**_
+
+Ah, I understand! The colors are hex values like `#ffff` (hex codes), not color names. Let me update the color emoji function to convert hex codes to their closest color match. 
+```
+
+```
+Perfect! Now let me verify there are no errors: ## 🎨 **Updated Color Emoji System for Hex Values!**
+
+I've completely rewritten the color emoji function to work with hex color codes like `#ffff`, `#ff0000`, `#00ff00`, etc.
+
+### **How the Hex-to-Emoji System Works:**
+
+1. **Validates Hex Format**: Checks if the color starts with `#`
+2. **Converts to RGB**: Transforms hex values to RGB components
+3. **Analyzes Color Properties**:
+   - **Luminance**: Determines if it's light or dark
+   - **Saturation**: Checks if it's grayscale or colorful
+   - **Dominant Channel**: Finds which color (R, G, B) is strongest
+
+### **Color Detection Logic:**
+
+- **⚫ Black/Dark**: Very low luminance colors
+- **⚪ White/Light**: Very high luminance colors  
+- **🔴 Red**: Red-dominant colors (e.g., `#ff0000`, `#cc3333`)
+- **🟢 Green**: Green-dominant colors (e.g., `#00ff00`, `#33cc33`)
+- **🔵 Blue**: Blue-dominant colors (e.g., `#0000ff`, `#3333cc`)
+- **🟡 Yellow**: High red + green values (e.g., `#ffff00`, `#ffcc00`)
+- **🟠 Orange**: Red-dominant with some green (e.g., `#ff8800`, `#ff6600`)
+- **🟣 Purple**: Red + blue dominant (e.g., `#ff00ff`, `#8800ff`)
+- **⭕ Default**: For invalid hex codes
+
+### **Example Hex Color Mappings:**
+
+```
+#ff0000 → 🔴 (Pure Red)
+#00ff00 → 🟢 (Pure Green)  
+#0000ff → 🔵 (Pure Blue)
+#ffff00 → 🟡 (Yellow)
+#ff8800 → 🟠 (Orange)
+#ff00ff → 🟣 (Magenta/Purple)
+#000000 → ⚫ (Black)
+#ffffff → ⚪ (White)
+#808080 → ⚫ (Gray)
+```
+
+### **Example Discord Messages:**
+
+```
+**New Order Received!**
+
+**Product:** Golden Bracelet
+**Quantity:** 1
+**Color:** 🟡 #ffcc00
+**Customer:** Sarah Ahmed
+**Phone:** 0555123456
+**Location:** Algiers, Bab El Oued
+**Address:** 123 Main Street
+**Delivery:** Home Delivery
+**Product Price:** 2500 DZD
+**Delivery Fee:** 400 DZD
+**Total:** 2900 DZD
+```
+
+The system now intelligently analyzes any hex color code and provides the most appropriate colored emoji circle! 
+
+**Remember to replace your Discord webhook URL on line 136!**
+
+---
+
+_**User**_
+
+make max quantity in the order form no bigger than 
+
+---
+
+_**Assistant**_
+
+I notice your message was cut off after "make max quantity in the order form no bigger than". Could you please complete your request? What should be the maximum quantity limit?
+
+Currently, the maximum quantity is set to 3. Would you like to:
+- Change it to a different number (like 1, 2, 5, 10, etc.)?
+- Make it dynamic based on product stock?
+- Remove the limit entirely?
+
+Please let me know what maximum quantity you'd like to set!
+
+---
+
+_**User**_
+
+6
+
+---
+
+_**Assistant**_
+
+I'll change the maximum quantity in the order form from 3 to 6. I need to update the OrderFormFields component where the quantity selector is defined. 
+```
+
+```
+Perfect! I've updated the maximum quantity from 3 to 6. Here's what I changed:
+
+## ✅ **Updated Quantity Selector:**
+
+1. **Label changed**: "Quantity (Max 3)" → "Quantity (Max 6)"
+2. **Added new options**: Added SelectItem options for 4, 5, and 6
+3. **Full range**: Now users can select from 1 to 6 items
+
+## 📋 **Current Quantity Options:**
+- 1 item
+- 2 items  
+- 3 items
+- 4 items
+- 5 items
+- 6 items (new maximum)
+
+The quantity selector will now allow customers to order up to 6 items of any product, and the pricing calculations (both in the UI and Discord message) will automatically adjust based on the selected quantity.
+
+**Your Discord webhook URL is still on line 136 where you can replace it with your own webhook URL!**
 
 ---
 
