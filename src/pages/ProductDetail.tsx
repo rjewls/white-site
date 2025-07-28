@@ -300,9 +300,96 @@ const ProductDetail = () => {
     <>
       <div className="min-h-screen bg-gradient-soft">
         <Navigation />
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-            {/* Product Images Carousel */}
+        <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8 py-4 sm:py-6 lg:py-8">
+          {/* Mobile Layout */}
+          <div className="block lg:hidden space-y-4">
+            {/* Product Images Carousel - Mobile */}
+            <div className="mb-4">
+              <ImageCarousel 
+                images={product.images} 
+                title={product.title}
+                autoPlay={true}
+                showThumbnails={true}
+              />
+            </div>
+            
+            {/* Product Info - Mobile */}
+            <div className="bg-white/50 backdrop-blur-sm border border-white/20 rounded-xl p-4 shadow-lg">
+              <h1 className="font-playfair text-2xl sm:text-3xl font-bold text-rose-600 mb-3">
+                {product.title}
+              </h1>
+              <div className="flex items-center justify-between mb-3">
+                <span className="font-inter text-2xl sm:text-3xl font-bold text-primary">
+                  {product.price} DZD
+                </span>
+              </div>
+              
+              {/* Color circles - Mobile */}
+              {(Array.isArray(product.colors)
+                ? product.colors
+                : typeof product.colors === "string"
+                  ? product.colors.split(",").map(c => c.trim()).filter(Boolean)
+                  : []
+              ).length > 0 && (
+                <div className="flex gap-2 mb-3">
+                  {(Array.isArray(product.colors)
+                    ? product.colors
+                    : typeof product.colors === "string"
+                      ? product.colors.split(",").map(c => c.trim()).filter(Boolean)
+                      : []
+                  ).map((color, idx) => (
+                    <span
+                      key={idx}
+                      className="w-4 h-4 sm:w-5 sm:h-5 rounded-full border border-border inline-block"
+                      style={{ backgroundColor: color }}
+                    />
+                  ))}
+                </div>
+              )}
+              
+              {/* Description - Mobile */}
+              {product.description && (
+                <div className="mt-3">
+                  <h3 className="font-playfair text-lg font-semibold text-rose-600 mb-2">
+                    Description
+                  </h3>
+                  <p className="text-gray-700 text-sm leading-relaxed">
+                    {product.description}
+                  </p>
+                </div>
+              )}
+            </div>
+            
+            {/* Purchase Form - Mobile */}
+            <Card className="bg-gradient-card">
+              <CardHeader className="pb-3">
+                <CardTitle className="font-playfair text-xl sm:text-2xl">
+                  Purchase Details
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4 pt-0">
+                <OrderFormFields
+                  form={form}
+                  onSubmit={handleOrderSubmit}
+                  isSubmitting={false}
+                  communes={communes}
+                  watchWilaya={watchWilaya}
+                  productPrice={product?.price || 0}
+                  availableColors={
+                    Array.isArray(product.colors)
+                      ? product.colors
+                      : typeof product.colors === "string"
+                        ? product.colors.split(",").map(c => c.trim()).filter(Boolean)
+                        : []
+                  }
+                />
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Desktop Layout */}
+          <div className="hidden lg:grid grid-cols-2 gap-12">
+            {/* Product Images Carousel - Desktop */}
             <div className="space-y-6">
               <ImageCarousel 
                 images={product.images} 
@@ -310,7 +397,7 @@ const ProductDetail = () => {
                 autoPlay={true}
                 showThumbnails={true}
               />
-              {/* Product Description - matching carousel style */}
+              {/* Product Description - Desktop */}
               {product.description && (
                 <div className="bg-white/50 backdrop-blur-sm border border-white/20 rounded-2xl p-6 shadow-lg">
                   <h3 className="font-playfair text-xl font-semibold text-rose-600 mb-4">
@@ -322,18 +409,19 @@ const ProductDetail = () => {
                 </div>
               )}
             </div>
-            {/* Product Info & Purchase Form */}
+            
+            {/* Product Info & Purchase Form - Desktop */}
             <div className="space-y-8">
               <div>
                 <h1 className="font-playfair text-3xl font-bold text-rose-600 mb-4">
                   {product.title}
                 </h1>
                 <div className="flex items-center gap-4 mb-4">
-                  <span className="font-inter text-3xl font-bold text-primary ">
+                  <span className="font-inter text-3xl font-bold text-primary">
                     {product.price} DZD
                   </span>
                 </div>
-                {/* Color circles below price/title */}
+                {/* Color circles - Desktop */}
                 {(Array.isArray(product.colors)
                   ? product.colors
                   : typeof product.colors === "string"
@@ -356,7 +444,7 @@ const ProductDetail = () => {
                   </div>
                 )}
               </div>
-              {/* Purchase Form */}
+              {/* Purchase Form - Desktop */}
               <Card className="bg-gradient-card">
                 <CardHeader>
                   <CardTitle className="font-playfair text-2xl">

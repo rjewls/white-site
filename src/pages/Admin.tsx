@@ -1,5 +1,4 @@
-import { useState } from "react";
-import { useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/lib/supabaseClient";
 import { Navigation } from "@/components/Navigation";
 import { Button } from "@/components/ui/button";
@@ -15,39 +14,47 @@ import { Plus, Edit, Trash2, Save, X } from "lucide-react";
 const Admin = () => {
   const { toast } = useToast();
   const [products, setProducts] = useState([]);
+  
+  // Helper function to clean array fields
+  const cleanArrayField = (field) => {
+    if (Array.isArray(field)) {
+      return field
+        .map((v) => typeof v === "string" ? v.replace(/[[\]"'\\]/g, "").trim() : v)
+        .filter(Boolean)
+        .join(", ");
+    }
+    if (typeof field === "string") {
+      return field.replace(/[[\]"'\\]/g, "").split(",").map(s => s.trim()).filter(Boolean).join(", ");
+    }
+    return "";
+  };
+
+  // Helper function to refetch and clean products data
+  const refetchProducts = useCallback(async () => {
+    const { data, error } = await supabase
+      .from('products')
+      .select('*')
+      .order('created_at', { ascending: false });
+    
+    if (error) {
+      toast({ title: "Error fetching products", description: error.message, variant: "destructive" });
+      return;
+    }
+    
+    if (data) {
+      setProducts(data.map(product => ({
+        ...product,
+        colors: cleanArrayField(product.colors),
+        sizes: cleanArrayField(product.sizes),
+        images: cleanArrayField(product.images)
+      })));
+    }
+  }, [toast]);
+
   // Fetch products from Supabase on mount
   useEffect(() => {
-    const fetchProducts = async () => {
-      const { data, error } = await supabase
-        .from('products')
-        .select('*')
-        .order('created_at', { ascending: false });
-      if (error) {
-        toast({ title: "Error fetching products", description: error.message, variant: "destructive" });
-      } else {
-        // Clean up colors, sizes, images for every product
-        const cleanArrayField = (field) => {
-          if (Array.isArray(field)) {
-            return field
-              .map((v) => typeof v === "string" ? v.replace(/[[\]"'\\]/g, "").trim() : v)
-              .filter(Boolean)
-              .join(", ");
-          }
-          if (typeof field === "string") {
-            return field.replace(/[[\]"'\\]/g, "").split(",").map(s => s.trim()).filter(Boolean).join(", ");
-          }
-          return "";
-        };
-        setProducts((data || []).map(product => ({
-          ...product,
-          colors: cleanArrayField(product.colors),
-          sizes: cleanArrayField(product.sizes),
-          images: cleanArrayField(product.images)
-        })));
-      }
-    };
-    fetchProducts();
-  }, []);
+    refetchProducts();
+  }, [refetchProducts]);
   const [editingProduct, setEditingProduct] = useState(null);
   const [showAddForm, setShowAddForm] = useState(false);
   const [formData, setFormData] = useState({
@@ -117,9 +124,23 @@ const Admin = () => {
     }
 
     // Upload any File objects in formData.images to Supabase Storage
-    let imageUrls = [];
+    let imageUrls: string[] = [];
     for (const img of formData.images) {
-      if (img && typeof img === "object" && "name" in img && "size" in img && "type" in img) {
+      if (!img) continue; // Skip null/undefined items
+      
+      // Type guard for File objects  
+      const isFile = (item: unknown): item is File => {
+        return item !== null && 
+               typeof item === "object" && 
+               "name" in item &&
+               "size" in item &&
+               "type" in item &&
+               typeof (item as Record<string, unknown>).name === "string" && 
+               typeof (item as Record<string, unknown>).size === "number" && 
+               typeof (item as Record<string, unknown>).type === "string";
+      };
+      
+      if (isFile(img)) {
         // Validate file type and size
         if (!img.type.startsWith("image/")) {
           toast({ title: "Invalid file type", description: "Only image files are allowed.", variant: "destructive" });
@@ -158,9 +179,7 @@ const Admin = () => {
           : [],
       sizes: typeof formData.sizes === 'string'
         ? formData.sizes.split(',').map(s => s.trim()).filter(s => s)
-        : Array.isArray(formData.sizes)
-          ? formData.sizes.filter(s => s)
-          : [],
+        : [],
       stock: parseInt(formData.stock) || 0
     };
 
@@ -175,12 +194,8 @@ const Admin = () => {
             toast({ title: "Error updating product", description: error.message, variant: "destructive" });
           } else {
             toast({ title: "Product Updated", description: "Product has been updated successfully" });
-            // Refetch products
-            supabase
-              .from('products')
-              .select('*')
-              .order('created_at', { ascending: false })
-              .then(({ data }) => setProducts(data || []));
+            // Refetch products with proper data cleaning
+            refetchProducts();
             setEditingProduct(null);
           }
         });
@@ -194,12 +209,8 @@ const Admin = () => {
             toast({ title: "Error adding product", description: error.message, variant: "destructive" });
           } else {
             toast({ title: "Product Added", description: "New product has been added successfully" });
-            // Refetch products
-            supabase
-              .from('products')
-              .select('*')
-              .order('created_at', { ascending: false })
-              .then(({ data }) => setProducts(data || []));
+            // Refetch products with proper data cleaning
+            refetchProducts();
             setShowAddForm(false);
           }
         });
@@ -224,12 +235,8 @@ const Admin = () => {
           toast({ title: "Error deleting product", description: error.message, variant: "destructive" });
         } else {
           toast({ title: "Product Deleted", description: "Product has been removed successfully" });
-          // Refetch products
-          supabase
-            .from('products')
-            .select('*')
-            .order('created_at', { ascending: false })
-            .then(({ data }) => setProducts(data || []));
+          // Refetch products with proper data cleaning
+          refetchProducts();
         }
       });
   };
@@ -238,28 +245,39 @@ const Admin = () => {
     <div className="min-h-screen bg-gradient-soft">
       <Navigation />
       
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="flex justify-between items-center mb-8">
-          <h1 className="font-playfair text-3xl font-bold text-foreground">
+      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-3 sm:py-8">
+        {/* Header - Mobile Optimized */}
+        <div className="flex flex-col space-y-3 mb-4 sm:mb-8 sm:flex-row sm:justify-between sm:items-center sm:space-y-0">
+          <h1 className="font-playfair text-xl sm:text-3xl font-bold text-foreground">
             Admin Dashboard
           </h1>
           <Button
             onClick={() => setShowAddForm(true)}
             variant="elegant"
-            className="flex items-center gap-2"
+            className="flex items-center justify-center gap-2 w-full sm:w-auto py-3 sm:py-2"
           >
-            <Plus className="h-5 w-5" />
-            Add Product
+            <Plus className="h-4 w-4 sm:h-5 sm:w-5" />
+            <span className="font-medium">Add New Product</span>
           </Button>
         </div>
 
-        {/* Add Product Form */}
+        {/* Add Product Form - Mobile Optimized */}
         {showAddForm && (
-          <Card className="mb-8 bg-gradient-card">
-            <CardHeader>
-              <CardTitle className="font-playfair">Add New Product</CardTitle>
+          <Card className="mb-4 sm:mb-8 bg-gradient-card border-0 shadow-lg">
+            <CardHeader className="px-3 sm:px-6 py-3 sm:py-4 border-b">
+              <div className="flex items-center justify-between">
+                <CardTitle className="font-playfair text-lg sm:text-xl">Add New Product</CardTitle>
+                <Button
+                  onClick={handleCancel}
+                  variant="ghost"
+                  size="sm"
+                  className="sm:hidden"
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
             </CardHeader>
-            <CardContent>
+            <CardContent className="px-3 sm:px-6 pb-4 sm:pb-6 pt-4">
               <ProductForm 
                 formData={formData}
                 setFormData={setFormData}
@@ -270,89 +288,257 @@ const Admin = () => {
           </Card>
         )}
 
-        {/* Products List */}
-        <div className="grid gap-6">
-          {products.map((product) => (
-            <Card key={product.id} className="bg-gradient-card">
-              <CardContent className="p-6">
-                {editingProduct === product.id ? (
-                  <ProductForm 
-                    formData={formData}
-                    setFormData={setFormData}
-                    onSave={handleSave}
-                    onCancel={handleCancel}
-                  />
-                ) : (
-                  <div className="flex items-center gap-6">
-                    <div className="flex gap-2">
-                      {(Array.isArray(product.images) ? product.images : typeof product.images === 'string' && product.images ? (product.images as string).split(',').map(img => img.trim()).filter(Boolean) : []).slice(0, 3).map((image, index) => (
-                        <img
-                          key={index}
-                          src={image}
-                          alt={`${product.title} ${index + 1}`}
-                          className="w-16 h-16 object-cover rounded-lg"
-                        />
-                      ))}
-                      {(Array.isArray(product.images) ? product.images : typeof product.images === 'string' && product.images ? (product.images as string).split(',').map(img => img.trim()).filter(Boolean) : []).length > 3 && (
-                        <div className="w-16 h-16 bg-muted rounded-lg flex items-center justify-center text-xs text-muted-foreground">
-                          +{(Array.isArray(product.images) ? product.images : typeof product.images === 'string' && product.images ? (product.images as string).split(',').map(img => img.trim()).filter(Boolean) : []).length - 3}
-                        </div>
-                      )}
+        {/* Products List - Mobile Optimized */}
+        <div className="space-y-3 sm:space-y-6">
+          {products.length === 0 ? (
+            <Card className="bg-gradient-card">
+              <CardContent className="p-8 text-center">
+                <p className="text-muted-foreground">No products found. Add your first product to get started!</p>
+              </CardContent>
+            </Card>
+          ) : (
+            products.map((product) => (
+              <Card key={product.id} className="bg-gradient-card border-0 shadow-md overflow-hidden">
+                <CardContent className="p-0">
+                  {editingProduct === product.id ? (
+                    <div className="p-3 sm:p-6 bg-muted/30">
+                      <div className="flex items-center justify-between mb-4 sm:hidden">
+                        <h3 className="font-playfair text-lg font-semibold">Edit Product</h3>
+                        <Button
+                          onClick={handleCancel}
+                          variant="ghost"
+                          size="sm"
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </div>
+                      <ProductForm 
+                        formData={formData}
+                        setFormData={setFormData}
+                        onSave={handleSave}
+                        onCancel={handleCancel}
+                      />
                     </div>
-                    <div className="flex-1">
-                      <h3 className="font-playfair font-semibold text-xl mb-2">
-                        {product.title}
-                      </h3>
-                      <p className="text-muted-foreground mb-2">
-                        {product.description}
-                      </p>
-                      <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                        <span>Price: {product.price} DZD</span>
-                        <span>Stock: {product.stock}</span>
-                        <span className="flex items-center gap-1">Colors:
+                  ) : (
+                    <>
+                      {/* Mobile Layout */}
+                      <div className="block sm:hidden">
+                        <div className="p-4 space-y-4">
+                          {/* Product Header with Main Image */}
+                          <div className="flex items-start gap-4">
+                            {/* Main Image */}
+                            <div className="flex-shrink-0">
+                              {(Array.isArray(product.images) ? product.images : typeof product.images === 'string' && product.images ? (product.images as string).split(',').map(img => img.trim()).filter(Boolean) : []).length > 0 ? (
+                                <img
+                                  src={(Array.isArray(product.images) ? product.images : typeof product.images === 'string' && product.images ? (product.images as string).split(',').map(img => img.trim()).filter(Boolean) : [])[0]}
+                                  alt={product.title}
+                                  className="w-24 h-24 object-cover rounded-xl border shadow-sm"
+                                />
+                              ) : (
+                                <div className="w-24 h-24 bg-muted rounded-xl flex items-center justify-center border">
+                                  <span className="text-xs text-muted-foreground text-center">No Image</span>
+                                </div>
+                              )}
+                            </div>
+                            
+                            {/* Product Basic Info */}
+                            <div className="flex-1 min-w-0 space-y-2">
+                              <h3 className="font-playfair font-semibold text-lg leading-tight">
+                                {product.title}
+                              </h3>
+                              <p className="text-sm text-muted-foreground line-clamp-3 leading-relaxed">
+                                {product.description}
+                              </p>
+                            </div>
+                          </div>
+                          
+                          {/* Price and Stock Row */}
+                          <div className="flex items-center justify-between bg-muted/30 rounded-lg p-3">
+                            <div>
+                              <span className="text-xs text-muted-foreground">Price</span>
+                              <div className="font-bold text-primary text-xl">{product.price} DZD</div>
+                            </div>
+                            <div className="text-right">
+                              <span className="text-xs text-muted-foreground">Stock</span>
+                              <div className="font-semibold text-lg">{product.stock}</div>
+                            </div>
+                          </div>
+                          
+                          {/* Additional Images */}
+                          {(Array.isArray(product.images) ? product.images : typeof product.images === 'string' && product.images ? (product.images as string).split(',').map(img => img.trim()).filter(Boolean) : []).length > 1 && (
+                            <div className="space-y-2">
+                              <span className="text-xs font-medium text-muted-foreground">Additional Images</span>
+                              <div className="flex gap-2 overflow-x-auto pb-2">
+                                {(Array.isArray(product.images) ? product.images : typeof product.images === 'string' && product.images ? (product.images as string).split(',').map(img => img.trim()).filter(Boolean) : []).slice(1, 6).map((image, index) => (
+                                  <img
+                                    key={index}
+                                    src={image}
+                                    alt={`${product.title} ${index + 2}`}
+                                    className="w-16 h-16 object-cover rounded-lg flex-shrink-0 border shadow-sm"
+                                  />
+                                ))}
+                                {(Array.isArray(product.images) ? product.images : typeof product.images === 'string' && product.images ? (product.images as string).split(',').map(img => img.trim()).filter(Boolean) : []).length > 6 && (
+                                  <div className="w-16 h-16 bg-muted rounded-lg flex items-center justify-center text-xs text-muted-foreground flex-shrink-0 border">
+                                    +{(Array.isArray(product.images) ? product.images : typeof product.images === 'string' && product.images ? (product.images as string).split(',').map(img => img.trim()).filter(Boolean) : []).length - 6}
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          )}
+                          
+                          {/* Colors Section */}
                           {(Array.isArray(product.colors)
                             ? product.colors
                             : typeof product.colors === "string"
                               ? product.colors.split(",").map(c => c.trim()).filter(Boolean)
                               : []
-                          ).map((color, idx) => (
-                            <span key={idx} className="inline-flex items-center gap-1">
-                              <span style={{ background: color, border: '1px solid #ccc', width: 16, height: 16, borderRadius: '50%', display: 'inline-block' }} />
-                              <span className="sr-only">{color}</span>
-                            </span>
-                          ))}
-                        </span>
-                        <span>Sizes: {
-                          (Array.isArray(product.sizes)
+                          ).length > 0 && (
+                            <div className="space-y-2">
+                              <span className="text-xs font-medium text-muted-foreground">Available Colors</span>
+                              <div className="flex flex-wrap gap-2">
+                                {(Array.isArray(product.colors)
+                                  ? product.colors
+                                  : typeof product.colors === "string"
+                                    ? product.colors.split(",").map(c => c.trim()).filter(Boolean)
+                                    : []
+                                ).map((color, idx) => (
+                                  <div key={idx} className="flex items-center gap-2 bg-white/50 rounded-full px-3 py-1 border">
+                                    <span 
+                                      className="w-4 h-4 rounded-full border shadow-sm"
+                                      style={{ backgroundColor: color }}
+                                    />
+                                    <span className="text-xs font-medium capitalize">{color}</span>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                          
+                          {/* Sizes Section */}
+                          {(Array.isArray(product.sizes)
                             ? product.sizes
                             : typeof product.sizes === "string"
                               ? product.sizes.split(",").map(s => s.trim()).filter(Boolean)
                               : []
-                          ).join(", ")
-                        }</span>
+                          ).length > 0 && (
+                            <div className="space-y-2">
+                              <span className="text-xs font-medium text-muted-foreground">Available Sizes</span>
+                              <div className="flex flex-wrap gap-2">
+                                {(Array.isArray(product.sizes)
+                                  ? product.sizes
+                                  : typeof product.sizes === "string"
+                                    ? product.sizes.split(",").map(s => s.trim()).filter(Boolean)
+                                    : []
+                                ).map((size, idx) => (
+                                  <span 
+                                    key={idx} 
+                                    className="bg-white/50 border rounded-lg px-3 py-1 text-xs font-medium"
+                                  >
+                                    {size}
+                                  </span>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                          
+                          {/* Action Buttons */}
+                          <div className="flex gap-3 pt-2">
+                            <Button
+                              onClick={() => handleEdit(product)}
+                              variant="soft"
+                              size="sm"
+                              className="flex-1 h-10 font-medium"
+                            >
+                              <Edit className="h-4 w-4 mr-2" />
+                              Edit Product
+                            </Button>
+                            <Button
+                              onClick={() => handleDelete(product.id)}
+                              variant="destructive"
+                              size="sm"
+                              className="flex-1 h-10 font-medium"
+                            >
+                              <Trash2 className="h-4 w-4 mr-2" />
+                              Delete
+                            </Button>
+                          </div>
+                        </div>
                       </div>
-                    </div>
-                    <div className="flex gap-2">
-                      <Button
-                        onClick={() => handleEdit(product)}
-                        variant="soft"
-                        size="sm"
-                      >
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        onClick={() => handleDelete(product.id)}
-                        variant="destructive"
-                        size="sm"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          ))}
+
+                      {/* Desktop Layout */}
+                      <div className="hidden sm:flex items-start gap-6 p-6">
+                        <div className="flex gap-2 overflow-x-auto">
+                          {(Array.isArray(product.images) ? product.images : typeof product.images === 'string' && product.images ? (product.images as string).split(',').map(img => img.trim()).filter(Boolean) : []).slice(0, 3).map((image, index) => (
+                            <img
+                              key={index}
+                              src={image}
+                              alt={`${product.title} ${index + 1}`}
+                              className="w-16 h-16 object-cover rounded-lg flex-shrink-0"
+                            />
+                          ))}
+                          {(Array.isArray(product.images) ? product.images : typeof product.images === 'string' && product.images ? (product.images as string).split(',').map(img => img.trim()).filter(Boolean) : []).length > 3 && (
+                            <div className="w-16 h-16 bg-muted rounded-lg flex items-center justify-center text-xs text-muted-foreground flex-shrink-0">
+                              +{(Array.isArray(product.images) ? product.images : typeof product.images === 'string' && product.images ? (product.images as string).split(',').map(img => img.trim()).filter(Boolean) : []).length - 3}
+                            </div>
+                          )}
+                        </div>
+                        
+                        <div className="flex-1 min-w-0">
+                          <h3 className="font-playfair font-semibold text-xl mb-2">
+                            {product.title}
+                          </h3>
+                          <p className="text-muted-foreground mb-2 text-sm line-clamp-1">
+                            {product.description}
+                          </p>
+                          <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                            <span className="font-medium text-primary text-base">Price: {product.price} DZD</span>
+                            <span>Stock: {product.stock}</span>
+                            <span className="flex items-center gap-1">Colors:
+                              {(Array.isArray(product.colors)
+                                ? product.colors
+                                : typeof product.colors === "string"
+                                  ? product.colors.split(",").map(c => c.trim()).filter(Boolean)
+                                  : []
+                              ).map((color, idx) => (
+                                <span key={idx} className="inline-flex items-center gap-1">
+                                  <span style={{ background: color, border: '1px solid #ccc', width: 14, height: 14, borderRadius: '50%', display: 'inline-block' }} />
+                                </span>
+                              ))}
+                            </span>
+                            <span>Sizes: {
+                              (Array.isArray(product.sizes)
+                                ? product.sizes
+                                : typeof product.sizes === "string"
+                                  ? product.sizes.split(",").map(s => s.trim()).filter(Boolean)
+                                  : []
+                              ).join(", ")
+                            }</span>
+                          </div>
+                        </div>
+                        
+                        <div className="flex gap-2">
+                          <Button
+                            onClick={() => handleEdit(product)}
+                            variant="soft"
+                            size="sm"
+                          >
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            onClick={() => handleDelete(product.id)}
+                            variant="destructive"
+                            size="sm"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    </>
+                  )}
+                </CardContent>
+              </Card>
+            ))
+          )}
         </div>
       </div>
     </div>
@@ -374,225 +560,319 @@ const ProductForm = ({ formData, setFormData, onSave, onCancel }) => {
       const filePath = decodeURIComponent(urlParts[1].split("?")[0]);
       const { error } = await supabase.storage.from('product-images').remove([filePath]);
       if (error) {
-        if (window && window.toast) window.toast({ title: "Image Delete Error", description: error.message, variant: "destructive" });
-        else alert("Image Delete Error: " + error.message);
+        console.error("Image Delete Error:", error.message);
         return false;
       }
       return true;
     } catch (err) {
-      if (window && window.toast) window.toast({ title: "Image Delete Error", description: err.message, variant: "destructive" });
-      else alert("Image Delete Error: " + err.message);
+      console.error("Image Delete Error:", err.message);
       return false;
     }
   };
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-      <div>
-        <Label htmlFor="title">Product Title *</Label>
-        <Input
-          id="title"
-          value={formData.title}
-          onChange={(e) => setFormData({...formData, title: e.target.value})}
-          placeholder="Enter product title"
-        />
-      </div>
-      
-      <div>
-        <Label htmlFor="price">Price *</Label>
-        <Input
-          id="price"
-          type="number"
-          step="0.01"
-          value={formData.price}
-          onChange={(e) => setFormData({...formData, price: e.target.value})}
-          placeholder="0.00"
-        />
-      </div>
-
-      <div className="md:col-span-2">
-        <Label>Product Images</Label>
-        <input
-          type="file"
-          multiple
-          accept="image/*"
-          onChange={(e) => {
-            const files = Array.from(e.target.files || []);
-            if (files.length === 0) return;
-            setFormData({ ...formData, images: [...formData.images, ...files] });
-          }}
-        />
-        <div className="flex gap-2 mt-2 flex-wrap">
-          {formData.images && formData.images.length > 0 && formData.images.map((img, idx) => {
-            let src = "";
-            let isSupabaseUrl = false;
-            if (img && typeof img === "object" && "name" in img && "size" in img && "type" in img) {
-              src = URL.createObjectURL(img);
-            } else if (typeof img === "string") {
-              src = img;
-              isSupabaseUrl = src.includes("product-images");
-            }
-            return (
-              <div key={idx} className="relative group">
-                <img src={src} alt={`Product ${idx + 1}`} className="w-20 h-20 object-cover rounded" onError={e => {e.currentTarget.src = 'https://images.unsplash.com/photo-1551488831-00ddcb6c6bd3?w=200&h=200&fit=crop';}} />
-                <button
-                  type="button"
-                  className="absolute top-1 right-1 bg-white/80 rounded-full p-1 shadow group-hover:bg-red-500 group-hover:text-white"
-                  title="Delete image"
-                  onClick={async () => {
-                    // If Supabase URL, delete from bucket first
-                    if (isSupabaseUrl) {
-                      const success = await deleteImageFromSupabase(src);
-                      if (!success) return;
-                    }
-                    // Remove from local array
-                    const newImages = formData.images.filter((_, i) => i !== idx);
-                    setFormData({ ...formData, images: newImages });
-                  }}
-                >
-                  <X className="h-4 w-4" />
-                </button>
-              </div>
-            );
-          })}
+    <div className="space-y-4 sm:space-y-6">
+      {/* Title and Price Row */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div>
+          <Label htmlFor="title" className="text-sm font-medium">Product Title *</Label>
+          <Input
+            id="title"
+            value={formData.title}
+            onChange={(e) => setFormData({...formData, title: e.target.value})}
+            placeholder="Enter product title"
+            className="mt-1"
+          />
+        </div>
+        
+        <div>
+          <Label htmlFor="price" className="text-sm font-medium">Price (DZD) *</Label>
+          <Input
+            id="price"
+            type="number"
+            step="0.01"
+            value={formData.price}
+            onChange={(e) => setFormData({...formData, price: e.target.value})}
+            placeholder="0.00"
+            className="mt-1"
+          />
         </div>
       </div>
 
-      <div className="md:col-span-2">
-        <Label htmlFor="description">Description *</Label>
+      {/* Stock */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div>
+          <Label htmlFor="stock" className="text-sm font-medium">Stock Quantity</Label>
+          <Input
+            id="stock"
+            type="number"
+            value={formData.stock}
+            onChange={(e) => setFormData({...formData, stock: e.target.value})}
+            placeholder="0"
+            className="mt-1"
+          />
+        </div>
+      </div>
+
+      {/* Images Section */}
+      <div>
+        <Label className="text-sm font-medium">Product Images</Label>
+        <div className="mt-2 space-y-3">
+          <input
+            type="file"
+            multiple
+            accept="image/*"
+            onChange={(e) => {
+              const files = Array.from(e.target.files || []);
+              if (files.length === 0) return;
+              setFormData({ ...formData, images: [...formData.images, ...files] });
+            }}
+            className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-primary file:text-white hover:file:bg-primary/90"
+          />
+          
+          {/* Image Grid */}
+          {formData.images && formData.images.length > 0 && (
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
+              {formData.images.map((img, idx) => {
+                let src = "";
+                let isSupabaseUrl = false;
+                if (img && typeof img === "object" && "name" in img && "size" in img && "type" in img) {
+                  src = URL.createObjectURL(img);
+                } else if (typeof img === "string") {
+                  src = img;
+                  isSupabaseUrl = src.includes("product-images");
+                }
+                return (
+                  <div key={idx} className="relative group">
+                    <img 
+                      src={src} 
+                      alt={`Product ${idx + 1}`} 
+                      className="w-full aspect-square object-cover rounded-lg border" 
+                      onError={e => {e.currentTarget.src = 'https://images.unsplash.com/photo-1551488831-00ddcb6c6bd3?w=200&h=200&fit=crop';}} 
+                    />
+                    <button
+                      type="button"
+                      className="absolute top-1 right-1 bg-white/90 rounded-full p-1 shadow-md group-hover:bg-red-500 group-hover:text-white transition-colors sm:opacity-75 sm:hover:opacity-100 opacity-100"
+                      title="Delete image"
+                      onClick={async () => {
+                        // If Supabase URL, delete from bucket first
+                        if (isSupabaseUrl) {
+                          const success = await deleteImageFromSupabase(src);
+                          if (!success) return;
+                        }
+                        // Remove from local array
+                        const newImages = formData.images.filter((_, i) => i !== idx);
+                        setFormData({ ...formData, images: newImages });
+                      }}
+                    >
+                      <X className="h-3 w-3 sm:h-4 sm:w-4" />
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Description */}
+      <div>
+        <Label htmlFor="description" className="text-sm font-medium">Description *</Label>
         <Textarea
           id="description"
           value={formData.description}
           onChange={(e) => setFormData({...formData, description: e.target.value})}
-          placeholder={(() => {
-            // Get colors count
-            const colorsArr = Array.isArray(formData.colors) 
-              ? formData.colors 
-              : typeof formData.colors === 'string' && formData.colors 
-                ? formData.colors.split(',').map(c => c.trim()).filter(Boolean) 
-                : [];
-            const colorCount = colorsArr.length;
-            
-            // Generate dynamic placeholder
-            if (colorCount === 0) {
-              return "Enter product description";
-            } else if (colorCount === 1) {
-              return "1 color";
-            } else {
-              return `${colorCount} colors`;
-            }
-          })()}
+          placeholder="Enter product description..."
+          className="mt-1 min-h-[100px]"
         />
       </div>
 
-      <div>
-        <Label htmlFor="colors">Colors</Label>
-        <div className="flex flex-col gap-2">
-          <div className="flex gap-2 flex-wrap min-h-[28px]">
-            {/* Show blank thumbnails if no colors selected */}
-            {(!formData.colors || formData.colors.length === 0) && (
-              <span className="w-7 h-7 rounded-full border border-dashed border-border bg-muted flex items-center justify-center text-xs text-muted-foreground">?</span>
-            )}
-            {/* Show selected color circles with remove button */}
-            {(Array.isArray(formData.colors) ? formData.colors : typeof formData.colors === 'string' && formData.colors ? formData.colors.split(',').map(c => c.trim()).filter(Boolean) : []).map((color, idx) => (
-              <span key={idx} className="relative inline-flex items-center">
-                <span style={{ background: color, border: '1px solid #ccc', width: 28, height: 28, borderRadius: '50%', display: 'inline-block' }} />
-                <button
-                  type="button"
-                  className="absolute -top-1 -right-1 bg-white border border-border rounded-full p-0.5 text-xs text-muted-foreground hover:bg-red-500 hover:text-white"
-                  onClick={() => {
-                    const colorsArr = Array.isArray(formData.colors) ? formData.colors : typeof formData.colors === 'string' ? formData.colors.split(',').map(c => c.trim()).filter(Boolean) : [];
-                    const newColors = colorsArr.filter((_, i) => i !== idx);
-                    setFormData({ ...formData, colors: newColors });
-                  }}
-                  tabIndex={-1}
-                  aria-label="Remove color"
-                >
-                  ×
-                </button>
-              </span>
-            ))}
-          </div>
-          {/* Dropdown to add a new color */}
-          <select
-            id="colors"
-            value=""
-            onChange={e => {
-              const selected = e.target.value;
-              if (!selected) return;
-              const colorsArr = Array.isArray(formData.colors) ? formData.colors : typeof formData.colors === 'string' && formData.colors ? formData.colors.split(',').map(c => c.trim()).filter(Boolean) : [];
-              if (!colorsArr.includes(selected)) {
-                setFormData({ ...formData, colors: [...colorsArr, selected] });
-              }
-            }}
-            className="w-full border rounded px-3 py-2 focus:outline-none focus:ring mt-2"
-          >
-            <option value="">Add color...</option>
-            {['Red', 'Blue', 'Green', 'Yellow', 'Black', 'White', 'Purple', 'Pink', 'Orange', 'Brown', 'Gray', 'Cyan', 'Teal', 'Lime', 'Indigo'].map(color => (
-              <option key={color} value={color}>
-                {color}
-              </option>
-            ))}
-          </select>
-          {/* Color picker to add a custom color */}
-          <div className="flex items-center gap-2 mt-2">
-            <input
-              type="color"
-              id="color-picker"
-              value={colorPickerValue || "#ffffff"}
+      {/* Colors and Sizes */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+        {/* Colors Section */}
+        <div>
+          <Label className="text-sm font-medium">Colors</Label>
+          <div className="mt-2 space-y-3">
+            {/* Color Display */}
+            <div className="flex gap-2 flex-wrap min-h-[32px] p-2 border rounded-lg bg-muted/30">
+              {(!formData.colors || formData.colors.length === 0) ? (
+                <span className="text-sm text-muted-foreground">No colors selected</span>
+              ) : (
+                (Array.isArray(formData.colors) ? formData.colors : typeof formData.colors === 'string' && formData.colors ? formData.colors.split(',').map(c => c.trim()).filter(Boolean) : []).map((color, idx) => (
+                  <span key={idx} className="relative inline-flex items-center group">
+                    <span 
+                      style={{ 
+                        background: color, 
+                        border: '1px solid #ccc', 
+                        width: 24, 
+                        height: 24, 
+                        borderRadius: '50%', 
+                        display: 'inline-block' 
+                      }} 
+                    />
+                    <button
+                      type="button"
+                      className="absolute -top-1 -right-1 bg-white border border-border rounded-full w-5 h-5 flex items-center justify-center text-xs text-muted-foreground hover:bg-red-500 hover:text-white transition-all sm:opacity-0 sm:group-hover:opacity-100 opacity-100"
+                      onClick={() => {
+                        const colorsArr = Array.isArray(formData.colors) ? formData.colors : typeof formData.colors === 'string' ? formData.colors.split(',').map(c => c.trim()).filter(Boolean) : [];
+                        const newColors = colorsArr.filter((_, i) => i !== idx);
+                        setFormData({ ...formData, colors: newColors });
+                      }}
+                      tabIndex={-1}
+                      aria-label="Remove color"
+                    >
+                      ×
+                    </button>
+                  </span>
+                ))
+              )}
+            </div>
+            
+            {/* Color Selection */}
+            <select
+              value=""
               onChange={e => {
-                setColorPickerValue(e.target.value);
-              }}
-              className="w-8 h-8 border rounded cursor-pointer"
-              title="Pick a custom color"
-            />
-            <Button
-              type="button"
-              variant="soft"
-              size="sm"
-              className="ml-2"
-              onClick={() => {
-                const selected = colorPickerValue;
+                const selected = e.target.value;
+                if (!selected) return;
                 const colorsArr = Array.isArray(formData.colors) ? formData.colors : typeof formData.colors === 'string' && formData.colors ? formData.colors.split(',').map(c => c.trim()).filter(Boolean) : [];
                 if (!colorsArr.includes(selected)) {
                   setFormData({ ...formData, colors: [...colorsArr, selected] });
                 }
               }}
+              className="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
             >
-              Add Color
-            </Button>
-            <span className="text-xs text-muted-foreground">Pick a custom color and click Add</span>
+              <option value="">Add a preset color...</option>
+              {['Red', 'Blue', 'Green', 'Yellow', 'Black', 'White', 'Purple', 'Pink', 'Orange', 'Brown', 'Gray', 'Cyan', 'Teal', 'Lime', 'Indigo'].map(color => (
+                <option key={color} value={color}>
+                  {color}
+                </option>
+              ))}
+            </select>
+            
+            {/* Custom Color Picker */}
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2">
+              <div className="flex items-center gap-2">
+                <input
+                  type="color"
+                  value={colorPickerValue || "#ffffff"}
+                  onChange={e => setColorPickerValue(e.target.value)}
+                  className="w-10 h-10 border rounded-lg cursor-pointer"
+                  title="Pick a custom color"
+                />
+                <Button
+                  type="button"
+                  variant="soft"
+                  size="sm"
+                  onClick={() => {
+                    const selected = colorPickerValue;
+                    const colorsArr = Array.isArray(formData.colors) ? formData.colors : typeof formData.colors === 'string' && formData.colors ? formData.colors.split(',').map(c => c.trim()).filter(Boolean) : [];
+                    if (!colorsArr.includes(selected)) {
+                      setFormData({ ...formData, colors: [...colorsArr, selected] });
+                    }
+                  }}
+                >
+                  Add Custom
+                </Button>
+              </div>
+              <span className="text-xs text-muted-foreground">
+                Pick a custom color and click Add Custom
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* Sizes Section */}
+        <div>
+          <Label className="text-sm font-medium">Sizes</Label>
+          <div className="mt-2 space-y-3">
+            {/* Size Display */}
+            <div className="flex gap-2 flex-wrap min-h-[32px] p-2 border rounded-lg bg-muted/30">
+              {(!formData.sizes || formData.sizes.length === 0) ? (
+                <span className="text-sm text-muted-foreground">No sizes selected</span>
+              ) : (
+                (typeof formData.sizes === 'string' ? formData.sizes.split(',').map(s => s.trim()).filter(Boolean) : []).map((size, idx) => (
+                  <span key={idx} className="relative inline-flex items-center group bg-background border rounded-lg px-2 py-1 text-sm">
+                    <span className="mr-2">{size}</span>
+                    <button
+                      type="button"
+                      className="text-muted-foreground hover:text-red-500 transition-colors sm:opacity-0 sm:group-hover:opacity-100 opacity-100"
+                      onClick={() => {
+                        const sizesArr = typeof formData.sizes === 'string' ? formData.sizes.split(',').map(s => s.trim()).filter(Boolean) : [];
+                        const newSizes = sizesArr.filter((_, i) => i !== idx);
+                        setFormData({ ...formData, sizes: newSizes.join(', ') });
+                      }}
+                      aria-label="Remove size"
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                  </span>
+                ))
+              )}
+            </div>
+            
+            {/* Add Size Input */}
+            <div className="flex gap-2">
+              <Input
+                placeholder="Add size (e.g., XS, S, M, L, XL)"
+                className="flex-1"
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    const newSize = e.currentTarget.value.trim();
+                    if (newSize) {
+                      const currentSizes = typeof formData.sizes === 'string' ? formData.sizes.split(',').map(s => s.trim()).filter(Boolean) : [];
+                      if (!currentSizes.includes(newSize)) {
+                        const updatedSizes = [...currentSizes, newSize].join(', ');
+                        setFormData({ ...formData, sizes: updatedSizes });
+                      }
+                      e.currentTarget.value = '';
+                    }
+                  }
+                }}
+              />
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={(e) => {
+                  const input = e.currentTarget.parentElement.querySelector('input');
+                  const newSize = input.value.trim();
+                  if (newSize) {
+                    const currentSizes = typeof formData.sizes === 'string' ? formData.sizes.split(',').map(s => s.trim()).filter(Boolean) : [];
+                    if (!currentSizes.includes(newSize)) {
+                      const updatedSizes = [...currentSizes, newSize].join(', ');
+                      setFormData({ ...formData, sizes: updatedSizes });
+                    }
+                    input.value = '';
+                  }
+                }}
+              >
+                Add
+              </Button>
+            </div>
+            
+            <p className="text-xs text-muted-foreground">
+              Type a size and press Enter or click Add
+            </p>
           </div>
         </div>
       </div>
 
-      <div>
-        <Label htmlFor="sizes">Sizes (comma-separated)</Label>
-        <Input
-          id="sizes"
-          value={formData.sizes}
-          onChange={(e) => setFormData({...formData, sizes: e.target.value})}
-          placeholder="XS, S, M, L, XL"
-        />
-      </div>
-
-      <div>
-        <Label htmlFor="stock">Stock Quantity</Label>
-        <Input
-          id="stock"
-          type="number"
-          value={formData.stock}
-          onChange={(e) => setFormData({...formData, stock: e.target.value})}
-          placeholder="0"
-        />
-      </div>
-
-      <div className="md:col-span-2 flex gap-4 pt-4">
-        <Button onClick={onSave} variant="elegant" className="flex items-center gap-2">
+      {/* Action Buttons */}
+      <div className="flex flex-col sm:flex-row gap-3 pt-4 border-t">
+        <Button 
+          onClick={onSave} 
+          variant="elegant" 
+          className="flex items-center justify-center gap-2 sm:flex-1"
+        >
           <Save className="h-4 w-4" />
           Save Product
         </Button>
-        <Button onClick={onCancel} variant="outline" className="flex items-center gap-2">
+        <Button 
+          onClick={onCancel} 
+          variant="outline" 
+          className="flex items-center justify-center gap-2 sm:flex-1"
+        >
           <X className="h-4 w-4" />
           Cancel
         </Button>
