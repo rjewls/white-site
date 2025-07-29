@@ -8988,7 +8988,187 @@ in the order form in the product detail page make the maximum quantity 3
 
 _**Assistant**_
 
-I'll modify the order form in the product detail page to set the maximum quantity to 3. Let me first check the current OrderFormFields component to see how the quantity input is implemented. 
+I'll modify the order form in the product detail page to set the maximum quantity to 3. Let me first check the current OrderFormFields component to see how the quantity input is implemented. Let me search for the quantity field specifically: Let me read the specific section with the quantity field: Perfect! I found the quantity field. I need to modify it to have a maximum of 3 instead of 6. I'll update both the label and the select options. 
+```
+
+```
+Now let me check if there are any errors in the updated file: Perfect! The maximum quantity in the order form has been successfully updated from 6 to 3. Here's what I changed:
+
+1. **Updated the label**: Changed from "Quantity (Max 6)" to "Quantity (Max 3)"
+2. **Removed select options**: Removed options for 4, 5, and 6, keeping only options 1, 2, and 3
+
+Now customers can only select a maximum of 3 items per order. The form will dynamically show the appropriate number of color and size selection dropdowns (up to 3) when multiple quantities are selected, and all the existing functionality for handling multiple color/size selections will work perfectly within this new limit.
+
+The change is now live and ready for use! The quantity dropdown in the product detail page order form will now only show options 1, 2, and 3.
+
+---
+
+_**User**_
+
+okay how to build this project and how to host it on netlify, and after i host it on netlify can i still keep making changes to it from here
+
+---
+
+_**Assistant**_
+
+I'll guide you through building this project and hosting it on Netlify, plus how to continue making changes after deployment.
+
+## 🏗️ **Building the Project**
+
+### 1. **Install Dependencies** (if not already done)
+```bash
+npm install
+```
+
+### 2. **Build for Production**
+```bash
+npm run build
+```
+
+This creates a `dist` folder with optimized production files.
+
+### 3. **Test the Build Locally** (optional)
+```bash
+npm run preview
+```
+
+## 🚀 **Hosting on Netlify**
+
+### **Method 1: Drag & Drop (Quickest)**
+
+1. **Build the project**:
+   ```bash
+   npm run build
+   ```
+
+2. **Go to [Netlify](https://netlify.com)** and sign up/login
+
+3. **Drag the `dist` folder** directly onto the Netlify dashboard
+
+4. **Your site is live!** Netlify gives you a random URL like `https://amazing-site-123.netlify.app`
+
+### **Method 2: Git Integration (Recommended for Continuous Deployment)**
+
+1. **Push your code to GitHub**:
+   ```bash
+   git add .
+   git commit -m "Initial commit"
+   git push origin main
+   ```
+
+2. **Connect to Netlify**:
+   - Go to Netlify dashboard
+   - Click "New site from Git"
+   - Choose GitHub and select your repository
+   - Build settings:
+     - **Build command**: `npm run build`
+     - **Publish directory**: `dist`
+
+3. **Deploy automatically** - Netlify builds and deploys your site
+
+## 🔄 **Continue Making Changes After Hosting**
+
+### **If you used Method 1 (Drag & Drop)**:
+```bash
+# Make your changes
+# Then rebuild and redeploy
+npm run build
+# Drag the new dist folder to Netlify (overwrites the old one)
+```
+
+### **If you used Method 2 (Git Integration)** ⭐ **RECOMMENDED**:
+```bash
+# Make your changes in VS Code
+# Save files
+git add .
+git commit -m "Updated hero section"
+git push origin main
+# Netlify automatically rebuilds and deploys! 🎉
+```
+
+## ⚙️ **Environment Variables on Netlify**
+
+Since your project uses Supabase, you need to set environment variables:
+
+1. **In Netlify Dashboard**:
+   - Go to Site Settings → Environment Variables
+   - Add these variables:
+     ```
+     VITE_SUPABASE_URL=your_supabase_url
+     VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
+     ```
+
+2. **Create `.env` file locally** (if you haven't):
+   ```env
+   VITE_SUPABASE_URL=your_supabase_url
+   VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
+   ```
+
+## 📋 **Complete Deployment Checklist**
+
+```bash
+# 1. Final build test
+npm run build
+npm run preview
+
+# 2. Commit all changes
+git add .
+git commit -m "Ready for production"
+git push origin main
+
+# 3. Deploy to Netlify (Method 2)
+# - Connect GitHub repo
+# - Set build command: npm run build
+# - Set publish directory: dist
+# - Add environment variables
+
+# 4. Test live site
+# - Check all pages work
+# - Test order form
+# - Verify Discord webhook works
+```
+
+## 🔧 **Development Workflow After Deployment**
+
+```bash
+# Daily workflow:
+1. Make changes in VS Code ✏️
+2. Test locally: npm run dev 🧪
+3. Commit: git add . && git commit -m "Your changes" 💾
+4. Push: git push origin main 🚀
+5. Netlify auto-deploys in ~2 minutes ⚡
+```
+
+## 🎯 **Pro Tips**
+
+1. **Custom Domain**: In Netlify, go to Domain Management → Add custom domain
+2. **Preview Deploys**: Netlify shows previews for each commit
+3. **Build Logs**: Check build logs if deployment fails
+4. **Rollback**: Easy one-click rollback to previous versions
+5. **Branch Deploys**: Create feature branches for testing
+
+## ⚡ **Quick Commands Summary**
+
+```bash
+# Local development
+npm run dev
+
+# Build for production  
+npm run build
+
+# Preview production build
+npm run preview
+
+# Deploy workflow
+git add .
+git commit -m "Your changes"
+git push origin main
+# → Netlify auto-deploys! 🎉
+```
+
+**Yes, you can absolutely keep making changes from VS Code!** With Git integration, every time you push changes, Netlify automatically rebuilds and deploys your site. It's seamless! 🚀
+
+Would you like me to help you with any specific part of the deployment process?
 
 ---
 
