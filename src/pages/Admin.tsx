@@ -7,12 +7,14 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Edit, Trash2, Save, X } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
+import { Plus, Edit, Trash2, Save, X, LogOut, User } from "lucide-react";
 
 // Products will be fetched from Supabase
 
 const Admin = () => {
   const { toast } = useToast();
+  const { user, signOut } = useAuth();
   const [products, setProducts] = useState([]);
   
   // Helper function to clean array fields
@@ -248,17 +250,35 @@ const Admin = () => {
       <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-3 sm:py-8">
         {/* Header - Mobile Optimized */}
         <div className="flex flex-col space-y-3 mb-4 sm:mb-8 sm:flex-row sm:justify-between sm:items-center sm:space-y-0">
-          <h1 className="font-playfair text-xl sm:text-3xl font-bold text-foreground">
-            Admin Dashboard
-          </h1>
-          <Button
-            onClick={() => setShowAddForm(true)}
-            variant="elegant"
-            className="flex items-center justify-center gap-2 w-full sm:w-auto py-3 sm:py-2"
-          >
-            <Plus className="h-4 w-4 sm:h-5 sm:w-5" />
-            <span className="font-medium">Add New Product</span>
-          </Button>
+          <div className="flex flex-col space-y-1">
+            <h1 className="font-playfair text-xl sm:text-3xl font-bold text-foreground">
+              Admin Dashboard
+            </h1>
+            <div className="flex items-center gap-2 text-sm text-gray-600">
+              <User className="w-4 h-4" />
+              <span>Welcome, {user?.email}</span>
+            </div>
+          </div>
+          
+          <div className="flex gap-2 w-full sm:w-auto">
+            <Button
+              onClick={() => setShowAddForm(true)}
+              variant="elegant"
+              className="flex items-center justify-center gap-2 flex-1 sm:flex-none py-3 sm:py-2"
+            >
+              <Plus className="h-4 w-4 sm:h-5 sm:w-5" />
+              <span className="font-medium">Add New Product</span>
+            </Button>
+            
+            <Button
+              onClick={signOut}
+              variant="outline"
+              className="flex items-center justify-center gap-2 px-4 py-3 sm:py-2 border-red-200 text-red-600 hover:bg-red-50 hover:border-red-300"
+            >
+              <LogOut className="h-4 w-4" />
+              <span className="hidden sm:inline">Logout</span>
+            </Button>
+          </div>
         </div>
 
         {/* Add Product Form - Mobile Optimized */}
