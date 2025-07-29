@@ -22,8 +22,8 @@ const ImageCarousel = ({ images, title, autoPlay = true, showThumbnails = true }
   // Defensive: ensure images is always an array of valid URLs
   const safeImages = Array.isArray(images)
     ? images.filter(img => typeof img === "string" && img.trim() !== "")
-    : typeof images === "string"
-      ? images.split(",").map(i => i.trim()).filter(Boolean)
+    : typeof images === "string" && images
+      ? (images as string).split(",").map(i => i.trim()).filter(Boolean)
       : [];
   const [isDragging, setIsDragging] = useState(false);
   const [dragOffset, setDragOffset] = useState(0);
@@ -61,9 +61,13 @@ const ImageCarousel = ({ images, title, autoPlay = true, showThumbnails = true }
 
   const handleTouchMove = (e: React.TouchEvent) => {
     if (!isDragging) return;
+    e.preventDefault(); // Prevent scrolling while dragging
     touchCurrentX.current = e.touches[0].clientX;
     const diff = touchCurrentX.current - touchStartX.current;
-    setDragOffset(diff);
+    // Limit drag distance to prevent excessive movement
+    const maxDrag = 100;
+    const limitedDiff = Math.max(-maxDrag, Math.min(maxDrag, diff));
+    setDragOffset(limitedDiff);
   };
 
   const handleTouchEnd = () => {
@@ -81,9 +85,11 @@ const ImageCarousel = ({ images, title, autoPlay = true, showThumbnails = true }
       }
     }
     
+    // Always reset drag state
     setIsDragging(false);
     setDragOffset(0);
-    setTimeout(() => setIsPaused(false), 500); // Resume auto-play after swipe
+    // Resume auto-play after a brief delay
+    setTimeout(() => setIsPaused(false), 1000);
   };
 
   const nextSlide = () => {
@@ -252,7 +258,7 @@ const ImageCarousel = ({ images, title, autoPlay = true, showThumbnails = true }
     <div className="space-y-4">
       {/* Main Image Carousel */}
       <div 
-        className="relative aspect-square overflow-hidden rounded-lg bg-background group cursor-grab active:cursor-grabbing border-2 border-primary shadow-lg transition-all duration-300"
+        className="relative aspect-square overflow-hidden rounded-lg bg-background group cursor-grab active:cursor-grabbing border-2 border-primary shadow-lg lg:transition-all lg:duration-300"
         style={{ touchAction: 'pan-y' }}
         onMouseEnter={() => setIsPaused(true)}
         onMouseLeave={() => setIsPaused(false)}
@@ -260,7 +266,8 @@ const ImageCarousel = ({ images, title, autoPlay = true, showThumbnails = true }
         <div 
           className={`flex h-full ${isDragging ? 'transition-none' : 'transition-transform duration-500 ease-out'}`}
           style={{ 
-            transform: `translateX(calc(-${currentIndex * 100}% + ${dragOffset}px))`
+            transform: `translateX(calc(-${currentIndex * 100}% + ${dragOffset}px))`,
+            willChange: isDragging ? 'transform' : 'auto'
           }}
           onTouchStart={handleTouchStart}
           onTouchMove={handleTouchMove}

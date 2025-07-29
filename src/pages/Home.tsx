@@ -63,33 +63,33 @@ const Home = () => {
           <div className="absolute inset-0 bg-gradient-to-r from-rose-500/60 via-pink-400/50 to-purple-500/60 animate-pulse"></div>
           <div className="absolute inset-0 bg-gradient-to-t from-pink-500/70 via-transparent to-rose-400/50"></div>
           
-          {/* Floating flower-like gradients */}
+          {/* Floating flower-like gradients - simplified for mobile */}
           <div className="absolute inset-0 opacity-40">
-            <div className="absolute top-1/4 left-1/4 w-32 h-32 bg-gradient-to-br from-rose-600/40 to-pink-500/30 rounded-full animate-pulse blur-xl"></div>
-            <div className="absolute top-3/4 right-1/4 w-40 h-40 bg-gradient-to-br from-purple-500/35 to-pink-600/40 rounded-full animate-pulse blur-2xl" style={{animationDelay: '2s'}}></div>
-            <div className="absolute bottom-1/3 left-1/3 w-24 h-24 bg-gradient-to-br from-pink-600/45 to-rose-500/35 rounded-full animate-pulse blur-xl" style={{animationDelay: '1s'}}></div>
+            <div className="hidden lg:block absolute top-1/4 left-1/4 w-32 h-32 bg-gradient-to-br from-rose-600/40 to-pink-500/30 rounded-full animate-pulse blur-xl"></div>
+            <div className="hidden lg:block absolute top-3/4 right-1/4 w-40 h-40 bg-gradient-to-br from-purple-500/35 to-pink-600/40 rounded-full animate-pulse blur-2xl" style={{animationDelay: '2s'}}></div>
+            <div className="hidden lg:block absolute bottom-1/3 left-1/3 w-24 h-24 bg-gradient-to-br from-pink-600/45 to-rose-500/35 rounded-full animate-pulse blur-xl" style={{animationDelay: '1s'}}></div>
           </div>
           
-          {/* Gentle floating particles */}
-          <div className="absolute top-1/4 left-1/4 w-2 h-2 bg-rose-200/60 rounded-full animate-bounce"></div>
-          <div className="absolute top-2/3 right-1/3 w-3 h-3 bg-pink-200/70 rounded-full animate-ping"></div>
-          <div className="absolute bottom-1/4 left-1/2 w-1.5 h-1.5 bg-purple-200/65 rounded-full animate-pulse" style={{animationDelay: '1.5s'}}></div>
-          <div className="absolute top-1/2 right-1/4 w-2 h-2 bg-rose-300/70 rounded-full animate-bounce" style={{animationDelay: '0.5s'}}></div>
+          {/* Gentle floating particles - hidden on mobile */}
+          <div className="hidden lg:block absolute top-1/4 left-1/4 w-2 h-2 bg-rose-200/60 rounded-full animate-bounce"></div>
+          <div className="hidden lg:block absolute top-2/3 right-1/3 w-3 h-3 bg-pink-200/70 rounded-full animate-ping"></div>
+          <div className="hidden lg:block absolute bottom-1/4 left-1/2 w-1.5 h-1.5 bg-purple-200/65 rounded-full animate-pulse" style={{animationDelay: '1.5s'}}></div>
+          <div className="hidden lg:block absolute top-1/2 right-1/4 w-2 h-2 bg-rose-300/70 rounded-full animate-bounce" style={{animationDelay: '0.5s'}}></div>
           
           {/* Large decorative soft circles */}
           <div className="absolute -top-20 -right-20 w-80 h-80 bg-gradient-to-br from-pink-500/30 to-rose-400/25 rounded-full blur-3xl"></div>
           <div className="absolute -bottom-32 -left-32 w-96 h-96 bg-gradient-to-br from-purple-100/15 to-pink-200/25 rounded-full blur-3xl"></div>
           
-          {/* Subtle animated waves */}
-          <div className="absolute inset-0 opacity-20">
+          {/* Subtle animated waves - simplified for mobile */}
+          <div className="hidden lg:block absolute inset-0 opacity-20">
             <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-r from-transparent via-rose-300/15 to-transparent transform -rotate-12 animate-pulse"></div>
             <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-r from-transparent via-pink-200/10 to-transparent transform rotate-12 animate-pulse" style={{animationDelay: '3s'}}></div>
           </div>
         </div>
 
-        {/* Enhanced Decorative Elements */}
-        <div className="absolute top-20 right-10 w-32 h-32 bg-gradient-to-br from-rose-300/30 to-pink-200/20 rounded-full blur-3xl animate-pulse"></div>
-        <div className="absolute bottom-20 left-10 w-40 h-40 bg-gradient-to-br from-purple-200/25 to-rose-300/30 rounded-full blur-3xl animate-pulse delay-1000"></div>
+        {/* Enhanced Decorative Elements - hidden on mobile */}
+        <div className="hidden lg:block absolute top-20 right-10 w-32 h-32 bg-gradient-to-br from-rose-300/30 to-pink-200/20 rounded-full blur-3xl animate-pulse"></div>
+        <div className="hidden lg:block absolute bottom-20 left-10 w-40 h-40 bg-gradient-to-br from-purple-200/25 to-rose-300/30 rounded-full blur-3xl animate-pulse delay-1000"></div>
         
         {/* Main Content */}
         <div className="relative flex items-center min-h-[80vh] lg:min-h-[90vh] py-8 sm:py-12 lg:py-0">
@@ -173,7 +173,7 @@ const Home = () => {
                 <div className="flex flex-col sm:flex-row gap-4 mb-8 animate-fade-in">
                   <button 
                     onClick={() => document.getElementById('featured-collection')?.scrollIntoView({ behavior: 'smooth' })}
-                    className="group relative px-8 py-4 bg-gradient-to-r from-rose-500 to-pink-600 text-white font-semibold rounded-2xl shadow-xl transition-all duration-300 hover:shadow-2xl hover:scale-105 overflow-hidden"
+                    className="group relative px-8 py-4 bg-gradient-to-r from-rose-500 to-pink-600 text-white font-semibold rounded-2xl shadow-xl lg:transition-all lg:duration-300 lg:hover:shadow-2xl lg:hover:scale-105 overflow-hidden"
                   >
                     <div className="absolute inset-0 bg-gradient-to-r from-rose-600 to-pink-700 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                     <span className="relative flex items-center justify-center gap-2">
@@ -186,7 +186,7 @@ const Home = () => {
                   
                   <button 
                     onClick={() => document.getElementById('service-features')?.scrollIntoView({ behavior: 'smooth' })}
-                    className="group px-8 py-4 bg-white/10 backdrop-blur-sm text-white font-semibold rounded-2xl border border-white/20 transition-all duration-300 hover:bg-white/20 hover:scale-105"
+                    className="group px-8 py-4 bg-white/10 lg:backdrop-blur-sm text-white font-semibold rounded-2xl border border-white/20 lg:transition-all lg:duration-300 lg:hover:bg-white/20 lg:hover:scale-105"
                   >
                     <span className="flex items-center justify-center gap-2">
                       Learn More
@@ -227,7 +227,7 @@ const Home = () => {
               <div className="hidden lg:block">
                 <div className="grid grid-cols-2 gap-6 max-w-md ml-auto">
                   <div className="group relative">
-                    <div className="absolute inset-0 bg-white/20 backdrop-blur-sm rounded-3xl border border-white/30 shadow-xl transition-all duration-500 group-hover:bg-white/30 group-hover:scale-105"></div>
+                    <div className="absolute inset-0 bg-white/30 lg:bg-white/20 lg:backdrop-blur-sm rounded-3xl border border-white/30 shadow-xl lg:transition-all lg:duration-500 lg:group-hover:bg-white/30 lg:group-hover:scale-105"></div>
                     <div className="relative p-6 text-center">
                       <div className="w-12 h-12 bg-gradient-to-br from-rose-600 to-pink-700 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg">
                         <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -240,7 +240,7 @@ const Home = () => {
                   </div>
 
                   <div className="group relative">
-                    <div className="absolute inset-0 bg-white/20 backdrop-blur-sm rounded-3xl border border-white/30 shadow-xl transition-all duration-500 group-hover:bg-white/30 group-hover:scale-105"></div>
+                    <div className="absolute inset-0 bg-white/30 lg:bg-white/20 lg:backdrop-blur-sm rounded-3xl border border-white/30 shadow-xl lg:transition-all lg:duration-500 lg:group-hover:bg-white/30 lg:group-hover:scale-105"></div>
                     <div className="relative p-6 text-center">
                       <div className="w-12 h-12 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg">
                         <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -253,7 +253,7 @@ const Home = () => {
                   </div>
 
                   <div className="group relative">
-                    <div className="absolute inset-0 bg-white/20 backdrop-blur-sm rounded-3xl border border-white/30 shadow-xl transition-all duration-500 group-hover:bg-white/30 group-hover:scale-105"></div>
+                    <div className="absolute inset-0 bg-white/30 lg:bg-white/20 lg:backdrop-blur-sm rounded-3xl border border-white/30 shadow-xl lg:transition-all lg:duration-500 lg:group-hover:bg-white/30 lg:group-hover:scale-105"></div>
                     <div className="relative p-6 text-center">
                       <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg">
                         <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -266,7 +266,7 @@ const Home = () => {
                   </div>
 
                   <div className="group relative">
-                    <div className="absolute inset-0 bg-white/20 backdrop-blur-sm rounded-3xl border border-white/30 shadow-xl transition-all duration-500 group-hover:bg-white/30 group-hover:scale-105"></div>
+                    <div className="absolute inset-0 bg-white/30 lg:bg-white/20 lg:backdrop-blur-sm rounded-3xl border border-white/30 shadow-xl lg:transition-all lg:duration-500 lg:group-hover:bg-white/30 lg:group-hover:scale-105"></div>
                     <div className="relative p-6 text-center">
                       <div className="w-12 h-12 bg-gradient-to-br from-amber-500 to-orange-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg">
                         <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -283,8 +283,8 @@ const Home = () => {
           </div>
         </div>
 
-        {/* Scroll Indicator */}
-        <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 animate-bounce">
+        {/* Scroll Indicator - simplified for mobile */}
+        <div className="hidden lg:block absolute bottom-8 left-1/2 transform -translate-x-1/2 animate-bounce">
           <div className="w-6 h-10 border-2 border-white/40 rounded-full flex justify-center">
             <div className="w-1 h-3 bg-white/60 rounded-full mt-2 animate-pulse"></div>
           </div>
@@ -303,8 +303,8 @@ const Home = () => {
         <div className="absolute top-40 right-20 w-24 h-24 bg-gradient-to-br from-purple-400/20 to-rose-400/20 rounded-full blur-xl"></div>
         <div className="absolute bottom-20 left-1/4 w-28 h-28 bg-gradient-to-br from-pink-400/20 to-purple-400/20 rounded-full blur-xl"></div>
         
-        {/* Floating particles effect */}
-        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        {/* Floating particles effect - hidden on mobile */}
+        <div className="hidden lg:block absolute inset-0 overflow-hidden pointer-events-none">
           <div className="absolute top-1/4 left-1/4 w-2 h-2 bg-rose-400/30 rounded-full animate-pulse"></div>
           <div className="absolute top-3/4 right-1/4 w-1 h-1 bg-purple-400/40 rounded-full animate-ping"></div>
           <div className="absolute bottom-1/4 left-3/4 w-1.5 h-1.5 bg-pink-400/30 rounded-full animate-pulse" style={{animationDelay: '1s'}}></div>
@@ -337,7 +337,7 @@ const Home = () => {
             {products.map((product, index) => (
               <div
                 key={product.id}
-                className="animate-fade-in h-[350px] flex flex-col transform hover:scale-[1.02] transition-all duration-300"
+                className="h-[350px] flex flex-col lg:transform lg:hover:scale-[1.02] lg:transition-all lg:duration-300"
                 style={{ 
                   animationDelay: `${index * 0.1}s`,
                   filter: 'drop-shadow(0 4px 20px rgba(0,0,0,0.1))'
@@ -350,7 +350,7 @@ const Home = () => {
           
           {/* Call-to-action button with Hero styling */}
           <div className="text-center mt-16">
-            <button className="group relative inline-flex items-center justify-center px-8 py-4 text-lg font-semibold text-white bg-gradient-to-r from-rose-600 via-pink-600 to-purple-600 rounded-full shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-300 overflow-hidden">
+            <button className="group relative inline-flex items-center justify-center px-8 py-4 text-lg font-semibold text-white bg-gradient-to-r from-rose-600 via-pink-600 to-purple-600 rounded-full shadow-xl lg:hover:shadow-2xl lg:transform lg:hover:scale-105 lg:transition-all lg:duration-300 overflow-hidden">
               <span className="absolute inset-0 bg-gradient-to-r from-rose-700 via-pink-700 to-purple-700 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></span>
               <span className="relative flex items-center gap-2">
                 View All Collection
@@ -398,12 +398,12 @@ const Home = () => {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 lg:gap-12">
             {/* Fast Delivery */}
             <div className="group relative">
-              <div className="absolute inset-0 bg-gradient-to-br from-white/60 to-white/30 backdrop-blur-sm rounded-3xl border border-white/20 shadow-xl transform transition-all duration-500 group-hover:scale-105 group-hover:shadow-2xl"></div>
+              <div className="absolute inset-0 bg-gradient-to-br from-white/80 to-white/60 lg:from-white/60 lg:to-white/30 lg:backdrop-blur-sm rounded-3xl border border-white/20 shadow-xl lg:transform lg:transition-all lg:duration-500 lg:group-hover:scale-105 lg:group-hover:shadow-2xl"></div>
               <div className="relative p-8 text-center">
-                <div className="mx-auto w-20 h-20 bg-gradient-to-br from-rose-500 via-pink-500 to-rose-600 rounded-3xl flex items-center justify-center mb-8 shadow-lg transform transition-all duration-500 group-hover:scale-110 group-hover:rotate-3">
+                <div className="mx-auto w-20 h-20 bg-gradient-to-br from-rose-500 via-pink-500 to-rose-600 rounded-3xl flex items-center justify-center mb-8 shadow-lg lg:transform lg:transition-all lg:duration-500 lg:group-hover:scale-110 lg:group-hover:rotate-3">
                   <Truck className="h-10 w-10 text-white" />
                 </div>
-                <h3 className="font-playfair text-2xl font-bold text-gray-800 mb-4 group-hover:text-rose-600 transition-colors duration-300 antialiased">
+                <h3 className="font-playfair text-2xl font-bold text-gray-800 mb-4 lg:group-hover:text-rose-600 lg:transition-colors lg:duration-300 antialiased">
                   Fast Delivery
                 </h3>
                 <div className="w-12 h-0.5 bg-gradient-to-r from-rose-400 to-pink-400 mx-auto mb-6 rounded-full"></div>
@@ -416,12 +416,12 @@ const Home = () => {
 
             {/* Cash on Delivery */}
             <div className="group relative">
-              <div className="absolute inset-0 bg-gradient-to-br from-white/60 to-white/30 backdrop-blur-sm rounded-3xl border border-white/20 shadow-xl transform transition-all duration-500 group-hover:scale-105 group-hover:shadow-2xl"></div>
+              <div className="absolute inset-0 bg-gradient-to-br from-white/80 to-white/60 lg:from-white/60 lg:to-white/30 lg:backdrop-blur-sm rounded-3xl border border-white/20 shadow-xl lg:transform lg:transition-all lg:duration-500 lg:group-hover:scale-105 lg:group-hover:shadow-2xl"></div>
               <div className="relative p-8 text-center">
-                <div className="mx-auto w-20 h-20 bg-gradient-to-br from-emerald-500 via-teal-500 to-emerald-600 rounded-3xl flex items-center justify-center mb-8 shadow-lg transform transition-all duration-500 group-hover:scale-110 group-hover:rotate-3">
+                <div className="mx-auto w-20 h-20 bg-gradient-to-br from-emerald-500 via-teal-500 to-emerald-600 rounded-3xl flex items-center justify-center mb-8 shadow-lg lg:transform lg:transition-all lg:duration-500 lg:group-hover:scale-110 lg:group-hover:rotate-3">
                   <CreditCard className="h-10 w-10 text-white" />
                 </div>
-                <h3 className="font-playfair text-2xl font-bold text-gray-800 mb-4 group-hover:text-emerald-600 transition-colors duration-300 antialiased">
+                <h3 className="font-playfair text-2xl font-bold text-gray-800 mb-4 lg:group-hover:text-emerald-600 lg:transition-colors lg:duration-300 antialiased">
                   Cash on Delivery
                 </h3>
                 <div className="w-12 h-0.5 bg-gradient-to-r from-emerald-400 to-teal-400 mx-auto mb-6 rounded-full"></div>
@@ -434,12 +434,12 @@ const Home = () => {
 
             {/* Easy Exchange */}
             <div className="group relative">
-              <div className="absolute inset-0 bg-gradient-to-br from-white/60 to-white/30 backdrop-blur-sm rounded-3xl border border-white/20 shadow-xl transform transition-all duration-500 group-hover:scale-105 group-hover:shadow-2xl"></div>
+              <div className="absolute inset-0 bg-gradient-to-br from-white/80 to-white/60 lg:from-white/60 lg:to-white/30 lg:backdrop-blur-sm rounded-3xl border border-white/20 shadow-xl lg:transform lg:transition-all lg:duration-500 lg:group-hover:scale-105 lg:group-hover:shadow-2xl"></div>
               <div className="relative p-8 text-center">
-                <div className="mx-auto w-20 h-20 bg-gradient-to-br from-purple-500 via-indigo-500 to-purple-600 rounded-3xl flex items-center justify-center mb-8 shadow-lg transform transition-all duration-500 group-hover:scale-110 group-hover:rotate-3">
+                <div className="mx-auto w-20 h-20 bg-gradient-to-br from-purple-500 via-indigo-500 to-purple-600 rounded-3xl flex items-center justify-center mb-8 shadow-lg lg:transform lg:transition-all lg:duration-500 lg:group-hover:scale-110 lg:group-hover:rotate-3">
                   <RefreshCw className="h-10 w-10 text-white" />
                 </div>
-                <h3 className="font-playfair text-2xl font-bold text-gray-800 mb-4 group-hover:text-purple-600 transition-colors duration-300">
+                <h3 className="font-playfair text-2xl font-bold text-gray-800 mb-4 lg:group-hover:text-purple-600 lg:transition-colors lg:duration-300">
                   Easy Exchange
                 </h3>
                 <div className="w-12 h-0.5 bg-gradient-to-r from-purple-400 to-indigo-400 mx-auto mb-6 rounded-full"></div>
@@ -564,7 +564,7 @@ const Home = () => {
                   placeholder="Enter your email" 
                   className="flex-1 px-4 py-3 rounded-xl bg-white/10 backdrop-blur-sm border border-white/20 text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-rose-400 focus:border-transparent"
                 />
-                <button className="px-6 py-3 bg-gradient-to-r from-rose-500 to-pink-600 text-white font-semibold rounded-xl hover:from-rose-600 hover:to-pink-700 transition-all duration-300 transform hover:scale-105">
+                <button className="px-6 py-3 bg-gradient-to-r from-rose-500 to-pink-600 text-white font-semibold rounded-xl hover:from-rose-600 hover:to-pink-700 lg:transition-all lg:duration-300 lg:transform lg:hover:scale-105">
                   Subscribe
                 </button>
               </div>

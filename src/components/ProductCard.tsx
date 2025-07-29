@@ -112,29 +112,29 @@ export const ProductCard = ({ product }: ProductCardProps) => {
   return (
     <div className="h-full">
       <Link to={`/product/${product.id}`} className="block h-full group">
-        <Card className="relative h-full bg-white dark:bg-gray-900 rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-200 hover:scale-[1.01] transform-gpu border-0 ring-1 ring-gray-100 dark:ring-gray-800 flex flex-col">
-          {/* Image Container with modern effects */}
+        <Card className="relative h-full bg-white dark:bg-gray-900 rounded-2xl overflow-hidden shadow-lg lg:hover:shadow-2xl transition-shadow duration-200 lg:hover:scale-[1.01] lg:transform-gpu border-0 ring-1 ring-gray-100 dark:ring-gray-800 flex flex-col">
+          {/* Image Container with optimized effects */}
           <div className="relative w-full h-[180px] sm:h-[190px] flex-shrink-0 overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900">
             <img
               src={imageUrl}
               alt={product.title}
-              className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+              className="w-full h-full object-cover lg:transition-transform lg:duration-300 lg:group-hover:scale-105"
               onError={e => { e.currentTarget.src = 'https://images.unsplash.com/photo-1551488831-00ddcb6c6bd3?w=800&h=800&fit=crop'; }}
             />
-            {/* Gradient overlay for modern effect */}
-            <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
+            {/* Simplified overlay for mobile performance */}
+            <div className="absolute inset-0 bg-gradient-to-t from-black/10 via-transparent to-transparent lg:opacity-0 lg:group-hover:opacity-100 lg:transition-opacity lg:duration-200" />
             
-            {/* Modern floating badge */}
-            <div className="absolute top-3 left-3 bg-white/90 backdrop-blur-sm rounded-full px-3 py-1 shadow-lg">
+            {/* Simplified floating badge */}
+            <div className="absolute top-3 left-3 bg-white/95 rounded-full px-3 py-1 shadow-md">
               <div className="flex items-center gap-1">
                 <Star className="w-3 h-3 text-yellow-500 fill-yellow-500" />
                 <span className="text-xs font-medium text-gray-800">4.5</span>
               </div>
             </div>
 
-            {/* Heart icon for wishlist */}
-            <div className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-all duration-150 transform translate-y-1 group-hover:translate-y-0">
-              <div className="bg-white/90 backdrop-blur-sm rounded-full p-2 shadow-lg hover:bg-white transition-colors duration-100">
+            {/* Heart icon - hidden on mobile for performance */}
+            <div className="hidden lg:block absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-all duration-150 transform translate-y-1 group-hover:translate-y-0">
+              <div className="bg-white/90 rounded-full p-2 shadow-lg hover:bg-white transition-colors duration-100">
                 <Heart className="w-4 h-4 text-gray-600 hover:text-red-500 transition-colors duration-100" />
               </div>
             </div>
@@ -236,7 +236,7 @@ export const ProductCard = ({ product }: ProductCardProps) => {
               )}
 
               {/* Price and rating row */}
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between mb-3">
                 <div className="space-y-1">
                   <div className="text-lg font-bold text-gray-900 dark:text-white">
                     {product.price} <span className="text-base font-normal text-gray-500">DZD</span>

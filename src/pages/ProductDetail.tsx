@@ -383,7 +383,7 @@ const ProductDetail = () => {
             </div>
             
             {/* Product Info - Mobile */}
-            <div className="bg-white/50 backdrop-blur-sm border border-white/20 rounded-xl p-4 shadow-lg">
+            <div className="bg-white/90 lg:bg-white/50 lg:backdrop-blur-sm border border-white/20 rounded-xl p-4 shadow-lg">
               <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 mb-3">
                 <h1 className="font-playfair text-2xl sm:text-3xl font-bold text-rose-600 flex-1">
                   {product.title}
@@ -393,13 +393,13 @@ const ProductDetail = () => {
                     {[...Array(5)].map((_, i) => (
                       <Star 
                         key={i} 
-                        className="w-4 h-4 text-yellow-500 fill-yellow-400 drop-shadow-sm" 
+                        className="w-4 h-4 text-yellow-500 fill-yellow-400" 
                         style={i === 4 ? { fill: 'url(#half-star)' } : {}}
                       />
                     ))}
                     <span className="text-sm font-semibold text-gray-800 ml-2 bg-gradient-to-r from-gray-700 to-gray-900 bg-clip-text text-transparent">4.5</span>
                   </div>
-                  <div className="bg-white/80 backdrop-blur-sm px-2.5 py-1 rounded-full border border-gray-200/50 shadow-sm">
+                  <div className="bg-white/90 lg:bg-white/80 lg:backdrop-blur-sm px-2.5 py-1 rounded-full border border-gray-200/50 shadow-sm">
                     <span className="text-xs font-medium text-gray-600">124 reviews</span>
                   </div>
                 </div>
@@ -492,7 +492,7 @@ const ProductDetail = () => {
               />
               {/* Product Description - Desktop */}
               {product.description && (
-                <div className="bg-white/50 backdrop-blur-sm border border-white/20 rounded-2xl p-6 shadow-lg">
+                <div className="bg-white/90 lg:bg-white/50 lg:backdrop-blur-sm border border-white/20 rounded-2xl p-6 shadow-lg">
                   <h3 className="font-playfair text-xl font-semibold text-rose-600 mb-4">
                     Description
                   </h3>
@@ -510,17 +510,17 @@ const ProductDetail = () => {
                   {product.title}
                 </h1>
                 <div className="flex flex-col items-end gap-2">
-                  <div className="flex items-center gap-1.5 bg-gradient-to-r from-yellow-50 to-orange-50 px-4 py-2 rounded-full border border-yellow-200/50 shadow-lg backdrop-blur-sm">
+                  <div className="flex items-center gap-1.5 bg-gradient-to-r from-yellow-50 to-orange-50 px-4 py-2 rounded-full border border-yellow-200/50 shadow-lg lg:backdrop-blur-sm">
                     {[...Array(5)].map((_, i) => (
                       <Star 
                         key={i} 
-                        className="w-5 h-5 text-yellow-500 fill-yellow-400 drop-shadow-sm transition-transform hover:scale-110" 
+                        className="w-5 h-5 text-yellow-500 fill-yellow-400 lg:transition-transform lg:hover:scale-110" 
                         style={i === 4 ? { fill: 'url(#half-star)' } : {}}
                       />
                     ))}
                     <span className="text-base font-bold text-gray-800 ml-2 bg-gradient-to-r from-gray-700 to-gray-900 bg-clip-text text-transparent">4.5</span>
                   </div>
-                  <div className="bg-white/90 backdrop-blur-sm px-3 py-1.5 rounded-full border border-gray-200/50 shadow-md">
+                  <div className="bg-white/95 lg:bg-white/90 lg:backdrop-blur-sm px-3 py-1.5 rounded-full border border-gray-200/50 shadow-md">
                     <span className="text-sm font-medium text-gray-600">124 reviews</span>
                   </div>
                 </div>
