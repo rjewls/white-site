@@ -73,9 +73,29 @@ const ProductDetail = () => {
       address: "",
       quantity: 1,
       selectedColor: "",
+      selectedColors: [],
+      selectedSize: "",
+      selectedSizes: [],
     },
   });
   const watchWilaya = form.watch("wilaya");
+  const watchQuantity = form.watch("quantity");
+
+  // Reset color selections when quantity changes
+  useEffect(() => {
+    if (watchQuantity === 1) {
+      form.setValue("selectedColors", []);
+      form.setValue("selectedSizes", []);
+    } else {
+      form.setValue("selectedColor", "");
+      form.setValue("selectedSize", "");
+      // Initialize selectedColors and selectedSizes arrays with empty strings
+      const emptyColors = Array(watchQuantity).fill("");
+      const emptySizes = Array(watchQuantity).fill("");
+      form.setValue("selectedColors", emptyColors);
+      form.setValue("selectedSizes", emptySizes);
+    }
+  }, [watchQuantity, form]);
 
   // Fetch product data from Supabase when component mounts or id changes
   useEffect(() => {
@@ -191,11 +211,11 @@ const ProductDetail = () => {
       if (r === max) {
         // Red dominant
         if (g > b && g > 100) {
-          if (r > 200 && g > 150) return '�'; // Yellow-ish
+          if (r > 200 && g > 150) return '🟡'; // Yellow-ish
           return '🟠'; // Orange-ish
         }
-        if (b > g && b > 100) return '�'; // Purple-ish
-        return '�'; // Red
+        if (b > g && b > 100) return '🟣'; // Purple-ish
+        return '🔴'; // Red
       } else if (g === max) {
         // Green dominant
         if (r > b && r > 100) {
@@ -212,6 +232,35 @@ const ProductDetail = () => {
         if (r > g && r > 100) return '🟣'; // Purple-ish
         if (g > r && g > 100) return '🔵'; // Cyan-ish
         return '🔵'; // Blue
+      }
+    };
+    
+    // Helper function to format items for Discord message
+    const formatItemsForDiscord = () => {
+      if (values.quantity === 1) {
+        const colorInfo = values.selectedColor ? getColorEmoji(values.selectedColor) + " " + values.selectedColor : "";
+        const sizeInfo = values.selectedSize ? "📏 " + values.selectedSize : "";
+        const details = [colorInfo, sizeInfo].filter(Boolean).join(" | ");
+        return details ? " | " + details : "";
+      } else {
+        // Multiple items - show each item individually
+        const colors = values.selectedColors || [];
+        const sizes = values.selectedSizes || [];
+        const itemDetails = [];
+        
+        for (let i = 0; i < values.quantity; i++) {
+          const color = colors[i];
+          const size = sizes[i];
+          const colorInfo = color ? getColorEmoji(color) + " " + color : "";
+          const sizeInfo = size ? "📏 " + size : "";
+          const details = [colorInfo, sizeInfo].filter(Boolean).join(" | ");
+          
+          if (details) {
+            itemDetails.push(`Item ${i + 1}: ${details}`);
+          }
+        }
+        
+        return itemDetails.length > 0 ? "\n\n🎨 **Item Details:**\n" + itemDetails.join("\n") : "";
       }
     };
     
@@ -245,8 +294,25 @@ const ProductDetail = () => {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          content: `**New Order Received!**\n\n**Product:** ${orderData.productTitle}\n**Quantity:** ${orderData.quantity}${values.selectedColor ? `\n**Color:** ${getColorEmoji(values.selectedColor)} ${values.selectedColor}` : ""}\n**Customer:** ${orderData.name}\n**Phone:** ${orderData.phone}\n**Location:** ${orderData.wilaya}, ${orderData.commune}\n**Address:** ${orderData.address}\n**Delivery:** ${orderData.deliveryOption === "home" ? "Home Delivery" : "Stopdesk Delivery"}\n**Product Price:** ${orderData.productPrice * orderData.quantity} DZD\n**Delivery Fee:** ${orderData.deliveryFee} DZD\n**Total:** ${orderData.totalPrice} DZD`
+          content: "🛍️ **NEW ORDER** 🛍️\n\n" +
+                   "📦 **" + orderData.productTitle + "** | Qty: " + orderData.quantity + 
+                   formatItemsForDiscord() + "\n\n" +
+                   "👤 " + orderData.name + " | 📱 " + orderData.phone + "\n" +
+                   "📍 " + orderData.wilaya + ", " + orderData.commune + "\n" +
+                   "🏠 " + orderData.address + "\n\n" +
+                   "🚚 " + (orderData.deliveryOption === "home" ? "🏠 Home Delivery" : "🏪 Stopdesk Delivery") + "\n\n" +
+                   "💰 **TOTAL: " + orderData.totalPrice + " DZD**\n" +
+                   orderData.productPrice * orderData.quantity + " DZD + " + orderData.deliveryFee + " DZD delivery\n\n" +
+                   "✅ Pending | ⏰ " + new Date().toLocaleString('en-GB', { 
+                     timeZone: 'Africa/Algiers',
+                     day: '2-digit',
+                     month: '2-digit', 
+                     year: 'numeric',
+                     hour: '2-digit',
+                     minute: '2-digit'
+                   }) + " 🌹"
         }),
+        
       });
 
       if (response.ok) {
@@ -261,6 +327,9 @@ const ProductDetail = () => {
           address: "",
           quantity: 1,
           selectedColor: "",
+          selectedColors: [],
+          selectedSize: "",
+          selectedSizes: [],
         });
       } else {
         toast.error("Error sending order");
@@ -315,9 +384,26 @@ const ProductDetail = () => {
             
             {/* Product Info - Mobile */}
             <div className="bg-white/50 backdrop-blur-sm border border-white/20 rounded-xl p-4 shadow-lg">
-              <h1 className="font-playfair text-2xl sm:text-3xl font-bold text-rose-600 mb-3">
-                {product.title}
-              </h1>
+              <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 mb-3">
+                <h1 className="font-playfair text-2xl sm:text-3xl font-bold text-rose-600 flex-1">
+                  {product.title}
+                </h1>
+                <div className="flex flex-col items-start sm:items-end gap-2">
+                  <div className="flex items-center gap-1 bg-gradient-to-r from-yellow-50 to-orange-50 px-3 py-1.5 rounded-full border border-yellow-200/50 shadow-sm">
+                    {[...Array(5)].map((_, i) => (
+                      <Star 
+                        key={i} 
+                        className="w-4 h-4 text-yellow-500 fill-yellow-400 drop-shadow-sm" 
+                        style={i === 4 ? { fill: 'url(#half-star)' } : {}}
+                      />
+                    ))}
+                    <span className="text-sm font-semibold text-gray-800 ml-2 bg-gradient-to-r from-gray-700 to-gray-900 bg-clip-text text-transparent">4.5</span>
+                  </div>
+                  <div className="bg-white/80 backdrop-blur-sm px-2.5 py-1 rounded-full border border-gray-200/50 shadow-sm">
+                    <span className="text-xs font-medium text-gray-600">124 reviews</span>
+                  </div>
+                </div>
+              </div>
               <div className="flex items-center justify-between mb-3">
                 <span className="font-inter text-2xl sm:text-3xl font-bold text-primary">
                   {product.price} DZD
@@ -382,6 +468,13 @@ const ProductDetail = () => {
                         ? product.colors.split(",").map(c => c.trim()).filter(Boolean)
                         : []
                   }
+                  availableSizes={
+                    Array.isArray(product.sizes)
+                      ? product.sizes
+                      : typeof product.sizes === "string"
+                        ? product.sizes.split(",").map(s => s.trim()).filter(Boolean)
+                        : []
+                  }
                 />
               </CardContent>
             </Card>
@@ -411,16 +504,32 @@ const ProductDetail = () => {
             </div>
             
             {/* Product Info & Purchase Form - Desktop */}
-            <div className="space-y-8">
-              <div>
-                <h1 className="font-playfair text-3xl font-bold text-rose-600 mb-4">
+            <div className="space-y-8">            <div>
+              <div className="flex items-start justify-between gap-4 mb-4">
+                <h1 className="font-playfair text-3xl font-bold text-rose-600 flex-1">
                   {product.title}
                 </h1>
-                <div className="flex items-center gap-4 mb-4">
-                  <span className="font-inter text-3xl font-bold text-primary">
-                    {product.price} DZD
-                  </span>
+                <div className="flex flex-col items-end gap-2">
+                  <div className="flex items-center gap-1.5 bg-gradient-to-r from-yellow-50 to-orange-50 px-4 py-2 rounded-full border border-yellow-200/50 shadow-lg backdrop-blur-sm">
+                    {[...Array(5)].map((_, i) => (
+                      <Star 
+                        key={i} 
+                        className="w-5 h-5 text-yellow-500 fill-yellow-400 drop-shadow-sm transition-transform hover:scale-110" 
+                        style={i === 4 ? { fill: 'url(#half-star)' } : {}}
+                      />
+                    ))}
+                    <span className="text-base font-bold text-gray-800 ml-2 bg-gradient-to-r from-gray-700 to-gray-900 bg-clip-text text-transparent">4.5</span>
+                  </div>
+                  <div className="bg-white/90 backdrop-blur-sm px-3 py-1.5 rounded-full border border-gray-200/50 shadow-md">
+                    <span className="text-sm font-medium text-gray-600">124 reviews</span>
+                  </div>
                 </div>
+              </div>
+              <div className="flex items-center gap-4 mb-4">
+                <span className="font-inter text-3xl font-bold text-primary">
+                  {product.price} DZD
+                </span>
+              </div>
                 {/* Color circles - Desktop */}
                 {(Array.isArray(product.colors)
                   ? product.colors
@@ -466,6 +575,13 @@ const ProductDetail = () => {
                           ? product.colors.split(",").map(c => c.trim()).filter(Boolean)
                           : []
                     }
+                    availableSizes={
+                      Array.isArray(product.sizes)
+                        ? product.sizes
+                        : typeof product.sizes === "string"
+                          ? product.sizes.split(",").map(s => s.trim()).filter(Boolean)
+                          : []
+                    }
                   />
                 </CardContent>
               </Card>
@@ -473,6 +589,16 @@ const ProductDetail = () => {
           </div>
         </div>
       </div>
+      
+      {/* Hidden SVG for half-filled star gradient */}
+      <svg width="0" height="0" style={{ position: 'absolute' }}>
+        <defs>
+          <linearGradient id="half-star" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="90%" stopColor="#f59e0b" />
+            <stop offset="90%" stopColor="rgba(249, 250, 251, 0.3)" />
+          </linearGradient>
+        </defs>
+      </svg>
     </>
   );
 };

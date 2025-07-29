@@ -10,6 +10,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -32,6 +33,7 @@ interface OrderFormFieldsProps {
   watchWilaya: string;
   productPrice: number;
   availableColors: string[];
+  availableSizes: string[];
 }
 
 export function OrderFormFields({
@@ -42,6 +44,7 @@ export function OrderFormFields({
   watchWilaya,
   productPrice,
   availableColors,
+  availableSizes,
 }: OrderFormFieldsProps) {
   const watchDeliveryOption = form.watch("deliveryOption");
 
@@ -236,7 +239,7 @@ export function OrderFormFields({
               name="quantity"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-sm font-medium">Quantity (Max 6)</FormLabel>
+                  <FormLabel className="text-sm font-medium">Quantity (Max 3)</FormLabel>
                   <Select 
                     onValueChange={(value) => field.onChange(parseInt(value))} 
                     value={field.value?.toString()}
@@ -250,9 +253,6 @@ export function OrderFormFields({
                       <SelectItem value="1">1</SelectItem>
                       <SelectItem value="2">2</SelectItem>
                       <SelectItem value="3">3</SelectItem>
-                      <SelectItem value="4">4</SelectItem>
-                      <SelectItem value="5">5</SelectItem>
-                      <SelectItem value="6">6</SelectItem>
                     </SelectContent>
                   </Select>
                   <FormMessage />
@@ -260,40 +260,156 @@ export function OrderFormFields({
               )}
             />
 
+            {/* Color Selection */}
             {availableColors.length > 0 && (
-              <FormField
-                control={form.control}
-                name="selectedColor"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="text-sm font-medium">Select Color</FormLabel>
-                    <Select 
-                      onValueChange={field.onChange} 
-                      value={field.value}
-                    >
-                      <FormControl>
-                        <SelectTrigger className="h-10 text-sm">
-                          <SelectValue placeholder="Choose a color" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {availableColors.map((color) => (
-                          <SelectItem key={color} value={color}>
-                            <div className="flex items-center gap-2">
-                              <span
-                                className="w-4 h-4 rounded-full border border-gray-300"
-                                style={{ backgroundColor: color }}
-                              />
-                              <span className="capitalize">{color}</span>
-                            </div>
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
+              <div className="space-y-3">
+                <Label className="text-base font-medium">
+                  {form.watch("quantity") > 1 ? `Colors (Select ${form.watch("quantity")} colors)` : "Color"}
+                </Label>
+                {form.watch("quantity") > 1 ? (
+                  // Multiple color selection for multiple quantities
+                  <div className="space-y-2">
+                    {Array.from({ length: form.watch("quantity") }, (_, index) => (
+                      <div key={index} className="flex items-center gap-3">
+                        <span className="text-sm font-medium min-w-[60px]">Item {index + 1}:</span>
+                        <FormField
+                          control={form.control}
+                          name={`selectedColors.${index}`}
+                          render={({ field }) => (
+                            <FormItem className="flex-1">
+                              <Select onValueChange={field.onChange} value={field.value || ""}>
+                                <FormControl>
+                                  <SelectTrigger className="h-10">
+                                    <SelectValue placeholder="Choose color" />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                  {availableColors.map((color) => (
+                                    <SelectItem key={color} value={color}>
+                                      <div className="flex items-center gap-2">
+                                        <span
+                                          className="w-4 h-4 rounded-full border border-border"
+                                          style={{ backgroundColor: color }}
+                                        />
+                                        <span>{color}</span>
+                                      </div>
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  // Single color selection for quantity = 1
+                  <FormField
+                    control={form.control}
+                    name="selectedColor"
+                    render={({ field }) => (
+                      <FormItem>
+                        <Select onValueChange={field.onChange} value={field.value || ""}>
+                          <FormControl>
+                            <SelectTrigger className="h-12">
+                              <SelectValue placeholder="Choose a color" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {availableColors.map((color) => (
+                              <SelectItem key={color} value={color}>
+                                <div className="flex items-center gap-3">
+                                  <span
+                                    className="w-5 h-5 rounded-full border border-border"
+                                    style={{ backgroundColor: color }}
+                                  />
+                                  <span>{color}</span>
+                                </div>
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
                 )}
-              />
+              </div>
+            )}
+
+            {/* Size Selection */}
+            {availableSizes.length > 0 && (
+              <div className="space-y-3">
+                <Label className="text-base font-medium">
+                  {form.watch("quantity") > 1 ? `Sizes (Select ${form.watch("quantity")} sizes)` : "Size"}
+                </Label>
+                {form.watch("quantity") > 1 ? (
+                  // Multiple size selection for multiple quantities
+                  <div className="space-y-2">
+                    {Array.from({ length: form.watch("quantity") }, (_, index) => (
+                      <div key={index} className="flex items-center gap-3">
+                        <span className="text-sm font-medium min-w-[60px]">Item {index + 1}:</span>
+                        <FormField
+                          control={form.control}
+                          name={`selectedSizes.${index}`}
+                          render={({ field }) => (
+                            <FormItem className="flex-1">
+                              <Select onValueChange={field.onChange} value={field.value || ""}>
+                                <FormControl>
+                                  <SelectTrigger className="h-10">
+                                    <SelectValue placeholder="Choose size" />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                  {availableSizes.map((size) => (
+                                    <SelectItem key={size} value={size}>
+                                      <div className="flex items-center gap-2">
+                                        <span className="text-sm font-medium">📏</span>
+                                        <span>{size}</span>
+                                      </div>
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  // Single size selection for quantity = 1
+                  <FormField
+                    control={form.control}
+                    name="selectedSize"
+                    render={({ field }) => (
+                      <FormItem>
+                        <Select onValueChange={field.onChange} value={field.value || ""}>
+                          <FormControl>
+                            <SelectTrigger className="h-12">
+                              <SelectValue placeholder="Choose a size" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {availableSizes.map((size) => (
+                              <SelectItem key={size} value={size}>
+                                <div className="flex items-center gap-3">
+                                  <span className="text-lg">📏</span>
+                                  <span>{size}</span>
+                                </div>
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                )}
+              </div>
             )}
           </div>
         </div>

@@ -114,7 +114,7 @@ export const ProductCard = ({ product }: ProductCardProps) => {
       <Link to={`/product/${product.id}`} className="block h-full group">
         <Card className="relative h-full bg-white dark:bg-gray-900 rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-200 hover:scale-[1.01] transform-gpu border-0 ring-1 ring-gray-100 dark:ring-gray-800 flex flex-col">
           {/* Image Container with modern effects */}
-          <div className="relative w-full h-[200px] sm:h-[220px] flex-shrink-0 overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900">
+          <div className="relative w-full h-[180px] sm:h-[190px] flex-shrink-0 overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900">
             <img
               src={imageUrl}
               alt={product.title}
@@ -141,15 +141,15 @@ export const ProductCard = ({ product }: ProductCardProps) => {
           </div>
 
           {/* Content Container */}
-          <CardContent className="p-4 flex flex-col flex-1 justify-between min-h-0">
-            <div className="space-y-2 flex-1">
+          <CardContent className="p-4 flex flex-col">
+            <div>
               {/* Title */}
-              <h3 className="font-semibold text-base leading-tight text-gray-900 dark:text-white line-clamp-2 group-hover:text-primary transition-colors duration-150">
+              <h3 className="font-semibold text-base leading-tight text-gray-900 dark:text-white line-clamp-2 group-hover:text-primary transition-colors duration-150 mb-2">
                 {product.title}
               </h3>
 
               {/* Dynamic color count text instead of description */}
-              <p className="text-xs text-gray-600 dark:text-gray-300 line-clamp-2 leading-relaxed">
+              <p className="text-sm text-gray-600 dark:text-gray-300 line-clamp-1 leading-relaxed mb-2">
                 {colors.length === 0 
                   ? "No colors available" 
                   : colors.length === 1 
@@ -160,7 +160,7 @@ export const ProductCard = ({ product }: ProductCardProps) => {
 
               {/* Color circles */}
               {colors.length > 0 && (
-                <div className="flex gap-1">
+                <div className="flex gap-2 mb-3">
                   {colors.slice(0, 4).map((color, idx) => {
                     // Debug: log the actual color values
                     console.log('Color from database:', color, typeof color);
@@ -182,6 +182,7 @@ export const ProductCard = ({ product }: ProductCardProps) => {
                       // Try color name mapping as fallback
                       const colorLower = cleanColor.toLowerCase();
                       const allColors: Record<string, string> = {
+                        // English colors
                         'red': '#ef4444',
                         'blue': '#3b82f6', 
                         'green': '#22c55e',
@@ -194,6 +195,7 @@ export const ProductCard = ({ product }: ProductCardProps) => {
                         'brown': '#92400e',
                         'gray': '#6b7280',
                         'grey': '#6b7280',
+                        // French colors
                         'rouge': '#ef4444',
                         'bleu': '#3b82f6',
                         'vert': '#22c55e',
@@ -202,7 +204,6 @@ export const ProductCard = ({ product }: ProductCardProps) => {
                         'blanc': '#ffffff',
                         'violet': '#a21caf',
                         'rose': '#ec4899',
-                        'orange': '#f97316',
                         'marron': '#92400e',
                         'gris': '#6b7280',
                       };
@@ -220,35 +221,35 @@ export const ProductCard = ({ product }: ProductCardProps) => {
                     return (
                       <div
                         key={idx}
-                        className="w-4 h-4 rounded-full border-2 border-gray-400 shadow-sm"
+                        className="w-5 h-5 rounded-full border border-gray-300 shadow-sm"
                         style={{ backgroundColor: validColor }}
                         title={`Color: ${cleanColor} (${validColor})`}
                       />
                     );
                   })}
                   {colors.length > 4 && (
-                    <div className="w-4 h-4 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center border-2 border-gray-400 shadow-sm">
+                    <div className="w-5 h-5 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center border border-gray-300 shadow-sm">
                       <span className="text-xs font-medium text-gray-600 dark:text-gray-300">+{colors.length - 4}</span>
                     </div>
                   )}
                 </div>
               )}
-            </div>
 
-            {/* Price and rating row - always at bottom */}
-            <div className="flex items-center justify-between pt-3 mt-auto">
-              <div className="space-y-1">
-                <div className="text-lg font-bold text-gray-900 dark:text-white">
-                  {product.price} <span className="text-sm font-normal text-gray-500">DZD</span>
-                </div>
-                <div className="flex items-center gap-1">
-                  <div className="flex">
-                    {[...Array(4)].map((_, i) => (
-                      <Star key={i} className="w-3 h-3 text-yellow-400 fill-yellow-400" />
-                    ))}
-                    <Star className="w-3 h-3 text-yellow-400" style={{ fill: 'url(#half)' }} />
+              {/* Price and rating row */}
+              <div className="flex items-center justify-between">
+                <div className="space-y-1">
+                  <div className="text-lg font-bold text-gray-900 dark:text-white">
+                    {product.price} <span className="text-base font-normal text-gray-500">DZD</span>
                   </div>
-                  <span className="text-xs text-gray-500 ml-1">(4.5)</span>
+                  <div className="flex items-center gap-1">
+                    <div className="flex">
+                      {[...Array(4)].map((_, i) => (
+                        <Star key={i} className="w-3.5 h-3.5 text-yellow-400 fill-yellow-400" />
+                      ))}
+                      <Star className="w-3.5 h-3.5 text-yellow-400" style={{ fill: 'url(#half)' }} />
+                    </div>
+                    <span className="text-xs text-gray-500 ml-1">(4.5)</span>
+                  </div>
                 </div>
               </div>
             </div>
