@@ -1729,7 +1729,44 @@ the 3 affect you added using layering and css is good but the color is bad for t
 
 _**Assistant**_
 
-I understand you want to change the colors of the 3D text effect I added to the homepage hero section. Let me update the text shadow colors to better match your boutique's aesthetic with more appropriate colors. 
+I understand you want to change the colors of the 3D text effect I added to the homepage hero section. Let me update the text shadow colors to better match your boutique's aesthetic with more appropriate colors. Now I'll update the 3D text effect colors to use more boutique-appropriate colors that better match your rose/pink/purple theme: 
+```
+
+```
+Perfect! I've updated the 3D text effect colors to much better match your boutique's aesthetic. Here's what I changed:
+
+## Color Updates:
+
+**From**: `rgba(139, 69, 19, 0.4)` (brown/muddy color)  
+**To**: `rgba(190, 24, 93, 0.4)` (deep rose/magenta)
+
+## New Color Scheme:
+
+1. **Layered Shadows**: Now use deep rose/magenta (`rgba(190, 24, 93)`) instead of brown
+2. **Progressive Depth**: Still maintains the 3D layering effect with decreasing opacity (0.4 → 0.3 → 0.2)
+3. **Consistent Branding**: The shadow colors now perfectly complement your rose/pink/purple gradient theme
+4. **Elegant Feel**: Deep rose shadows create a more luxurious, boutique-appropriate look
+
+## Result:
+The 3D text effect now has:
+- **Rose-toned shadows** that match your brand colors
+- **Better harmony** with the gradient text colors
+- **More sophisticated appearance** for a boutique aesthetic
+- **Same 3D depth** but with colors that actually enhance your design
+
+The text will now have beautiful rose-colored depth shadows that blend seamlessly with your boutique's color scheme!
+
+---
+
+_**User**_
+
+in the entire site change every instance of the name "Rosebud Boutique" into "Belle Elle Boutique"
+
+---
+
+_**Assistant**_
+
+I'll help you change every instance of "Rosebud Boutique" to "Belle Elle Boutique" throughout the entire site. Let me first search for all occurrences of "Rosebud Boutique" to see where they need to be updated. Let me also check for just "Rosebud" to make sure I catch all variations: 
 
 ---
 

@@ -15,7 +15,7 @@ export const Navigation = () => {
           <Link to="/" className="flex items-center space-x-2">
             <ShoppingBag className="h-8 w-8 text-primary" />
             <span className="font-playfair font-semibold text-2xl text-foreground">
-              Rosebud Boutique
+              Belle Elle Boutique
             </span>
           </Link>
           <Link to="/admin">

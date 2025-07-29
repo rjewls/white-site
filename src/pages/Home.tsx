@@ -58,7 +58,7 @@ const Home = () => {
         <div className="absolute inset-0">
           <img
             src={heroImage}
-            alt="Rosebud Boutique Hero"
+            alt="Belle Elle Boutique Hero"
             className="w-full h-full object-cover scale-105 transition-transform duration-[10s] ease-out hover:scale-100"
           />
           {/* Multiple gradient overlays for depth */}
@@ -286,7 +286,7 @@ const Home = () => {
             </div>
             <h2 className="font-playfair text-4xl md:text-5xl font-bold mb-6">
               <span className="bg-gradient-to-r from-rose-600 via-pink-600 to-purple-600 bg-clip-text text-transparent">
-                Why Choose Rosebud Boutique
+                Why Choose Belle Elle Boutique
               </span>
             </h2>
             <p className="font-inter text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">
