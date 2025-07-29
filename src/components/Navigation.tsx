@@ -18,9 +18,12 @@ export const Navigation = () => {
               <div className="absolute inset-0 bg-pink-300/20 rounded-full blur-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
             </div>
             <span 
-              className="font-playfair font-bold text-2xl bg-gradient-to-r from-rose-700 via-pink-600 to-purple-600 bg-clip-text text-transparent drop-shadow-lg group-hover:from-pink-600 group-hover:via-rose-500 group-hover:to-purple-500 transition-all duration-300"
+              className="font-playfair font-bold text-2xl bg-gradient-to-r from-rose-700 via-pink-600 to-purple-600 bg-clip-text text-transparent drop-shadow-lg group-hover:from-pink-600 group-hover:via-rose-500 group-hover:to-purple-500 transition-all duration-300 antialiased"
               style={{
-                textShadow: '0 0 10px rgba(236, 72, 153, 0.3)'
+                textShadow: '0 0 10px rgba(236, 72, 153, 0.3)',
+                WebkitFontSmoothing: 'antialiased',
+                MozOsxFontSmoothing: 'grayscale',
+                textRendering: 'optimizeLegibility'
               }}
             >
               Belle Elle Boutique

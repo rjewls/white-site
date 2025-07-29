@@ -110,13 +110,16 @@ const Home = () => {
                   {/* Enhanced Belle Elle Boutique Text */}
                   <div className="relative">
                     <h2 
-                      className="font-playfair text-2xl sm:text-3xl md:text-4xl font-bold bg-gradient-to-r from-rose-600 via-pink-500 to-purple-600 bg-clip-text text-transparent"
+                      className="font-playfair text-2xl sm:text-3xl md:text-4xl font-bold bg-gradient-to-r from-rose-600 via-pink-500 to-purple-600 bg-clip-text text-transparent antialiased"
                       style={{
                         textShadow: `
                           1px 1px 0px rgba(0, 0, 0, 0.2),
                           2px 2px 4px rgba(236, 72, 153, 0.3),
                           0 0 15px rgba(236, 72, 153, 0.2)
-                        `
+                        `,
+                        WebkitFontSmoothing: 'antialiased',
+                        MozOsxFontSmoothing: 'grayscale',
+                        textRendering: 'optimizeLegibility'
                       }}
                     >
                       ✨ Belle Elle Boutique ✨
@@ -127,7 +130,7 @@ const Home = () => {
                 </div>
 
                 {/* Main Heading */}
-                <h1 className="font-playfair text-4xl sm:text-5xl lg:text-7xl font-bold mb-6 animate-fade-in leading-tight">
+                <h1 className="font-playfair text-4xl sm:text-5xl lg:text-7xl font-bold mb-6 animate-fade-in leading-tight antialiased">
                   <span 
                     className="bg-gradient-to-r from-rose-300 via-pink-400 to-purple-300 bg-clip-text text-transparent block drop-shadow-lg" 
                     style={{
@@ -135,7 +138,10 @@ const Home = () => {
                         1px 1px 0px rgba(255, 255, 255, 0.5),
                         2px 2px 4px rgba(236, 72, 153, 0.2),
                         0 0 15px rgba(236, 72, 153, 0.3)
-                      `
+                      `,
+                      WebkitFontSmoothing: 'antialiased',
+                      MozOsxFontSmoothing: 'grayscale',
+                      textRendering: 'optimizeLegibility'
                     }}
                   >
                     Discover Your
@@ -147,7 +153,10 @@ const Home = () => {
                         1px 1px 0px rgba(255, 255, 255, 0.5),
                         2px 2px 4px rgba(168, 85, 247, 0.2),
                         0 0 15px rgba(168, 85, 247, 0.3)
-                      `
+                      `,
+                      WebkitFontSmoothing: 'antialiased',
+                      MozOsxFontSmoothing: 'grayscale',
+                      textRendering: 'optimizeLegibility'
                     }}
                   >
                     Perfect Style
@@ -368,12 +377,19 @@ const Home = () => {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
               </svg>
             </div>
-            <h2 className="font-playfair text-4xl md:text-5xl font-bold mb-6">
-              <span className="bg-gradient-to-r from-rose-600 via-pink-600 to-purple-600 bg-clip-text text-transparent">
+            <h2 className="font-playfair text-4xl md:text-5xl font-bold mb-6 antialiased">
+              <span 
+                className="bg-gradient-to-r from-rose-600 via-pink-600 to-purple-600 bg-clip-text text-transparent"
+                style={{
+                  WebkitFontSmoothing: 'antialiased',
+                  MozOsxFontSmoothing: 'grayscale',
+                  textRendering: 'optimizeLegibility'
+                }}
+              >
                 Why Choose Belle Elle Boutique
               </span>
             </h2>
-            <p className="font-inter text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">
+            <p className="font-inter text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed antialiased">
               We're committed to providing you with an exceptional shopping experience that goes beyond just fashion
             </p>
             <div className="mt-6 w-24 h-1 bg-gradient-to-r from-rose-500 to-pink-500 mx-auto rounded-full"></div>
@@ -387,11 +403,11 @@ const Home = () => {
                 <div className="mx-auto w-20 h-20 bg-gradient-to-br from-rose-500 via-pink-500 to-rose-600 rounded-3xl flex items-center justify-center mb-8 shadow-lg transform transition-all duration-500 group-hover:scale-110 group-hover:rotate-3">
                   <Truck className="h-10 w-10 text-white" />
                 </div>
-                <h3 className="font-playfair text-2xl font-bold text-gray-800 mb-4 group-hover:text-rose-600 transition-colors duration-300">
+                <h3 className="font-playfair text-2xl font-bold text-gray-800 mb-4 group-hover:text-rose-600 transition-colors duration-300 antialiased">
                   Fast Delivery
                 </h3>
                 <div className="w-12 h-0.5 bg-gradient-to-r from-rose-400 to-pink-400 mx-auto mb-6 rounded-full"></div>
-                <p className="font-inter text-gray-600 leading-relaxed text-lg">
+                <p className="font-inter text-gray-600 leading-relaxed text-lg antialiased">
                   Lightning-fast delivery within <span className="font-bold text-rose-600 bg-rose-50 px-2 py-1 rounded-lg">24 to 48 hours</span>. 
                   Your dream pieces are just a day away from your wardrobe.
                 </p>
@@ -405,7 +421,7 @@ const Home = () => {
                 <div className="mx-auto w-20 h-20 bg-gradient-to-br from-emerald-500 via-teal-500 to-emerald-600 rounded-3xl flex items-center justify-center mb-8 shadow-lg transform transition-all duration-500 group-hover:scale-110 group-hover:rotate-3">
                   <CreditCard className="h-10 w-10 text-white" />
                 </div>
-                <h3 className="font-playfair text-2xl font-bold text-gray-800 mb-4 group-hover:text-emerald-600 transition-colors duration-300">
+                <h3 className="font-playfair text-2xl font-bold text-gray-800 mb-4 group-hover:text-emerald-600 transition-colors duration-300 antialiased">
                   Cash on Delivery
                 </h3>
                 <div className="w-12 h-0.5 bg-gradient-to-r from-emerald-400 to-teal-400 mx-auto mb-6 rounded-full"></div>
@@ -470,10 +486,17 @@ const Home = () => {
             {/* Brand Section */}
             <div className="lg:col-span-2">
               <div className="mb-6">
-                <h3 className="font-playfair text-3xl font-bold bg-gradient-to-r from-rose-400 via-pink-400 to-purple-400 bg-clip-text text-transparent mb-4">
+                <h3 
+                  className="font-playfair text-3xl font-bold bg-gradient-to-r from-rose-400 via-pink-400 to-purple-400 bg-clip-text text-transparent mb-4 antialiased"
+                  style={{
+                    WebkitFontSmoothing: 'antialiased',
+                    MozOsxFontSmoothing: 'grayscale',
+                    textRendering: 'optimizeLegibility'
+                  }}
+                >
                   ✨ Belle Elle Boutique ✨
                 </h3>
-                <p className="text-gray-300 leading-relaxed max-w-md">
+                <p className="text-gray-300 leading-relaxed max-w-md antialiased">
                   Your premier destination for elegant women's fashion. We curate timeless pieces that celebrate your unique style and enhance your natural beauty.
                 </p>
               </div>
