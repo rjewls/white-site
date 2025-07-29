@@ -114,7 +114,7 @@ export const ProductCard = ({ product }: ProductCardProps) => {
       <Link to={`/product/${product.id}`} className="block h-full group">
         <Card className="relative h-full bg-white dark:bg-gray-900 rounded-2xl overflow-hidden shadow-lg lg:hover:shadow-2xl transition-shadow duration-200 lg:hover:scale-[1.01] lg:transform-gpu border-0 ring-1 ring-gray-100 dark:ring-gray-800 flex flex-col">
           {/* Image Container with optimized effects */}
-          <div className="relative w-full h-[180px] sm:h-[190px] flex-shrink-0 overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900">
+          <div className="relative w-full h-[60%] md:h-[190px] flex-shrink-0 overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900">
             <img
               src={imageUrl}
               alt={product.title}
@@ -140,28 +140,29 @@ export const ProductCard = ({ product }: ProductCardProps) => {
             </div>
           </div>
 
-          {/* Content Container */}
-          <CardContent className="p-4 flex flex-col">
-            <div>
-              {/* Title */}
-              <h3 className="font-semibold text-base leading-tight text-gray-900 dark:text-white line-clamp-2 group-hover:text-primary transition-colors duration-150 mb-2">
-                {product.title}
-              </h3>
+          {/* Content Container with better mobile spacing */}
+          <CardContent className="p-4 md:p-4 flex flex-col flex-1 min-h-0">
+            <div className="flex-1 flex flex-col justify-between min-h-0">
+              <div className="flex-1">
+                {/* Title with better mobile layout */}
+                <h3 className="font-semibold text-base md:text-base leading-tight text-gray-900 dark:text-white line-clamp-2 group-hover:text-primary transition-colors duration-150 mb-3 md:mb-2">
+                  {product.title}
+                </h3>
 
-              {/* Dynamic color count text instead of description */}
-              <p className="text-sm text-gray-600 dark:text-gray-300 line-clamp-1 leading-relaxed mb-2">
-                {colors.length === 0 
-                  ? "No colors available" 
-                  : colors.length === 1 
-                    ? "1 color" 
-                    : `${colors.length} colors`
-                }
-              </p>
+                {/* Dynamic color count text instead of description */}
+                <p className="text-sm md:text-sm text-gray-600 dark:text-gray-300 line-clamp-1 leading-relaxed mb-3 md:mb-3">
+                  {colors.length === 0 
+                    ? "No colors available" 
+                    : colors.length === 1 
+                      ? "1 color" 
+                      : `${colors.length} colors`
+                  }
+                </p>
 
-              {/* Color circles */}
-              {colors.length > 0 && (
-                <div className="flex gap-2 mb-3">
-                  {colors.slice(0, 4).map((color, idx) => {
+                {/* Color circles with better mobile spacing */}
+                {colors.length > 0 && (
+                  <div className="flex gap-2 md:gap-2 mb-4 md:mb-4">
+                    {colors.slice(0, 4).map((color, idx) => {
                     // Debug: log the actual color values
                     console.log('Color from database:', color, typeof color);
                     
@@ -221,34 +222,35 @@ export const ProductCard = ({ product }: ProductCardProps) => {
                     return (
                       <div
                         key={idx}
-                        className="w-5 h-5 rounded-full border border-gray-300 shadow-sm"
+                        className="w-6 h-6 md:w-5 md:h-5 rounded-full border border-gray-300 shadow-sm"
                         style={{ backgroundColor: validColor }}
                         title={`Color: ${cleanColor} (${validColor})`}
                       />
                     );
                   })}
                   {colors.length > 4 && (
-                    <div className="w-5 h-5 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center border border-gray-300 shadow-sm">
+                    <div className="w-6 h-6 md:w-5 md:h-5 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center border border-gray-300 shadow-sm">
                       <span className="text-xs font-medium text-gray-600 dark:text-gray-300">+{colors.length - 4}</span>
                     </div>
                   )}
                 </div>
               )}
+              </div>
 
-              {/* Price and rating row */}
-              <div className="flex items-center justify-between mb-3">
-                <div className="space-y-1">
-                  <div className="text-lg font-bold text-gray-900 dark:text-white">
-                    {product.price} <span className="text-base font-normal text-gray-500">DZD</span>
+              {/* Price and rating row with better mobile layout */}
+              <div className="flex items-center justify-between mt-auto pt-2">
+                <div className="space-y-1.5">
+                  <div className="text-lg md:text-lg font-bold text-gray-900 dark:text-white">
+                    {product.price} <span className="text-sm md:text-base font-normal text-gray-500">DZD</span>
                   </div>
                   <div className="flex items-center gap-1">
                     <div className="flex">
                       {[...Array(4)].map((_, i) => (
-                        <Star key={i} className="w-3.5 h-3.5 text-yellow-400 fill-yellow-400" />
+                        <Star key={i} className="w-4 h-4 md:w-3.5 md:h-3.5 text-yellow-400 fill-yellow-400" />
                       ))}
-                      <Star className="w-3.5 h-3.5 text-yellow-400" style={{ fill: 'url(#half)' }} />
+                      <Star className="w-4 h-4 md:w-3.5 md:h-3.5 text-yellow-400" style={{ fill: 'url(#half)' }} />
                     </div>
-                    <span className="text-xs text-gray-500 ml-1">(4.5)</span>
+                    <span className="text-sm md:text-xs text-gray-500 ml-1">(4.5)</span>
                   </div>
                 </div>
               </div>
