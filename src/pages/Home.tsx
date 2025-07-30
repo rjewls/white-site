@@ -136,30 +136,34 @@ const Home = () => {
                 {/* Main Heading */}
                 <h1 className="font-playfair text-4xl sm:text-5xl lg:text-7xl font-bold mb-6 animate-fade-in leading-tight antialiased">
                   <span 
-                    className="bg-gradient-to-r from-rose-300 via-pink-400 to-purple-300 bg-clip-text text-transparent block drop-shadow-lg" 
+                    className="text-white block drop-shadow-lg" 
                     style={{
                       textShadow: `
-                        1px 1px 0px rgba(255, 255, 255, 0.5),
-                        2px 2px 4px rgba(236, 72, 153, 0.2),
-                        0 0 15px rgba(236, 72, 153, 0.3)
+                        0 0 10px rgba(255, 255, 255, 0.8),
+                        0 0 20px rgba(255, 255, 255, 0.6),
+                        0 0 40px rgba(255, 255, 255, 0.4),
+                        2px 2px 8px rgba(0, 0, 0, 0.3)
                       `,
                       WebkitFontSmoothing: 'antialiased',
                       MozOsxFontSmoothing: 'grayscale',
-                      textRendering: 'optimizeLegibility'
+                      textRendering: 'optimizeLegibility',
+                      filter: 'brightness(1.1)'
                     }}                    >
                       {t('hero.title1')}
                     </span>
                   <span 
-                    className="bg-gradient-to-r from-pink-400 via-rose-400 to-purple-400 bg-clip-text text-transparent block drop-shadow-lg" 
+                    className="text-white block drop-shadow-lg" 
                     style={{
                       textShadow: `
-                        1px 1px 0px rgba(255, 255, 255, 0.5),
-                        2px 2px 4px rgba(168, 85, 247, 0.2),
-                        0 0 15px rgba(168, 85, 247, 0.3)
+                        0 0 10px rgba(255, 255, 255, 0.8),
+                        0 0 20px rgba(255, 255, 255, 0.6),
+                        0 0 40px rgba(255, 255, 255, 0.4),
+                        2px 2px 8px rgba(0, 0, 0, 0.3)
                       `,
                       WebkitFontSmoothing: 'antialiased',
                       MozOsxFontSmoothing: 'grayscale',
-                      textRendering: 'optimizeLegibility'
+                      textRendering: 'optimizeLegibility',
+                      filter: 'brightness(1.1)'
                     }}
                   >
                     {t('hero.title2')}

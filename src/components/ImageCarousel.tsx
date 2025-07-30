@@ -18,6 +18,9 @@ const ImageCarousel = ({ images, title, autoPlay = true, showThumbnails = true }
   const [modalImageIndex, setModalImageIndex] = useState(0);
   const touchStartX = useRef(0);
   const touchCurrentX = useRef(0);
+  
+  // Check if we're in RTL mode
+  const isRTL = document.documentElement.dir === 'rtl';
 
   // Defensive: ensure images is always an array of valid URLs
   const safeImages = Array.isArray(images)
@@ -48,16 +51,27 @@ const ImageCarousel = ({ images, title, autoPlay = true, showThumbnails = true }
   const currentPanX = useRef(0);
   const currentPanY = useRef(0);
 
-  // Continuous auto-play animation
-  // Auto-play only through valid images
+  // Continuous auto-play animation that starts immediately
   useEffect(() => {
-    if (autoPlay && safeImages.length > 1 && !isPaused && !isDragging) {
+    if (autoPlay && safeImages.length > 1 && !isDragging) {
+      // Start animation immediately, cycle every 2.5 seconds for better engagement
       const interval = setInterval(() => {
         setCurrentIndex((prev) => (prev + 1) % safeImages.length);
-      }, 3000);
+      }, 2500);
       return () => clearInterval(interval);
     }
-  }, [autoPlay, safeImages.length, isPaused, isDragging]);
+  }, [autoPlay, safeImages.length, isDragging]);
+
+  // Override isPaused behavior - only pause during active user interaction
+  useEffect(() => {
+    // Reset pause state after user stops interacting
+    if (isPaused && !isDragging) {
+      const timer = setTimeout(() => {
+        setIsPaused(false);
+      }, 1000); // Resume after 1 second of no interaction
+      return () => clearTimeout(timer);
+    }
+  }, [isPaused, isDragging]);
 
   // Sync current pan refs with state when modal opens or image changes
   useEffect(() => {
@@ -82,7 +96,8 @@ const ImageCarousel = ({ images, title, autoPlay = true, showThumbnails = true }
     const diff = touchCurrentX.current - touchStartX.current;
     // Limit drag distance to prevent excessive movement
     const maxDrag = 100;
-    const limitedDiff = Math.max(-maxDrag, Math.min(maxDrag, diff));
+    // In RTL mode, reverse the drag offset direction
+    const limitedDiff = Math.max(-maxDrag, Math.min(maxDrag, isRTL ? -diff : diff));
     setDragOffset(limitedDiff);
   };
 
@@ -92,12 +107,23 @@ const ImageCarousel = ({ images, title, autoPlay = true, showThumbnails = true }
     const threshold = 50; // Minimum swipe distance
     
     if (Math.abs(diff) > threshold) {
-      if (diff > 0) {
-        // Swiped right - go to previous
-        setCurrentIndex((prev) => (prev - 1 + safeImages.length) % safeImages.length);
+      // In RTL mode, reverse the swipe direction logic
+      if (isRTL) {
+        if (diff > 0) {
+          // Swiped right in RTL - go to next
+          setCurrentIndex((prev) => (prev + 1) % safeImages.length);
+        } else {
+          // Swiped left in RTL - go to previous
+          setCurrentIndex((prev) => (prev - 1 + safeImages.length) % safeImages.length);
+        }
       } else {
-        // Swiped left - go to next
-        setCurrentIndex((prev) => (prev + 1) % safeImages.length);
+        if (diff > 0) {
+          // Swiped right in LTR - go to previous
+          setCurrentIndex((prev) => (prev - 1 + safeImages.length) % safeImages.length);
+        } else {
+          // Swiped left in LTR - go to next
+          setCurrentIndex((prev) => (prev + 1) % safeImages.length);
+        }
       }
     }
     
@@ -270,10 +296,19 @@ const ImageCarousel = ({ images, title, autoPlay = true, showThumbnails = true }
     
     // If not zoomed and horizontal swipe is significant, navigate
     if (modalZoom === 1 && Math.abs(deltaX) > threshold && Math.abs(deltaX) > Math.abs(deltaY)) {
-      if (deltaX > 0) {
-        prevModalImage();
+      // In RTL mode, reverse the swipe direction logic
+      if (isRTL) {
+        if (deltaX > 0) {
+          nextModalImage();
+        } else {
+          prevModalImage();
+        }
       } else {
-        nextModalImage();
+        if (deltaX > 0) {
+          prevModalImage();
+        } else {
+          nextModalImage();
+        }
       }
     }
     
@@ -319,12 +354,16 @@ const ImageCarousel = ({ images, title, autoPlay = true, showThumbnails = true }
         style={{ touchAction: 'pan-y' }}
         onMouseEnter={() => setIsPaused(true)}
         onMouseLeave={() => setIsPaused(false)}
+        onTouchStart={() => setIsPaused(true)}
       >
         <div 
-          className={`flex h-full ${isDragging ? 'transition-none' : 'transition-transform duration-500 ease-out'}`}
+          className={`flex h-full ${isDragging ? 'transition-none' : 'transition-transform duration-700 ease-in-out'}`}
           style={{ 
-            transform: `translateX(calc(-${currentIndex * 100}% + ${dragOffset}px))`,
-            willChange: isDragging ? 'transform' : 'auto'
+            transform: isRTL 
+              ? `translateX(calc(${currentIndex * 100}% - ${dragOffset}px))` 
+              : `translateX(calc(-${currentIndex * 100}% + ${dragOffset}px))`,
+            willChange: isDragging ? 'transform' : 'auto',
+            direction: isRTL ? 'rtl' : 'ltr'
           }}
           onTouchStart={handleTouchStart}
           onTouchMove={handleTouchMove}
@@ -345,20 +384,30 @@ const ImageCarousel = ({ images, title, autoPlay = true, showThumbnails = true }
         
         // Navigation arrows removed from main carousel (thumbnails below are used for navigation)
 
-        {/* Dots Indicator */}
+        {/* Dots Indicator with progress animation */}
         {safeImages.length > 1 && (
           <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2">
             {safeImages.map((_, index) => (
               <button
                 key={index}
                 onClick={() => goToSlide(index)}
-                className={`w-2 h-2 rounded-full transition-all duration-200 ${
+                className={`relative w-2 h-2 rounded-full transition-all duration-300 ${
                   index === currentIndex 
                     ? 'bg-primary scale-125' 
                     : 'bg-white/50 hover:bg-white/70'
                 }`}
                 disabled={isAnimating}
-              />
+              >
+                {/* Auto-play progress indicator for current slide */}
+                {index === currentIndex && autoPlay && !isPaused && !isDragging && (
+                  <div 
+                    className="absolute inset-0 rounded-full border-2 border-white/80"
+                    style={{
+                      animation: 'progress 2.5s linear infinite'
+                    }}
+                  />
+                )}
+              </button>
             ))}
           </div>
         )}
@@ -480,7 +529,7 @@ const ImageCarousel = ({ images, title, autoPlay = true, showThumbnails = true }
                   variant="outline"
                   size="icon"
                   className="absolute left-4 top-1/2 -translate-y-1/2 bg-background/80 backdrop-blur-sm hover-scale"
-                  onClick={prevModalImage}
+                  onClick={isRTL ? nextModalImage : prevModalImage}
                 >
                   <ChevronLeft className="h-4 w-4" />
                 </Button>
@@ -489,7 +538,7 @@ const ImageCarousel = ({ images, title, autoPlay = true, showThumbnails = true }
                   size="icon"
                   className="absolute right-4 top-1/2 -translate-y-1/2 bg-background/80 backdrop-blur-sm hover-scale"
                   style={{ right: 16 }}
-                  onClick={nextModalImage}
+                  onClick={isRTL ? prevModalImage : nextModalImage}
                 >
                   <ChevronRight className="h-4 w-4" />
                 </Button>

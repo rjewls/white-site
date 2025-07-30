@@ -89,7 +89,7 @@ export const OrderForm: React.FC<OrderFormProps> = ({ productId, productTitle, p
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
-      <Card className="w-full max-w-md rounded-2xl shadow-lg bg-pink-50 border-2 border-pink-200">
+      <Card className="w-full max-w-md rounded-2xl shadow-lg bg-pink-50 border-2 border-rose-300 ring-1 ring-rose-200">
         <CardContent className="p-6 flex flex-col gap-4">
           <h2 className="text-xl font-playfair font-bold text-pink-700 mb-2 text-center">Order: {productTitle}</h2>
           <form onSubmit={handleSubmit} className="flex flex-col gap-3">
@@ -174,7 +174,7 @@ export const OrderForm: React.FC<OrderFormProps> = ({ productId, productTitle, p
             </div>
             <Button
               type="submit"
-              className="w-full rounded-full bg-gradient-to-r from-pink-400 to-pink-600 text-white font-bold py-2 mt-2 shadow-md hover:scale-105 transition-transform"
+              className="w-full rounded-full bg-gradient-to-r from-rose-500 to-pink-600 text-white font-bold py-2 mt-2 shadow-md hover:from-rose-600 hover:to-pink-700 hover:scale-105 transition-all duration-200"
               disabled={loading}
             >
               {loading ? "Sending..." : "Place Order"}

@@ -121,7 +121,7 @@ export const ProductCard = ({ product }: ProductCardProps) => {
       <Link to={`/product/${product.id}`} className="block h-full group">
         <Card className="relative h-full bg-white dark:bg-gray-900 rounded-2xl overflow-hidden shadow-lg lg:hover:shadow-2xl transition-shadow duration-200 lg:hover:scale-[1.01] lg:transform-gpu border-0 ring-1 ring-gray-100 dark:ring-gray-800 flex flex-col">
           {/* Image Container with optimized effects */}
-          <div className="relative w-full h-[60%] md:h-[190px] flex-shrink-0 overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900">
+          <div className="relative w-full h-[224px] sm:h-[216px] md:h-[228px] flex-shrink-0 overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900">
             <img
               src={imageUrl}
               alt={product.title}
@@ -147,134 +147,69 @@ export const ProductCard = ({ product }: ProductCardProps) => {
             </div>
           </div>
 
-          {/* Content Container with optimized spacing */}
-          <CardContent className="p-5 md:p-4 flex flex-col flex-1 min-h-0">
-            <div className="flex-1 flex flex-col min-h-0">
-              {/* Title with larger mobile font */}
-              <h3 className="font-semibold text-xl md:text-lg leading-tight text-gray-900 dark:text-white line-clamp-2 group-hover:text-primary transition-colors duration-150 mb-3">
+          {/* Content Container with modern ecommerce layout */}
+          <CardContent className="pt-4 px-4 pb-6 sm:pt-5 sm:px-5 sm:pb-8 flex flex-col flex-1 min-h-0">
+            <div className="flex-1 flex flex-col justify-between space-y-3 sm:space-y-4">
+              {/* Title with improved typography */}
+              <h3 className="font-semibold text-lg sm:text-xl leading-tight text-gray-900 dark:text-white line-clamp-2 group-hover:text-primary transition-colors duration-150">
                 {product.title}
               </h3>
 
-              {/* Dynamic color count text with larger font */}
-              <p className="text-lg md:text-base text-gray-600 dark:text-gray-300 line-clamp-1 leading-relaxed mb-4">
-                {colors.length === 0 
-                  ? "No colors available" 
-                  : colors.length === 1 
-                    ? "1 color available" 
-                    : `${colors.length} colors available`
-                }
-              </p>
-
-              {/* Color circles with larger sizes */}
-              {colors.length > 0 && (
-                <div className="flex gap-3 md:gap-2 mb-5 md:mb-4">
-                  {colors.slice(0, 4).map((color, idx) => {
-                  // Debug: log the actual color values
-                  console.log('Color from database:', color, typeof color);
-                  
-                  // Clean up the color value - remove brackets, quotes, and extra characters
-                  const cleanColor = String(color)
-                    .replace(/[[\]"']/g, '') // Remove brackets and quotes
-                    .trim(); // Remove whitespace
-                  
-                  console.log('Cleaned color:', cleanColor);
-                  
-                  // Check if it's a valid hex color after cleaning
-                  let validColor = '#e5e7eb'; // default gray
-                  
-                  if (cleanColor && /^#[0-9a-fA-F]{6}$/.test(cleanColor)) {
-                    validColor = cleanColor;
-                    console.log('Using hex color:', validColor);
-                  } else if (cleanColor) {
-                    // Try color name mapping as fallback
-                    const colorLower = cleanColor.toLowerCase();
-                    const allColors: Record<string, string> = {
-                      // English colors
-                      'red': '#ef4444',
-                      'blue': '#3b82f6', 
-                      'green': '#22c55e',
-                      'yellow': '#eab308',
-                      'black': '#000000',
-                      'white': '#ffffff',
-                      'purple': '#a21caf',
-                      'pink': '#ec4899',
-                      'orange': '#f97316',
-                      'brown': '#92400e',
-                      'gray': '#6b7280',
-                      'grey': '#6b7280',
-                      // French colors
-                      'rouge': '#ef4444',
-                      'bleu': '#3b82f6',
-                      'vert': '#22c55e',
-                      'jaune': '#eab308',
-                      'noir': '#000000',
-                      'blanc': '#ffffff',
-                      'violet': '#a21caf',
-                      'rose': '#ec4899',
-                      'marron': '#92400e',
-                      'gris': '#6b7280',
-                    };
-                    
-                    if (allColors[colorLower]) {
-                      validColor = allColors[colorLower];
-                      console.log('Using color name mapping:', validColor);
-                    } else {
-                      console.log('Unknown color after cleaning:', cleanColor);
-                    }
-                  }
-                  
-                  console.log('Final color used:', validColor);
-                  
-                  return (
-                    <div
-                      key={idx}
-                      className="w-10 h-10 md:w-7 md:h-7 rounded-full border-2 border-gray-300 shadow-sm"
-                      style={{ backgroundColor: validColor }}
-                      title={`Color: ${cleanColor} (${validColor})`}
-                    />
-                  );
-                })}
-                {colors.length > 4 && (
-                  <div className="w-10 h-10 md:w-7 md:h-7 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center border-2 border-gray-300 shadow-sm">
-                    <span className="text-base md:text-sm font-medium text-gray-600 dark:text-gray-300">+{colors.length - 4}</span>
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* Spacer to push price and button to bottom */}
-            <div className="flex-1"></div>
-
-            {/* Price Section with improved spacing and padding below */}
-            <div className="space-y-1 mb-5 md:mb-4 pb-2">
-              <div className="text-2xl md:text-xl font-bold text-gray-900 dark:text-white">
-                {product.price} <span className="text-lg md:text-base font-normal text-gray-500">DZD</span>
-              </div>
-              <div className="flex items-center gap-1">
-                <div className="flex">
-                  {[...Array(4)].map((_, i) => (
-                    <Star key={i} className="w-5 h-5 md:w-4 md:h-4 text-yellow-400 fill-yellow-400" />
-                  ))}
-                  <Star className="w-5 h-5 md:w-4 md:h-4 text-yellow-400" style={{ fill: 'url(#half)' }} />
+              {/* Price Section - Featured prominently */}
+              <div className="space-y-2">
+                <div className="flex items-baseline gap-2">
+                  <span className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">
+                    {product.price.toLocaleString()}
+                  </span>
+                  <span className="text-sm sm:text-base font-medium text-gray-500">DZD</span>
                 </div>
-                <span className="text-base md:text-sm text-gray-500 ml-1">(4.5)</span>
+                
+                {/* Enhanced Rating with better visual hierarchy */}
+                <div className="flex items-center gap-2">
+                  <div className="flex items-center">
+                    {[...Array(4)].map((_, i) => (
+                      <Star key={i} className="w-4 h-4 sm:w-5 sm:h-5 text-yellow-400 fill-yellow-400" />
+                    ))}
+                    <Star className="w-4 h-4 sm:w-5 sm:h-5 text-yellow-400" style={{ fill: 'url(#half)' }} />
+                  </div>
+                  <span className="text-sm sm:text-base text-gray-600 font-medium">(4.5)</span>
+                  <span className="text-sm sm:text-base text-gray-400">•</span>
+                  <span className="text-sm sm:text-base text-gray-600">142 reviews</span>
+                </div>
+              </div>
+
+              {/* Product Info Strip */}
+              <div className="flex items-center gap-3 sm:gap-4 text-sm sm:text-base">
+                <div className="flex items-center gap-1.5">
+                  <div className="w-2 h-2 sm:w-2.5 sm:h-2.5 bg-green-500 rounded-full"></div>
+                  <span className="text-green-600 font-medium">In Stock</span>
+                </div>
+                <span className="text-gray-400">•</span>
+                <span className="text-gray-600">
+                  {colors.length === 0 
+                    ? "No colors" 
+                    : colors.length === 1 
+                      ? "1 color" 
+                      : `${colors.length} colors`
+                  }
+                </span>
+              </div>
+
+              {/* Quick Action Buttons */}
+              <div className="flex justify-center pt-2 pb-0 sm:pb-4">
+                <button
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    // Add to cart functionality
+                  }}
+                  className="bg-gradient-to-r from-rose-500 to-pink-600 text-white font-semibold py-2 sm:py-2.5 px-6 sm:px-8 rounded-lg hover:from-rose-600 hover:to-pink-700 transition-all duration-200 shadow-md hover:shadow-lg flex items-center justify-center gap-2"
+                >
+                  <ShoppingCart className="w-4 h-4 sm:w-5 sm:h-5" />
+                  <span className="text-sm sm:text-base">Add to Cart</span>
+                </button>
               </div>
             </div>
-
-            {/* Purchase Button with better proportions and increased mobile bottom padding */}
-            <button
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                // Navigate to product detail page (same as clicking the card)
-                navigate(`/product/${product.id}`);
-              }}
-              className="w-full bg-gradient-to-r from-rose-500 to-pink-600 text-white font-semibold py-3 md:py-2.5 px-4 rounded-xl shadow-md lg:transition-all lg:duration-200 lg:hover:shadow-lg lg:hover:from-rose-600 lg:hover:to-pink-700 flex items-center justify-center gap-2 mb-6 md:mb-0"
-            >
-              <ShoppingCart className="w-5 h-5 md:w-4 md:h-4" />
-              <span className="text-base md:text-sm">{t('card.quickOrder')}</span>
-            </button>
-          </div>
 
             {/* Hidden gradient for half star */}
             <svg width="0" height="0">

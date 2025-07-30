@@ -47,6 +47,18 @@ export function OrderFormFields({
   availableSizes,
 }: OrderFormFieldsProps) {
   const watchDeliveryOption = form.watch("deliveryOption");
+  
+  // Watch all form fields for validation
+  const watchedValues = form.watch();
+  
+  // Check if all required fields are filled
+  const isFormValid = useMemo(() => {
+    const requiredFields = ['name', 'phone', 'wilaya', 'commune', 'deliveryOption', 'address'];
+    return requiredFields.every(field => {
+      const value = watchedValues[field as keyof OrderFormValues];
+      return value && String(value).trim() !== '';
+    });
+  }, [watchedValues]);
 
   // Calculate delivery fee based on selected wilaya and delivery type
   const deliveryFee = useMemo(() => {
@@ -436,14 +448,24 @@ export function OrderFormFields({
 
         <Button 
           type="submit" 
-          className="w-full h-11 sm:h-10 text-sm font-medium" 
-          disabled={isSubmitting}
+          className="w-full h-11 sm:h-10 text-sm font-medium bg-gradient-to-r from-rose-500 to-pink-600 hover:from-rose-600 hover:to-pink-700 text-white border-0 shadow-md hover:shadow-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed" 
+          disabled={isSubmitting || !isFormValid}
+          onClick={(e) => {
+            if (!isFormValid) {
+              e.preventDefault();
+              // Show validation errors by triggering form validation
+              form.trigger();
+              return;
+            }
+          }}
         >
           {isSubmitting ? (
             <span className="flex items-center justify-center">
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               {t('placing_order')}
             </span>
+          ) : !isFormValid ? (
+            'Complete all fields'
           ) : (
             t('place_order')
           )}

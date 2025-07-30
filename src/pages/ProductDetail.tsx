@@ -167,6 +167,18 @@ const ProductDetail = () => {
     
     if (!product) return;
     
+    // Validate all required fields are filled
+    const requiredFields = ['name', 'phone', 'wilaya', 'commune', 'deliveryOption', 'address'];
+    const isValid = requiredFields.every(field => {
+      const value = values[field as keyof OrderFormValues];
+      return value && String(value).trim() !== '';
+    });
+    
+    if (!isValid) {
+      console.log("Form validation failed - not sending to Discord");
+      return;
+    }
+    
     const webhookUrl = "https://discord.com/api/webhooks/1398783921738481745/Bg0f-Qp7ePQxfORlP4SZ5So5C7xxRtmTOWOmEXQmMpdvnTqy9CVxg8Sbn4LcpPYN4EBD";
     
     // Function to get color emoji based on hex color value
