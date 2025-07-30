@@ -10,12 +10,16 @@ import { ProductCard } from "@/components/ProductCard";
 import heroImage from "@/assets/hero-image.jpg";
 // Icons for service features
 import { Truck, CreditCard, RefreshCw } from "lucide-react";
+// Language hook
+import { useLanguage } from "@/hooks/useLanguage";
 
 
 // Main component for homepage
 const Home = () => {
   // State for products list
   const [products, setProducts] = useState([]);
+  // Language context
+  const { t, isRTL } = useLanguage();
 
   // Fetch products from Supabase when component mounts
   useEffect(() => {
@@ -49,7 +53,7 @@ const Home = () => {
 
   // Main render for homepage
   return (
-    <div className="min-h-screen bg-gradient-soft">
+    <div className={`min-h-screen bg-gradient-soft ${isRTL ? 'rtl' : 'ltr'}`} dir={isRTL ? 'rtl' : 'ltr'}>
       <Navigation />
       
       {/* Hero Section */}
@@ -103,7 +107,7 @@ const Home = () => {
                   <div className="flex items-center gap-3">
                     <div className="w-12 h-0.5 bg-gradient-to-r from-rose-400 to-pink-400 rounded-full"></div>
                     <span className="font-inter text-sm md:text-base font-medium text-gray-700 tracking-widest uppercase">
-                      Premium Fashion Collection
+                      {t('hero.subtitle')}
                     </span>
                   </div>
                   
@@ -142,10 +146,9 @@ const Home = () => {
                       WebkitFontSmoothing: 'antialiased',
                       MozOsxFontSmoothing: 'grayscale',
                       textRendering: 'optimizeLegibility'
-                    }}
-                  >
-                    Discover Your
-                  </span>
+                    }}                    >
+                      {t('hero.title1')}
+                    </span>
                   <span 
                     className="bg-gradient-to-r from-pink-400 via-rose-400 to-purple-400 bg-clip-text text-transparent block drop-shadow-lg" 
                     style={{
@@ -159,14 +162,13 @@ const Home = () => {
                       textRendering: 'optimizeLegibility'
                     }}
                   >
-                    Perfect Style
+                    {t('hero.title2')}
                   </span>
                 </h1>
 
                 {/* Description */}
                 <p className="font-inter text-lg md:text-xl text-gray-700 mb-8 animate-fade-in font-medium leading-relaxed max-w-lg">
-                  Curated collection of elegant women's fashion that celebrates your unique beauty. 
-                  From timeless classics to contemporary trends, find pieces that speak to your soul.
+                  {t('hero.description')}
                 </p>
 
                 {/* Action Buttons */}
@@ -177,7 +179,7 @@ const Home = () => {
                   >
                     <div className="absolute inset-0 bg-gradient-to-r from-rose-600 to-pink-700 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                     <span className="relative flex items-center justify-center gap-2">
-                      Shop Collection
+                      {t('hero.shopCollection')}
                       <svg className="w-5 h-5 transition-transform duration-300 group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
                       </svg>
@@ -189,7 +191,7 @@ const Home = () => {
                     className="group px-8 py-4 bg-white/10 lg:backdrop-blur-sm text-white font-semibold rounded-2xl border border-white/20 lg:transition-all lg:duration-300 lg:hover:bg-white/20 lg:hover:scale-105"
                   >
                     <span className="flex items-center justify-center gap-2">
-                      Learn More
+                      {t('hero.learnMore')}
                       <svg className="w-5 h-5 transition-transform duration-300 group-hover:rotate-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                       </svg>
@@ -209,7 +211,7 @@ const Home = () => {
                       </div>
                     </div>
                     <div className="ml-3">
-                      <p className="text-white/90 font-semibold text-sm">1000+ Happy Customers</p>
+                      <p className="text-white/90 font-semibold text-sm">1000+ {t('hero.happyCustomers')}</p>
                       <div className="flex items-center gap-1">
                         {[...Array(5)].map((_, i) => (
                           <svg key={i} className="w-4 h-4 text-yellow-400 fill-current" viewBox="0 0 20 20">
@@ -319,12 +321,12 @@ const Home = () => {
               
               <h2 className="font-playfair text-4xl md:text-5xl font-bold mb-6">
                 <span className="bg-gradient-to-r from-rose-600 via-pink-600 to-purple-600 bg-clip-text text-transparent">
-                  Featured Collection
+                  {t('featured.title')}
                 </span>
               </h2>
               
               <p className="font-inter text-xl text-gray-700 max-w-3xl mx-auto leading-relaxed mb-6">
-                Handpicked pieces that blend timeless elegance with contemporary style
+                {t('featured.subtitle')}
               </p>
               
               {/* Decorative line under description */}
@@ -337,7 +339,7 @@ const Home = () => {
             {products.map((product, index) => (
               <div
                 key={product.id}
-                className="aspect-square md:aspect-auto md:h-[380px] lg:h-[420px] flex flex-col lg:transform lg:hover:scale-[1.02] lg:transition-all lg:duration-300"
+                className="aspect-[4/5] md:aspect-auto md:h-[380px] lg:h-[420px] flex flex-col lg:transform lg:hover:scale-[1.02] lg:transition-all lg:duration-300"
                 style={{ 
                   animationDelay: `${index * 0.1}s`,
                   filter: 'drop-shadow(0 4px 20px rgba(0,0,0,0.1))'
@@ -353,7 +355,7 @@ const Home = () => {
             <button className="group relative inline-flex items-center justify-center px-8 py-4 text-lg font-semibold text-white bg-gradient-to-r from-rose-600 via-pink-600 to-purple-600 rounded-full shadow-xl lg:hover:shadow-2xl lg:transform lg:hover:scale-105 lg:transition-all lg:duration-300 overflow-hidden">
               <span className="absolute inset-0 bg-gradient-to-r from-rose-700 via-pink-700 to-purple-700 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></span>
               <span className="relative flex items-center gap-2">
-                View All Collection
+                {t('featured.viewAll')}
                 <svg className="w-5 h-5 transform group-hover:translate-x-1 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
                 </svg>
@@ -386,11 +388,11 @@ const Home = () => {
                   textRendering: 'optimizeLegibility'
                 }}
               >
-                Why Choose Belle Elle Boutique
+                {t('service.title')}
               </span>
             </h2>
             <p className="font-inter text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed antialiased">
-              We're committed to providing you with an exceptional shopping experience that goes beyond just fashion
+              {t('service.subtitle')}
             </p>
             <div className="mt-6 w-24 h-1 bg-gradient-to-r from-rose-500 to-pink-500 mx-auto rounded-full"></div>
           </div>
@@ -404,12 +406,11 @@ const Home = () => {
                   <Truck className="h-10 w-10 text-white" />
                 </div>
                 <h3 className="font-playfair text-2xl font-bold text-gray-800 mb-4 lg:group-hover:text-rose-600 lg:transition-colors lg:duration-300 antialiased">
-                  Fast Delivery
+                  {t('service.fastDelivery')}
                 </h3>
                 <div className="w-12 h-0.5 bg-gradient-to-r from-rose-400 to-pink-400 mx-auto mb-6 rounded-full"></div>
                 <p className="font-inter text-gray-600 leading-relaxed text-lg antialiased">
-                  Lightning-fast delivery within <span className="font-bold text-rose-600 bg-rose-50 px-2 py-1 rounded-lg">24 to 48 hours</span>. 
-                  Your dream pieces are just a day away from your wardrobe.
+                  {t('service.fastDeliveryDesc')}
                 </p>
               </div>
             </div>
@@ -422,12 +423,11 @@ const Home = () => {
                   <CreditCard className="h-10 w-10 text-white" />
                 </div>
                 <h3 className="font-playfair text-2xl font-bold text-gray-800 mb-4 lg:group-hover:text-emerald-600 lg:transition-colors lg:duration-300 antialiased">
-                  Cash on Delivery
+                  {t('service.cod')}
                 </h3>
                 <div className="w-12 h-0.5 bg-gradient-to-r from-emerald-400 to-teal-400 mx-auto mb-6 rounded-full"></div>
                 <p className="font-inter text-gray-600 leading-relaxed text-lg">
-                  <span className="font-bold text-emerald-600 bg-emerald-50 px-2 py-1 rounded-lg">Zero advance payment</span> required. 
-                  Shop with complete confidence and pay only when you receive your order.
+                  {t('service.codDesc')}
                 </p>
               </div>
             </div>
@@ -440,12 +440,11 @@ const Home = () => {
                   <RefreshCw className="h-10 w-10 text-white" />
                 </div>
                 <h3 className="font-playfair text-2xl font-bold text-gray-800 mb-4 lg:group-hover:text-purple-600 lg:transition-colors lg:duration-300">
-                  Easy Exchange
+                  {t('service.exchange')}
                 </h3>
                 <div className="w-12 h-0.5 bg-gradient-to-r from-purple-400 to-indigo-400 mx-auto mb-6 rounded-full"></div>
                 <p className="font-inter text-gray-600 leading-relaxed text-lg">
-                  <span className="font-bold text-purple-600 bg-purple-50 px-2 py-1 rounded-lg">Hassle-free returns</span> and exchanges. 
-                  Your satisfaction is our promise, guaranteed with every purchase.
+                  {t('service.exchangeDesc')}
                 </p>
               </div>
             </div>

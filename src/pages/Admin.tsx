@@ -8,13 +8,38 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
-import { Plus, Edit, Trash2, Save, X, LogOut, User } from "lucide-react";
+import { useLanguage } from "@/hooks/useLanguage";
+import { Plus, Edit, Trash2, Save, X, LogOut, User, ImageIcon } from "lucide-react";
+import { compressImages, formatFileSize, supportsWebP } from "@/lib/imageCompression";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 
 // Products will be fetched from Supabase
+
+interface FormData {
+  title: string;
+  price: string;
+  images: (File | string)[];
+  description: string;
+  colors: string | string[];
+  sizes: string;
+}
+
+interface ProductFormProps {
+  formData: FormData;
+  setFormData: React.Dispatch<React.SetStateAction<FormData>>;
+  onSave: () => void;
+  onCancel: () => void;
+  handleImageFiles: (files: FileList | null) => Promise<void>;
+  isCompressing: boolean;
+  compressionProgress: number;
+  compressionStatus: string;
+  t: (key: string) => string;
+}
 
 const Admin = () => {
   const { toast } = useToast();
   const { user, signOut } = useAuth();
+  const { t, isRTL } = useLanguage();
   const [products, setProducts] = useState([]);
   
   // Helper function to clean array fields
@@ -59,26 +84,125 @@ const Admin = () => {
   }, [refetchProducts]);
   const [editingProduct, setEditingProduct] = useState(null);
   const [showAddForm, setShowAddForm] = useState(false);
-  const [formData, setFormData] = useState({
+  const [isCompressing, setIsCompressing] = useState(false);
+  const [compressionProgress, setCompressionProgress] = useState(0);
+  const [compressionStatus, setCompressionStatus] = useState("");
+  const [formData, setFormData] = useState<FormData>({
     title: "",
     price: "",
-    images: [""],
+    images: [],
     description: "",
     colors: "",
-    sizes: "",
-    stock: ""
+    sizes: ""
   });
 
   const resetForm = () => {
     setFormData({
       title: "",
       price: "",
-      images: [""],
+      images: [],
       description: "",
       colors: "",
-      sizes: "",
-      stock: ""
+      sizes: ""
     });
+    setIsCompressing(false);
+    setCompressionProgress(0);
+    setCompressionStatus("");
+  };
+
+  // Handle image file selection and compression
+  const handleImageFiles = async (files: FileList | null) => {
+    if (!files || files.length === 0) return;
+
+    const fileArray = Array.from(files);
+    
+    // Validate files
+    const validFiles = fileArray.filter(file => {
+      if (!file.type.startsWith("image/")) {
+        toast({ 
+          title: "Invalid file type", 
+          description: `${file.name} is not an image file.`, 
+          variant: "destructive" 
+        });
+        return false;
+      }
+      if (file.size > 10 * 1024 * 1024) { // 10MB limit for original files
+        toast({ 
+          title: "File too large", 
+          description: `${file.name} is larger than 10MB.`, 
+          variant: "destructive" 
+        });
+        return false;
+      }
+      return true;
+    });
+
+    if (validFiles.length === 0) return;
+
+    // Check WebP support
+    if (!supportsWebP()) {
+      toast({
+        title: "Browser not supported",
+        description: "Your browser doesn't support WebP format. Please update your browser.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setIsCompressing(true);
+    setCompressionProgress(0);
+    setCompressionStatus("Starting compression...");
+
+    try {
+      // Compress images to WebP format with target size 100-200KB
+      const compressedFiles = await compressImages(
+        validFiles,
+        {
+          maxSizeKB: 200,
+          minSizeKB: 100,
+          maxWidth: 1200,
+          maxHeight: 1200,
+          quality: 0.8,
+          format: 'webp'
+        },
+        (progress, currentFile) => {
+          setCompressionProgress(progress);
+          setCompressionStatus(`Compressing ${currentFile}...`);
+        }
+      );
+
+      // Add compressed files to form data
+      setFormData(prev => ({
+        ...prev,
+        images: [...prev.images, ...compressedFiles]
+      }));
+
+      // Show compression results
+      const totalOriginalSize = validFiles.reduce((sum, file) => sum + file.size, 0);
+      const totalCompressedSize = compressedFiles.reduce((sum, file) => sum + file.size, 0);
+      const compressionRatio = ((1 - totalCompressedSize / totalOriginalSize) * 100).toFixed(1);
+
+      toast({
+        title: "Images compressed successfully",
+        description: `${compressedFiles.length} images compressed. Size reduced by ${compressionRatio}% (${formatFileSize(totalOriginalSize)} → ${formatFileSize(totalCompressedSize)})`,
+      });
+
+      setCompressionStatus("Compression complete!");
+      
+    } catch (error) {
+      console.error("Image compression failed:", error);
+      toast({
+        title: "Compression failed",
+        description: "Failed to compress images. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsCompressing(false);
+      setTimeout(() => {
+        setCompressionProgress(0);
+        setCompressionStatus("");
+      }, 3000);
+    }
   };
 
   const handleEdit = (product) => {
@@ -109,8 +233,7 @@ const Admin = () => {
       images: imagesArr,
       description: product.description,
       colors: cleanArrayField(product.colors),
-      sizes: cleanArrayField(product.sizes),
-      stock: product.stock?.toString()
+      sizes: cleanArrayField(product.sizes)
     });
     setShowAddForm(false);
   };
@@ -143,15 +266,7 @@ const Admin = () => {
       };
       
       if (isFile(img)) {
-        // Validate file type and size
-        if (!img.type.startsWith("image/")) {
-          toast({ title: "Invalid file type", description: "Only image files are allowed.", variant: "destructive" });
-          continue;
-        }
-        if (img.size > 5 * 1024 * 1024) { // 5MB limit
-          toast({ title: "File too large", description: "Max file size is 5MB.", variant: "destructive" });
-          continue;
-        }
+        // File is already compressed, so upload directly
         const filePath = `${Date.now()}-${img.name}`;
         const { data, error } = await supabase.storage.from('product-images').upload(filePath, img);
         if (error) {
@@ -181,8 +296,7 @@ const Admin = () => {
           : [],
       sizes: typeof formData.sizes === 'string'
         ? formData.sizes.split(',').map(s => s.trim()).filter(s => s)
-        : [],
-      stock: parseInt(formData.stock) || 0
+        : []
     };
 
     if (editingProduct) {
@@ -244,30 +358,45 @@ const Admin = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-soft">
+    <div className={`min-h-screen bg-gradient-soft ${isRTL ? 'rtl' : 'ltr'}`} dir={isRTL ? 'rtl' : 'ltr'}>
       <Navigation />
       
       <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-3 sm:py-8">
         {/* Header - Mobile Optimized */}
         <div className="flex flex-col space-y-3 mb-4 sm:mb-8 sm:flex-row sm:justify-between sm:items-center sm:space-y-0">
-          <div className="flex flex-col space-y-1">
+          <div className="flex flex-col space-y-3">
             <h1 className="font-playfair text-xl sm:text-3xl font-bold text-foreground">
-              Admin Dashboard
+              {t('admin.dashboard')}
             </h1>
-            <div className="flex items-center gap-2 text-sm text-gray-600">
-              <User className="w-4 h-4" />
-              <span>Welcome, {user?.email}</span>
+            <div className="relative">
+              <div className="bg-gradient-to-r from-rose-50 to-pink-50 border border-rose-200 rounded-lg p-3 sm:p-4 shadow-sm backdrop-blur-sm">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-gradient-to-r from-rose-400 to-pink-500 flex items-center justify-center shadow-lg">
+                    <User className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="text-sm sm:text-base font-medium text-gray-700">
+                      {t('admin.welcome')}
+                    </span>
+                    <span className="text-lg sm:text-xl font-semibold bg-gradient-to-r from-rose-600 to-pink-600 bg-clip-text text-transparent">
+                      Anis
+                    </span>
+                  </div>
+                </div>
+                <div className="absolute top-0 right-0 w-16 h-16 bg-gradient-to-br from-rose-200/30 to-pink-200/30 rounded-full blur-xl"></div>
+              </div>
             </div>
           </div>
           
           <div className="flex gap-2 w-full sm:w-auto">
+            <LanguageSwitcher />
             <Button
               onClick={() => setShowAddForm(true)}
               variant="elegant"
               className="flex items-center justify-center gap-2 flex-1 sm:flex-none py-3 sm:py-2"
             >
               <Plus className="h-4 w-4 sm:h-5 sm:w-5" />
-              <span className="font-medium">Add New Product</span>
+              <span className="font-medium">{t('admin.addProduct')}</span>
             </Button>
             
             <Button
@@ -276,7 +405,7 @@ const Admin = () => {
               className="flex items-center justify-center gap-2 px-4 py-3 sm:py-2 border-red-200 text-red-600 hover:bg-red-50 hover:border-red-300"
             >
               <LogOut className="h-4 w-4" />
-              <span className="hidden sm:inline">Logout</span>
+              <span className="hidden sm:inline">{t('admin.logout')}</span>
             </Button>
           </div>
         </div>
@@ -286,7 +415,7 @@ const Admin = () => {
           <Card className="mb-4 sm:mb-8 bg-gradient-card border-0 shadow-lg">
             <CardHeader className="px-3 sm:px-6 py-3 sm:py-4 border-b">
               <div className="flex items-center justify-between">
-                <CardTitle className="font-playfair text-lg sm:text-xl">Add New Product</CardTitle>
+                <CardTitle className="font-playfair text-lg sm:text-xl">{t('admin.addProduct')}</CardTitle>
                 <Button
                   onClick={handleCancel}
                   variant="ghost"
@@ -303,6 +432,11 @@ const Admin = () => {
                 setFormData={setFormData}
                 onSave={handleSave}
                 onCancel={handleCancel}
+                handleImageFiles={handleImageFiles}
+                isCompressing={isCompressing}
+                compressionProgress={compressionProgress}
+                compressionStatus={compressionStatus}
+                t={t}
               />
             </CardContent>
           </Card>
@@ -313,7 +447,7 @@ const Admin = () => {
           {products.length === 0 ? (
             <Card className="bg-gradient-card">
               <CardContent className="p-8 text-center">
-                <p className="text-muted-foreground">No products found. Add your first product to get started!</p>
+                <p className="text-muted-foreground">{t('admin.noProducts')}</p>
               </CardContent>
             </Card>
           ) : (
@@ -337,6 +471,11 @@ const Admin = () => {
                         setFormData={setFormData}
                         onSave={handleSave}
                         onCancel={handleCancel}
+                        handleImageFiles={handleImageFiles}
+                        isCompressing={isCompressing}
+                        compressionProgress={compressionProgress}
+                        compressionStatus={compressionStatus}
+                        t={t}
                       />
                     </div>
                   ) : (
@@ -372,15 +511,11 @@ const Admin = () => {
                             </div>
                           </div>
                           
-                          {/* Price and Stock Row */}
-                          <div className="flex items-center justify-between bg-muted/30 rounded-lg p-3">
+                          {/* Price Row */}
+                          <div className="flex items-center justify-start bg-muted/30 rounded-lg p-3">
                             <div>
                               <span className="text-xs text-muted-foreground">Price</span>
                               <div className="font-bold text-primary text-xl">{product.price} DZD</div>
-                            </div>
-                            <div className="text-right">
-                              <span className="text-xs text-muted-foreground">Stock</span>
-                              <div className="font-semibold text-lg">{product.stock}</div>
                             </div>
                           </div>
                           
@@ -512,7 +647,6 @@ const Admin = () => {
                           </p>
                           <div className="flex items-center gap-4 text-sm text-muted-foreground">
                             <span className="font-medium text-primary text-base">Price: {product.price} DZD</span>
-                            <span>Stock: {product.stock}</span>
                             <span className="flex items-center gap-1">Colors:
                               {(Array.isArray(product.colors)
                                 ? product.colors
@@ -565,7 +699,20 @@ const Admin = () => {
   );
 };
 
-const ProductForm = ({ formData, setFormData, onSave, onCancel }) => {
+const ProductForm: React.FC<ProductFormProps> = ({ 
+  formData, 
+  setFormData, 
+  onSave, 
+  onCancel,
+  handleImageFiles,
+  isCompressing,
+  compressionProgress,
+  compressionStatus,
+  t
+}) => {
+  // Import compression utilities for use in this component
+  // (formatFileSize is already imported at the top level)
+  
   // Local state for color picker value
   const [colorPickerValue, setColorPickerValue] = useState("#ffffff");
 
@@ -595,18 +742,18 @@ const ProductForm = ({ formData, setFormData, onSave, onCancel }) => {
       {/* Title and Price Row */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
-          <Label htmlFor="title" className="text-sm font-medium">Product Title *</Label>
+          <Label htmlFor="title" className="text-sm font-medium">{t('form.productTitle')} {t('form.required')}</Label>
           <Input
             id="title"
             value={formData.title}
             onChange={(e) => setFormData({...formData, title: e.target.value})}
-            placeholder="Enter product title"
+            placeholder={t('form.productTitle')}
             className="mt-1"
           />
         </div>
         
         <div>
-          <Label htmlFor="price" className="text-sm font-medium">Price (DZD) *</Label>
+          <Label htmlFor="price" className="text-sm font-medium">{t('form.price')} {t('form.required')}</Label>
           <Input
             id="price"
             type="number"
@@ -619,36 +766,39 @@ const ProductForm = ({ formData, setFormData, onSave, onCancel }) => {
         </div>
       </div>
 
-      {/* Stock */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div>
-          <Label htmlFor="stock" className="text-sm font-medium">Stock Quantity</Label>
-          <Input
-            id="stock"
-            type="number"
-            value={formData.stock}
-            onChange={(e) => setFormData({...formData, stock: e.target.value})}
-            placeholder="0"
-            className="mt-1"
-          />
-        </div>
-      </div>
-
       {/* Images Section */}
       <div>
-        <Label className="text-sm font-medium">Product Images</Label>
+        <Label className="text-sm font-medium">{t('form.productImages')}</Label>
         <div className="mt-2 space-y-3">
-          <input
-            type="file"
-            multiple
-            accept="image/*"
-            onChange={(e) => {
-              const files = Array.from(e.target.files || []);
-              if (files.length === 0) return;
-              setFormData({ ...formData, images: [...formData.images, ...files] });
-            }}
-            className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-primary file:text-white hover:file:bg-primary/90"
-          />
+          <div className="space-y-2">
+            <input
+              type="file"
+              multiple
+              accept="image/*"
+              onChange={(e) => handleImageFiles(e.target.files)}
+              disabled={isCompressing}
+              className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-primary file:text-white hover:file:bg-primary/90 disabled:opacity-50"
+            />
+            
+            {/* Compression Progress */}
+            {isCompressing && (
+              <div className="space-y-2">
+                <div className="flex items-center gap-2 text-sm text-gray-600">
+                  <ImageIcon className="w-4 h-4 animate-pulse" />
+                  <span>{compressionStatus}</span>
+                </div>
+                <div className="w-full bg-gray-200 rounded-full h-2">
+                  <div 
+                    className="bg-primary h-2 rounded-full transition-all duration-300" 
+                    style={{ width: `${compressionProgress}%` }}
+                  ></div>
+                </div>
+                <div className="text-xs text-gray-500">
+                  Converting to WebP format and optimizing for web (target: 100-200 KB per image)
+                </div>
+              </div>
+            )}
+          </div>
           
           {/* Image Grid */}
           {formData.images && formData.images.length > 0 && (
@@ -670,6 +820,12 @@ const ProductForm = ({ formData, setFormData, onSave, onCancel }) => {
                       className="w-full aspect-square object-cover rounded-lg border" 
                       onError={e => {e.currentTarget.src = 'https://images.unsplash.com/photo-1551488831-00ddcb6c6bd3?w=200&h=200&fit=crop';}} 
                     />
+                    {/* File size indicator for compressed files */}
+                    {img && typeof img === "object" && "size" in img && (
+                      <div className="absolute bottom-1 left-1 bg-black/70 text-white text-xs px-1 py-0.5 rounded">
+                        {formatFileSize(img.size)}
+                      </div>
+                    )}
                     <button
                       type="button"
                       className="absolute top-1 right-1 bg-white/90 rounded-full p-1 shadow-md group-hover:bg-red-500 group-hover:text-white transition-colors sm:opacity-75 sm:hover:opacity-100 opacity-100"
@@ -697,12 +853,12 @@ const ProductForm = ({ formData, setFormData, onSave, onCancel }) => {
 
       {/* Description */}
       <div>
-        <Label htmlFor="description" className="text-sm font-medium">Description *</Label>
+        <Label htmlFor="description" className="text-sm font-medium">{t('form.description')} {t('form.required')}</Label>
         <Textarea
           id="description"
           value={formData.description}
           onChange={(e) => setFormData({...formData, description: e.target.value})}
-          placeholder="Enter product description..."
+          placeholder={t('form.description')}
           className="mt-1 min-h-[100px]"
         />
       </div>
@@ -711,12 +867,12 @@ const ProductForm = ({ formData, setFormData, onSave, onCancel }) => {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
         {/* Colors Section */}
         <div>
-          <Label className="text-sm font-medium">Colors</Label>
+          <Label className="text-sm font-medium">{t('form.colors')}</Label>
           <div className="mt-2 space-y-3">
             {/* Color Display */}
             <div className="flex gap-2 flex-wrap min-h-[32px] p-2 border rounded-lg bg-muted/30">
               {(!formData.colors || formData.colors.length === 0) ? (
-                <span className="text-sm text-muted-foreground">No colors selected</span>
+                <span className="text-sm text-muted-foreground">{t('form.noColors')}</span>
               ) : (
                 (Array.isArray(formData.colors) ? formData.colors : typeof formData.colors === 'string' && formData.colors ? formData.colors.split(',').map(c => c.trim()).filter(Boolean) : []).map((color, idx) => (
                   <span key={idx} className="relative inline-flex items-center group">
@@ -761,7 +917,7 @@ const ProductForm = ({ formData, setFormData, onSave, onCancel }) => {
               }}
               className="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
             >
-              <option value="">Add a preset color...</option>
+              <option value="">{t('form.addColor')}</option>
               {['Red', 'Blue', 'Green', 'Yellow', 'Black', 'White', 'Purple', 'Pink', 'Orange', 'Brown', 'Gray', 'Cyan', 'Teal', 'Lime', 'Indigo'].map(color => (
                 <option key={color} value={color}>
                   {color}
@@ -791,7 +947,7 @@ const ProductForm = ({ formData, setFormData, onSave, onCancel }) => {
                     }
                   }}
                 >
-                  Add Custom
+                  {t('form.addCustom')}
                 </Button>
               </div>
               <span className="text-xs text-muted-foreground">
@@ -803,12 +959,12 @@ const ProductForm = ({ formData, setFormData, onSave, onCancel }) => {
 
         {/* Sizes Section */}
         <div>
-          <Label className="text-sm font-medium">Sizes</Label>
+          <Label className="text-sm font-medium">{t('form.sizes')}</Label>
           <div className="mt-2 space-y-3">
             {/* Size Display */}
             <div className="flex gap-2 flex-wrap min-h-[32px] p-2 border rounded-lg bg-muted/30">
               {(!formData.sizes || formData.sizes.length === 0) ? (
-                <span className="text-sm text-muted-foreground">No sizes selected</span>
+                <span className="text-sm text-muted-foreground">{t('form.noSizes')}</span>
               ) : (
                 (typeof formData.sizes === 'string' ? formData.sizes.split(',').map(s => s.trim()).filter(Boolean) : []).map((size, idx) => (
                   <span key={idx} className="relative inline-flex items-center group bg-background border rounded-lg px-2 py-1 text-sm">
@@ -833,7 +989,7 @@ const ProductForm = ({ formData, setFormData, onSave, onCancel }) => {
             {/* Add Size Input */}
             <div className="flex gap-2">
               <Input
-                placeholder="Add size (e.g., XS, S, M, L, XL)"
+                placeholder={t('form.addSize')}
                 className="flex-1"
                 onKeyDown={(e) => {
                   if (e.key === 'Enter') {
@@ -867,7 +1023,7 @@ const ProductForm = ({ formData, setFormData, onSave, onCancel }) => {
                   }
                 }}
               >
-                Add
+                {t('common.add')}
               </Button>
             </div>
             
@@ -886,7 +1042,7 @@ const ProductForm = ({ formData, setFormData, onSave, onCancel }) => {
           className="flex items-center justify-center gap-2 sm:flex-1"
         >
           <Save className="h-4 w-4" />
-          Save Product
+          {t('form.saveProduct')}
         </Button>
         <Button 
           onClick={onCancel} 
@@ -894,7 +1050,7 @@ const ProductForm = ({ formData, setFormData, onSave, onCancel }) => {
           className="flex items-center justify-center gap-2 sm:flex-1"
         >
           <X className="h-4 w-4" />
-          Cancel
+          {t('form.cancel')}
         </Button>
       </div>
     </div>

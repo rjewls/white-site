@@ -69,7 +69,7 @@ export const LoginForm = () => {
                 <Input
                   id="email"
                   type="email"
-                  placeholder="admin@belleelle.com"
+                  placeholder="Enter your email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="pl-10 bg-white/80 border-gray-200 focus:border-rose-400 focus:ring-rose-400"

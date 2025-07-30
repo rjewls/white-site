@@ -3,10 +3,14 @@ import { Button } from "@/components/ui/button";
 // Link component for navigation
 import { Link } from "react-router-dom";
 // Icon components
-import { ShoppingBag, Settings } from "lucide-react";
+import { ShoppingBag } from "lucide-react";
+// Language hook
+import { useLanguage } from "@/hooks/useLanguage";
 
 // Main Navigation component for the top bar
 export const Navigation = () => {
+  const { t } = useLanguage();
+  
   // Main render for navigation bar
   return (
     <nav className="sticky top-0 z-50 bg-gradient-to-r from-rose-100/95 via-pink-50/95 to-purple-100/95 backdrop-blur-lg border-b border-rose-200/30 shadow-xl">
@@ -28,16 +32,6 @@ export const Navigation = () => {
             >
               Belle Elle Boutique
             </span>
-          </Link>
-          <Link to="/admin">
-            <Button 
-              variant="admin" 
-              size="sm" 
-              className="flex items-center gap-2 bg-gradient-to-r from-rose-500 to-pink-500 hover:from-rose-400 hover:to-pink-400 text-white border-0 shadow-lg hover:shadow-xl transition-all duration-300 backdrop-blur-sm"
-            >
-              <Settings className="h-4 w-4" />
-              Admin
-            </Button>
           </Link>
         </div>
       </div>

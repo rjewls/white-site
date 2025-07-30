@@ -39,6 +39,14 @@ const ImageCarousel = ({ images, title, autoPlay = true, showThumbnails = true }
   const modalTouchCurrentY = useRef(0);
   const modalLastTouchDistance = useRef(0);
   const modalLastTapTime = useRef(0);
+  // Keep track of accumulated pan position for smooth dragging
+  const modalPanStartX = useRef(0);
+  const modalPanStartY = useRef(0);
+  // Direct reference to the image element for instant transform updates
+  const modalImageRef = useRef<HTMLImageElement>(null);
+  // Current pan position during drag (for immediate visual feedback)
+  const currentPanX = useRef(0);
+  const currentPanY = useRef(0);
 
   // Continuous auto-play animation
   // Auto-play only through valid images
@@ -50,6 +58,14 @@ const ImageCarousel = ({ images, title, autoPlay = true, showThumbnails = true }
       return () => clearInterval(interval);
     }
   }, [autoPlay, safeImages.length, isPaused, isDragging]);
+
+  // Sync current pan refs with state when modal opens or image changes
+  useEffect(() => {
+    if (isModalOpen) {
+      currentPanX.current = modalPanX;
+      currentPanY.current = modalPanY;
+    }
+  }, [isModalOpen, modalImageIndex, modalPanX, modalPanY]);
 
   // Touch event handlers for swipe functionality
   const handleTouchStart = (e: React.TouchEvent) => {
@@ -129,6 +145,11 @@ const ImageCarousel = ({ images, title, autoPlay = true, showThumbnails = true }
     setModalZoom(1);
     setModalPanX(0);
     setModalPanY(0);
+    currentPanX.current = 0;
+    currentPanY.current = 0;
+    if (modalImageRef.current) {
+      modalImageRef.current.style.transform = `scale(1) translate(0px, 0px)`;
+    }
   };
 
   const nextModalImage = () => {
@@ -139,6 +160,13 @@ const ImageCarousel = ({ images, title, autoPlay = true, showThumbnails = true }
   const prevModalImage = () => {
     setModalImageIndex((prev) => (prev - 1 + safeImages.length) % safeImages.length);
     resetModalZoom();
+  };
+
+  // Helper function to update image transform immediately
+  const updateImageTransform = (zoom: number, panX: number, panY: number) => {
+    if (modalImageRef.current) {
+      modalImageRef.current.style.transform = `scale(${zoom}) translate(${panX / zoom}px, ${panY / zoom}px)`;
+    }
   };
 
   // Modal touch event handlers
@@ -163,6 +191,12 @@ const ImageCarousel = ({ images, title, autoPlay = true, showThumbnails = true }
       modalTouchStartY.current = e.touches[0].clientY;
       modalTouchCurrentX.current = e.touches[0].clientX;
       modalTouchCurrentY.current = e.touches[0].clientY;
+      
+      // Store the current pan position when starting to drag
+      modalPanStartX.current = modalPanX;
+      modalPanStartY.current = modalPanY;
+      currentPanX.current = modalPanX;
+      currentPanY.current = modalPanY;
       setIsModalPanning(true);
     } else if (e.touches.length === 2) {
       // Pinch zoom
@@ -182,11 +216,20 @@ const ImageCarousel = ({ images, title, autoPlay = true, showThumbnails = true }
       modalTouchCurrentY.current = e.touches[0].clientY;
       
       if (modalZoom > 1) {
-        // Pan the image when zoomed
+        // Pan the image when zoomed - accumulate position from the starting point
         const deltaX = modalTouchCurrentX.current - modalTouchStartX.current;
         const deltaY = modalTouchCurrentY.current - modalTouchStartY.current;
-        setModalPanX(deltaX);
-        setModalPanY(deltaY);
+        
+        // Update current pan position and apply transform immediately
+        currentPanX.current = modalPanStartX.current + deltaX;
+        currentPanY.current = modalPanStartY.current + deltaY;
+        
+        // Apply transform immediately for instant feedback
+        updateImageTransform(modalZoom, currentPanX.current, currentPanY.current);
+        
+        // Also update state for consistency (but this might be slightly delayed)
+        setModalPanX(currentPanX.current);
+        setModalPanY(currentPanY.current);
       }
     } else if (e.touches.length === 2) {
       // Pinch zoom
@@ -206,6 +249,11 @@ const ImageCarousel = ({ images, title, autoPlay = true, showThumbnails = true }
         if (Math.abs(newZoom - 1) < 0.01) {
           setModalPanX(0);
           setModalPanY(0);
+          currentPanX.current = 0;
+          currentPanY.current = 0;
+          updateImageTransform(newZoom, 0, 0);
+        } else {
+          updateImageTransform(newZoom, currentPanX.current, currentPanY.current);
         }
       }
       
@@ -229,6 +277,10 @@ const ImageCarousel = ({ images, title, autoPlay = true, showThumbnails = true }
       }
     }
     
+    // Sync the final position
+    setModalPanX(currentPanX.current);
+    setModalPanY(currentPanY.current);
+    
     setIsModalPanning(false);
   };
 
@@ -243,6 +295,11 @@ const ImageCarousel = ({ images, title, autoPlay = true, showThumbnails = true }
     if (Math.abs(newZoom - 1) < 0.01) {
       setModalPanX(0);
       setModalPanY(0);
+      currentPanX.current = 0;
+      currentPanY.current = 0;
+      updateImageTransform(newZoom, 0, 0);
+    } else {
+      updateImageTransform(newZoom, currentPanX.current, currentPanY.current);
     }
   };
 
@@ -336,13 +393,13 @@ const ImageCarousel = ({ images, title, autoPlay = true, showThumbnails = true }
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
         <DialogContent className="max-w-none w-screen h-screen p-0 bg-black/95 flex items-center justify-center">
           <div className="relative w-full h-full flex items-center justify-center overflow-visible">
-            {/* Close Button - always visible, large, touch-friendly */}
+            {/* Close Button - positioned lower for mobile devices */}
             <button
               type="button"
               aria-label="Close fullscreen"
               onClick={closeModal}
-              className="absolute top-4 right-4 z-50 bg-white/90 rounded-full p-3 shadow-lg border border-gray-300 flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-primary"
-              style={{ width: 56, height: 56, right: 16, top: 16 }}
+              className="absolute top-8 right-4 z-50 bg-white/90 rounded-full p-3 shadow-lg border border-gray-300 flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-primary md:top-4"
+              style={{ width: 56, height: 56, right: 16 }}
             >
               <X className="h-7 w-7 text-black" />
             </button>
@@ -361,6 +418,12 @@ const ImageCarousel = ({ images, title, autoPlay = true, showThumbnails = true }
                   modalTouchStartY.current = e.clientY;
                   modalTouchCurrentX.current = e.clientX;
                   modalTouchCurrentY.current = e.clientY;
+                  
+                  // Store the current pan position when starting to drag
+                  modalPanStartX.current = modalPanX;
+                  modalPanStartY.current = modalPanY;
+                  currentPanX.current = modalPanX;
+                  currentPanY.current = modalPanY;
                 }
               }}
               onMouseMove={e => {
@@ -369,24 +432,41 @@ const ImageCarousel = ({ images, title, autoPlay = true, showThumbnails = true }
                   modalTouchCurrentY.current = e.clientY;
                   const deltaX = modalTouchCurrentX.current - modalTouchStartX.current;
                   const deltaY = modalTouchCurrentY.current - modalTouchStartY.current;
-                  setModalPanX(deltaX);
-                  setModalPanY(deltaY);
+                  
+                  // Update current pan position and apply transform immediately
+                  currentPanX.current = modalPanStartX.current + deltaX;
+                  currentPanY.current = modalPanStartY.current + deltaY;
+                  
+                  // Apply transform immediately for instant feedback
+                  updateImageTransform(modalZoom, currentPanX.current, currentPanY.current);
+                  
+                  // Also update state for consistency (but this might be slightly delayed)
+                  setModalPanX(currentPanX.current);
+                  setModalPanY(currentPanY.current);
                 }
               }}
               onMouseUp={() => {
+                // Sync the final position
+                setModalPanX(currentPanX.current);
+                setModalPanY(currentPanY.current);
                 setIsModalPanning(false);
               }}
               onMouseLeave={() => {
+                // Sync the final position
+                setModalPanX(currentPanX.current);
+                setModalPanY(currentPanY.current);
                 setIsModalPanning(false);
               }}
             >
               <img
+                ref={modalImageRef}
                 src={safeImages[modalImageIndex] || "https://images.unsplash.com/photo-1551488831-00ddcb6c6bd3?w=800&h=800&fit=crop"}
                 alt={`${title} ${modalImageIndex + 1}`}
-                className="max-w-full max-h-full object-contain transition-transform duration-200 select-none"
+                className="max-w-full max-h-full object-contain select-none"
                 style={{
                   transform: `scale(${modalZoom}) translate(${modalPanX / modalZoom}px, ${modalPanY / modalZoom}px)`,
-                  cursor: modalZoom > 1 ? (isModalPanning ? 'grabbing' : 'grab') : 'default'
+                  cursor: modalZoom > 1 ? (isModalPanning ? 'grabbing' : 'grab') : 'default',
+                  willChange: isModalPanning ? 'transform' : 'auto'
                 }}
                 draggable={false}
                 onError={e => { e.currentTarget.src = "https://images.unsplash.com/photo-1551488831-00ddcb6c6bd3?w=800&h=800&fit=crop"; }}

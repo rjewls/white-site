@@ -3,8 +3,10 @@ import { Button } from "@/components/ui/button";
 // Card UI components for layout
 import { Card, CardContent } from "@/components/ui/card";
 // Link component for navigation
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { wilayasData } from "@/lib/locations";
+// Language hook
+import { useLanguage } from "@/hooks/useLanguage";
 
 // Product type definition
 interface Product {
@@ -33,6 +35,11 @@ import { OrderFormValues } from "@/types/product";
 
 // ProductCard component displays a single product
 export const ProductCard = ({ product }: ProductCardProps) => {
+  // Navigation hook for programmatic routing
+  const navigate = useNavigate();
+  // Language context
+  const { t } = useLanguage();
+  
   // Defensive: ensure colors is always an array of valid color strings
   // Use same color logic as ProductDetail page
   // Map color names to hex codes for display
@@ -140,121 +147,134 @@ export const ProductCard = ({ product }: ProductCardProps) => {
             </div>
           </div>
 
-          {/* Content Container with better mobile spacing */}
-          <CardContent className="p-4 md:p-4 flex flex-col flex-1 min-h-0">
-            <div className="flex-1 flex flex-col justify-between min-h-0">
-              <div className="flex-1">
-                {/* Title with better mobile layout */}
-                <h3 className="font-semibold text-base md:text-base leading-tight text-gray-900 dark:text-white line-clamp-2 group-hover:text-primary transition-colors duration-150 mb-3 md:mb-2">
-                  {product.title}
-                </h3>
+          {/* Content Container with optimized spacing */}
+          <CardContent className="p-5 md:p-4 flex flex-col flex-1 min-h-0">
+            <div className="flex-1 flex flex-col min-h-0">
+              {/* Title with larger mobile font */}
+              <h3 className="font-semibold text-xl md:text-lg leading-tight text-gray-900 dark:text-white line-clamp-2 group-hover:text-primary transition-colors duration-150 mb-3">
+                {product.title}
+              </h3>
 
-                {/* Dynamic color count text instead of description */}
-                <p className="text-sm md:text-sm text-gray-600 dark:text-gray-300 line-clamp-1 leading-relaxed mb-3 md:mb-3">
-                  {colors.length === 0 
-                    ? "No colors available" 
-                    : colors.length === 1 
-                      ? "1 color" 
-                      : `${colors.length} colors`
-                  }
-                </p>
+              {/* Dynamic color count text with larger font */}
+              <p className="text-lg md:text-base text-gray-600 dark:text-gray-300 line-clamp-1 leading-relaxed mb-4">
+                {colors.length === 0 
+                  ? "No colors available" 
+                  : colors.length === 1 
+                    ? "1 color available" 
+                    : `${colors.length} colors available`
+                }
+              </p>
 
-                {/* Color circles with better mobile spacing */}
-                {colors.length > 0 && (
-                  <div className="flex gap-2 md:gap-2 mb-4 md:mb-4">
-                    {colors.slice(0, 4).map((color, idx) => {
-                    // Debug: log the actual color values
-                    console.log('Color from database:', color, typeof color);
+              {/* Color circles with larger sizes */}
+              {colors.length > 0 && (
+                <div className="flex gap-3 md:gap-2 mb-5 md:mb-4">
+                  {colors.slice(0, 4).map((color, idx) => {
+                  // Debug: log the actual color values
+                  console.log('Color from database:', color, typeof color);
+                  
+                  // Clean up the color value - remove brackets, quotes, and extra characters
+                  const cleanColor = String(color)
+                    .replace(/[[\]"']/g, '') // Remove brackets and quotes
+                    .trim(); // Remove whitespace
+                  
+                  console.log('Cleaned color:', cleanColor);
+                  
+                  // Check if it's a valid hex color after cleaning
+                  let validColor = '#e5e7eb'; // default gray
+                  
+                  if (cleanColor && /^#[0-9a-fA-F]{6}$/.test(cleanColor)) {
+                    validColor = cleanColor;
+                    console.log('Using hex color:', validColor);
+                  } else if (cleanColor) {
+                    // Try color name mapping as fallback
+                    const colorLower = cleanColor.toLowerCase();
+                    const allColors: Record<string, string> = {
+                      // English colors
+                      'red': '#ef4444',
+                      'blue': '#3b82f6', 
+                      'green': '#22c55e',
+                      'yellow': '#eab308',
+                      'black': '#000000',
+                      'white': '#ffffff',
+                      'purple': '#a21caf',
+                      'pink': '#ec4899',
+                      'orange': '#f97316',
+                      'brown': '#92400e',
+                      'gray': '#6b7280',
+                      'grey': '#6b7280',
+                      // French colors
+                      'rouge': '#ef4444',
+                      'bleu': '#3b82f6',
+                      'vert': '#22c55e',
+                      'jaune': '#eab308',
+                      'noir': '#000000',
+                      'blanc': '#ffffff',
+                      'violet': '#a21caf',
+                      'rose': '#ec4899',
+                      'marron': '#92400e',
+                      'gris': '#6b7280',
+                    };
                     
-                    // Clean up the color value - remove brackets, quotes, and extra characters
-                    const cleanColor = String(color)
-                      .replace(/[[\]"']/g, '') // Remove brackets and quotes
-                      .trim(); // Remove whitespace
-                    
-                    console.log('Cleaned color:', cleanColor);
-                    
-                    // Check if it's a valid hex color after cleaning
-                    let validColor = '#e5e7eb'; // default gray
-                    
-                    if (cleanColor && /^#[0-9a-fA-F]{6}$/.test(cleanColor)) {
-                      validColor = cleanColor;
-                      console.log('Using hex color:', validColor);
-                    } else if (cleanColor) {
-                      // Try color name mapping as fallback
-                      const colorLower = cleanColor.toLowerCase();
-                      const allColors: Record<string, string> = {
-                        // English colors
-                        'red': '#ef4444',
-                        'blue': '#3b82f6', 
-                        'green': '#22c55e',
-                        'yellow': '#eab308',
-                        'black': '#000000',
-                        'white': '#ffffff',
-                        'purple': '#a21caf',
-                        'pink': '#ec4899',
-                        'orange': '#f97316',
-                        'brown': '#92400e',
-                        'gray': '#6b7280',
-                        'grey': '#6b7280',
-                        // French colors
-                        'rouge': '#ef4444',
-                        'bleu': '#3b82f6',
-                        'vert': '#22c55e',
-                        'jaune': '#eab308',
-                        'noir': '#000000',
-                        'blanc': '#ffffff',
-                        'violet': '#a21caf',
-                        'rose': '#ec4899',
-                        'marron': '#92400e',
-                        'gris': '#6b7280',
-                      };
-                      
-                      if (allColors[colorLower]) {
-                        validColor = allColors[colorLower];
-                        console.log('Using color name mapping:', validColor);
-                      } else {
-                        console.log('Unknown color after cleaning:', cleanColor);
-                      }
+                    if (allColors[colorLower]) {
+                      validColor = allColors[colorLower];
+                      console.log('Using color name mapping:', validColor);
+                    } else {
+                      console.log('Unknown color after cleaning:', cleanColor);
                     }
-                    
-                    console.log('Final color used:', validColor);
-                    
-                    return (
-                      <div
-                        key={idx}
-                        className="w-6 h-6 md:w-5 md:h-5 rounded-full border border-gray-300 shadow-sm"
-                        style={{ backgroundColor: validColor }}
-                        title={`Color: ${cleanColor} (${validColor})`}
-                      />
-                    );
-                  })}
-                  {colors.length > 4 && (
-                    <div className="w-6 h-6 md:w-5 md:h-5 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center border border-gray-300 shadow-sm">
-                      <span className="text-xs font-medium text-gray-600 dark:text-gray-300">+{colors.length - 4}</span>
-                    </div>
-                  )}
-                </div>
-              )}
+                  }
+                  
+                  console.log('Final color used:', validColor);
+                  
+                  return (
+                    <div
+                      key={idx}
+                      className="w-10 h-10 md:w-7 md:h-7 rounded-full border-2 border-gray-300 shadow-sm"
+                      style={{ backgroundColor: validColor }}
+                      title={`Color: ${cleanColor} (${validColor})`}
+                    />
+                  );
+                })}
+                {colors.length > 4 && (
+                  <div className="w-10 h-10 md:w-7 md:h-7 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center border-2 border-gray-300 shadow-sm">
+                    <span className="text-base md:text-sm font-medium text-gray-600 dark:text-gray-300">+{colors.length - 4}</span>
+                  </div>
+                )}
               </div>
+            )}
 
-              {/* Price and rating row with better mobile layout */}
-              <div className="flex items-center justify-between mt-auto pt-2">
-                <div className="space-y-1.5">
-                  <div className="text-lg md:text-lg font-bold text-gray-900 dark:text-white">
-                    {product.price} <span className="text-sm md:text-base font-normal text-gray-500">DZD</span>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <div className="flex">
-                      {[...Array(4)].map((_, i) => (
-                        <Star key={i} className="w-4 h-4 md:w-3.5 md:h-3.5 text-yellow-400 fill-yellow-400" />
-                      ))}
-                      <Star className="w-4 h-4 md:w-3.5 md:h-3.5 text-yellow-400" style={{ fill: 'url(#half)' }} />
-                    </div>
-                    <span className="text-sm md:text-xs text-gray-500 ml-1">(4.5)</span>
-                  </div>
+            {/* Spacer to push price and button to bottom */}
+            <div className="flex-1"></div>
+
+            {/* Price Section with improved spacing and padding below */}
+            <div className="space-y-1 mb-5 md:mb-4 pb-2">
+              <div className="text-2xl md:text-xl font-bold text-gray-900 dark:text-white">
+                {product.price} <span className="text-lg md:text-base font-normal text-gray-500">DZD</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <div className="flex">
+                  {[...Array(4)].map((_, i) => (
+                    <Star key={i} className="w-5 h-5 md:w-4 md:h-4 text-yellow-400 fill-yellow-400" />
+                  ))}
+                  <Star className="w-5 h-5 md:w-4 md:h-4 text-yellow-400" style={{ fill: 'url(#half)' }} />
                 </div>
+                <span className="text-base md:text-sm text-gray-500 ml-1">(4.5)</span>
               </div>
             </div>
+
+            {/* Purchase Button with better proportions and increased mobile bottom padding */}
+            <button
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                // Navigate to product detail page (same as clicking the card)
+                navigate(`/product/${product.id}`);
+              }}
+              className="w-full bg-gradient-to-r from-rose-500 to-pink-600 text-white font-semibold py-3 md:py-2.5 px-4 rounded-xl shadow-md lg:transition-all lg:duration-200 lg:hover:shadow-lg lg:hover:from-rose-600 lg:hover:to-pink-700 flex items-center justify-center gap-2 mb-6 md:mb-0"
+            >
+              <ShoppingCart className="w-5 h-5 md:w-4 md:h-4" />
+              <span className="text-base md:text-sm">{t('card.quickOrder')}</span>
+            </button>
+          </div>
 
             {/* Hidden gradient for half star */}
             <svg width="0" height="0">

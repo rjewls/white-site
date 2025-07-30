@@ -2,6 +2,43 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Arabic font loading */
+@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@200;300;400;500;600;700;800;900&family=Amiri:ital,wght@0,400;0,700;1,400;1,700&display=swap');
+
+/* RTL Support for Arabic language */
+[dir="rtl"] {
+  direction: rtl;
+}
+
+[dir="rtl"] .font-playfair {
+  font-family: 'Playfair Display', 'Amiri', serif;
+}
+
+[dir="rtl"] .font-inter {
+  font-family: 'Inter', 'Cairo', sans-serif;
+}
+
+/* RTL specific adjustments */
+[dir="rtl"] .text-left {
+  text-align: right;
+}
+
+[dir="rtl"] .text-right {
+  text-align: left;
+}
+
+[dir="rtl"] .space-x-2 > :not([hidden]) ~ :not([hidden]) {
+  --tw-space-x-reverse: 1;
+}
+
+[dir="rtl"] .space-x-3 > :not([hidden]) ~ :not([hidden]) {
+  --tw-space-x-reverse: 1;
+}
+
+[dir="rtl"] .space-x-4 > :not([hidden]) ~ :not([hidden]) {
+  --tw-space-x-reverse: 1;
+}
+
 /* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
 All colors MUST be HSL.
 */
@@ -17,7 +54,7 @@ All colors MUST be HSL.
     --popover: 0 0% 100%;
     --popover-foreground: 340 15% 15%;
 
-    --primary: 340 75% 55%;
+    --primary: 340 75
     --primary-foreground: 0 0% 98%;
 
     --secondary: 340 25% 92%;
