@@ -57,16 +57,53 @@ export function OrderFormFields({
   // Check if all required fields are filled
   const isFormValid = useMemo(() => {
     const requiredFields = ['name', 'phone', 'wilaya', 'commune', 'deliveryOption', 'address'];
-    return requiredFields.every(field => {
+    
+    // Check basic required fields
+    const basicFieldsValid = requiredFields.every(field => {
       const value = watchedValues[field as keyof OrderFormValues];
       return value && String(value).trim() !== '';
     });
-  }, [watchedValues]);
+    
+    if (!basicFieldsValid) return false;
+    
+    // Check color selection if colors are available
+    if (availableColors.length > 0) {
+      const quantity = watchedValues.quantity || 1;
+      if (quantity === 1) {
+        // Single item - check selectedColor
+        if (!watchedValues.selectedColor) return false;
+      } else {
+        // Multiple items - check selectedColors array
+        const selectedColors = watchedValues.selectedColors || [];
+        for (let i = 0; i < quantity; i++) {
+          if (!selectedColors[i]) return false;
+        }
+      }
+    }
+    
+    // Check size selection if sizes are available
+    if (availableSizes.length > 0) {
+      const quantity = watchedValues.quantity || 1;
+      if (quantity === 1) {
+        // Single item - check selectedSize
+        if (!watchedValues.selectedSize) return false;
+      } else {
+        // Multiple items - check selectedSizes array
+        const selectedSizes = watchedValues.selectedSizes || [];
+        for (let i = 0; i < quantity; i++) {
+          if (!selectedSizes[i]) return false;
+        }
+      }
+    }
+    
+    return true;
+  }, [watchedValues, availableColors.length, availableSizes.length]);
   
   // Function to scroll to first empty field and highlight it
   const scrollToFirstEmptyField = () => {
     const requiredFields = ['name', 'phone', 'wilaya', 'commune', 'deliveryOption', 'address'];
     
+    // Check basic required fields first
     for (const field of requiredFields) {
       const value = watchedValues[field as keyof OrderFormValues];
       if (!value || String(value).trim() === '') {
@@ -93,7 +130,93 @@ export function OrderFormFields({
             setTimeout(() => input.focus(), 100);
           }
         }
-        break; // Stop after finding the first empty field
+        return; // Stop after finding the first empty field
+      }
+    }
+    
+    // Check color selection if colors are available
+    if (availableColors.length > 0) {
+      const quantity = watchedValues.quantity || 1;
+      if (quantity === 1) {
+        // Single item - check selectedColor
+        if (!watchedValues.selectedColor) {
+          const fieldElement = fieldRefs.current['selectedColor'];
+          if (fieldElement) {
+            fieldElement.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
+            fieldElement.classList.add('animate-pulse', 'ring-2', 'ring-red-500', 'ring-opacity-75');
+            setTimeout(() => {
+              fieldElement.classList.remove('animate-pulse', 'ring-2', 'ring-red-500', 'ring-opacity-75');
+            }, 3000);
+            const input = fieldElement.querySelector('button[role="combobox"]') as HTMLElement;
+            if (input && typeof input.focus === 'function') {
+              setTimeout(() => input.focus(), 100);
+            }
+          }
+          return;
+        }
+      } else {
+        // Multiple items - check selectedColors array
+        const selectedColors = watchedValues.selectedColors || [];
+        for (let i = 0; i < quantity; i++) {
+          if (!selectedColors[i]) {
+            const fieldElement = fieldRefs.current[`selectedColors.${i}`];
+            if (fieldElement) {
+              fieldElement.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
+              fieldElement.classList.add('animate-pulse', 'ring-2', 'ring-red-500', 'ring-opacity-75');
+              setTimeout(() => {
+                fieldElement.classList.remove('animate-pulse', 'ring-2', 'ring-red-500', 'ring-opacity-75');
+              }, 3000);
+              const input = fieldElement.querySelector('button[role="combobox"]') as HTMLElement;
+              if (input && typeof input.focus === 'function') {
+                setTimeout(() => input.focus(), 100);
+              }
+            }
+            return;
+          }
+        }
+      }
+    }
+    
+    // Check size selection if sizes are available
+    if (availableSizes.length > 0) {
+      const quantity = watchedValues.quantity || 1;
+      if (quantity === 1) {
+        // Single item - check selectedSize
+        if (!watchedValues.selectedSize) {
+          const fieldElement = fieldRefs.current['selectedSize'];
+          if (fieldElement) {
+            fieldElement.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
+            fieldElement.classList.add('animate-pulse', 'ring-2', 'ring-red-500', 'ring-opacity-75');
+            setTimeout(() => {
+              fieldElement.classList.remove('animate-pulse', 'ring-2', 'ring-red-500', 'ring-opacity-75');
+            }, 3000);
+            const input = fieldElement.querySelector('button[role="combobox"]') as HTMLElement;
+            if (input && typeof input.focus === 'function') {
+              setTimeout(() => input.focus(), 100);
+            }
+          }
+          return;
+        }
+      } else {
+        // Multiple items - check selectedSizes array
+        const selectedSizes = watchedValues.selectedSizes || [];
+        for (let i = 0; i < quantity; i++) {
+          if (!selectedSizes[i]) {
+            const fieldElement = fieldRefs.current[`selectedSizes.${i}`];
+            if (fieldElement) {
+              fieldElement.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
+              fieldElement.classList.add('animate-pulse', 'ring-2', 'ring-red-500', 'ring-opacity-75');
+              setTimeout(() => {
+                fieldElement.classList.remove('animate-pulse', 'ring-2', 'ring-red-500', 'ring-opacity-75');
+              }, 3000);
+              const input = fieldElement.querySelector('button[role="combobox"]') as HTMLElement;
+              if (input && typeof input.focus === 'function') {
+                setTimeout(() => input.focus(), 100);
+              }
+            }
+            return;
+          }
+        }
       }
     }
   };
@@ -314,7 +437,7 @@ export function OrderFormFields({
                           control={form.control}
                           name={`selectedColors.${index}`}
                           render={({ field }) => (
-                            <FormItem className="flex-1">
+                            <FormItem className="flex-1" ref={(el) => fieldRefs.current[`selectedColors.${index}`] = el}>
                               <Select onValueChange={field.onChange} value={field.value || ""}>
                                 <FormControl>
                                   <SelectTrigger className="h-10">
@@ -348,7 +471,7 @@ export function OrderFormFields({
                     control={form.control}
                     name="selectedColor"
                     render={({ field }) => (
-                      <FormItem>
+                      <FormItem ref={(el) => fieldRefs.current['selectedColor'] = el}>
                         <Select onValueChange={field.onChange} value={field.value || ""}>
                           <FormControl>
                             <SelectTrigger className="h-12">
@@ -393,7 +516,7 @@ export function OrderFormFields({
                           control={form.control}
                           name={`selectedSizes.${index}`}
                           render={({ field }) => (
-                            <FormItem className="flex-1">
+                            <FormItem className="flex-1" ref={(el) => fieldRefs.current[`selectedSizes.${index}`] = el}>
                               <Select onValueChange={field.onChange} value={field.value || ""}>
                                 <FormControl>
                                   <SelectTrigger className="h-10">
@@ -424,7 +547,7 @@ export function OrderFormFields({
                     control={form.control}
                     name="selectedSize"
                     render={({ field }) => (
-                      <FormItem>
+                      <FormItem ref={(el) => fieldRefs.current['selectedSize'] = el}>
                         <Select onValueChange={field.onChange} value={field.value || ""}>
                           <FormControl>
                             <SelectTrigger className="h-12">
