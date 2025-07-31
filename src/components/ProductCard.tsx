@@ -201,7 +201,7 @@ export const ProductCard = ({ product }: ProductCardProps) => {
                   onClick={(e) => {
                     e.preventDefault();
                     e.stopPropagation();
-                    // Add to cart functionality
+                    navigate(`/product/${product.id}`);
                   }}
                   className="bg-gradient-to-r from-rose-500 to-pink-600 text-white font-semibold py-2 sm:py-2.5 px-6 sm:px-8 rounded-lg hover:from-rose-600 hover:to-pink-700 transition-all duration-200 shadow-md hover:shadow-lg flex items-center justify-center gap-2"
                 >
