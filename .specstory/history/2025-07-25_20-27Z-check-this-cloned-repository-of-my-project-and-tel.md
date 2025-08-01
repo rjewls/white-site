@@ -12558,3 +12558,27 @@ After this setup:
 
 ---
 
+_**User**_
+
+the "add to cart button" in th product card is good on desktop but its half visible on mobil, its pushed down on mobile so it needs to be fixed without affecting the rest of the layout in the card
+
+---
+
+_**Assistant**_
+
+
+
+---
+
+_**User**_
+
+the "add to cart button" in th product card is good on desktop but its half visible on mobil, its pushed down on mobile so it needs to be fixed without affecting the rest of the layout in the card
+
+---
+
+_**Assistant**_
+
+
+
+---
+

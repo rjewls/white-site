@@ -147,41 +147,41 @@ export const ProductCard = ({ product }: ProductCardProps) => {
             </div>
           </div>
 
-          {/* Content Container with modern ecommerce layout */}
-          <CardContent className="pt-4 px-4 pb-6 sm:pt-5 sm:px-5 sm:pb-8 flex flex-col flex-1 min-h-0">
-            <div className="flex-1 flex flex-col justify-between space-y-3 sm:space-y-4">
+          {/* Content Container with optimized mobile layout */}
+          <CardContent className="pt-3 px-4 pb-4 sm:pt-5 sm:px-5 sm:pb-8 flex flex-col flex-1 min-h-0">
+            <div className="flex-1 flex flex-col justify-between space-y-2 sm:space-y-4">
               {/* Title with improved typography */}
-              <h3 className="font-semibold text-lg sm:text-xl leading-tight text-gray-900 dark:text-white line-clamp-2 group-hover:text-primary transition-colors duration-150">
+              <h3 className="font-semibold text-base sm:text-xl leading-tight text-gray-900 dark:text-white line-clamp-2 group-hover:text-primary transition-colors duration-150">
                 {product.title}
               </h3>
 
               {/* Price Section - Featured prominently */}
-              <div className="space-y-2">
+              <div className="space-y-1 sm:space-y-2">
                 <div className="flex items-baseline gap-2">
-                  <span className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">
+                  <span className="text-lg sm:text-2xl font-bold text-gray-900 dark:text-white">
                     {product.price.toLocaleString()}
                   </span>
-                  <span className="text-sm sm:text-base font-medium text-gray-500">DZD</span>
+                  <span className="text-sm font-medium text-gray-500">DZD</span>
                 </div>
                 
-                {/* Enhanced Rating with better visual hierarchy */}
-                <div className="flex items-center gap-2">
+                {/* Enhanced Rating with better visual hierarchy - Compact on mobile */}
+                <div className="flex items-center gap-1 sm:gap-2">
                   <div className="flex items-center">
                     {[...Array(4)].map((_, i) => (
-                      <Star key={i} className="w-4 h-4 sm:w-5 sm:h-5 text-yellow-400 fill-yellow-400" />
+                      <Star key={i} className="w-3 h-3 sm:w-5 sm:h-5 text-yellow-400 fill-yellow-400" />
                     ))}
-                    <Star className="w-4 h-4 sm:w-5 sm:h-5 text-yellow-400" style={{ fill: 'url(#half)' }} />
+                    <Star className="w-3 h-3 sm:w-5 sm:h-5 text-yellow-400" style={{ fill: 'url(#half)' }} />
                   </div>
-                  <span className="text-sm sm:text-base text-gray-600 font-medium">(4.5)</span>
-                  <span className="text-sm sm:text-base text-gray-400">•</span>
-                  <span className="text-sm sm:text-base text-gray-600">142 reviews</span>
+                  <span className="text-xs sm:text-base text-gray-600 font-medium">(4.5)</span>
+                  <span className="hidden sm:inline text-gray-400">•</span>
+                  <span className="hidden sm:inline text-base text-gray-600">142 reviews</span>
                 </div>
               </div>
 
-              {/* Product Info Strip */}
-              <div className="flex items-center gap-3 sm:gap-4 text-sm sm:text-base">
-                <div className="flex items-center gap-1.5">
-                  <div className="w-2 h-2 sm:w-2.5 sm:h-2.5 bg-green-500 rounded-full"></div>
+              {/* Product Info Strip - Simplified on mobile */}
+              <div className="flex items-center gap-2 sm:gap-4 text-xs sm:text-base">
+                <div className="flex items-center gap-1">
+                  <div className="w-1.5 h-1.5 sm:w-2.5 sm:h-2.5 bg-green-500 rounded-full"></div>
                   <span className="text-green-600 font-medium">In Stock</span>
                 </div>
                 <span className="text-gray-400">•</span>
@@ -195,18 +195,18 @@ export const ProductCard = ({ product }: ProductCardProps) => {
                 </span>
               </div>
 
-              {/* Quick Action Buttons */}
-              <div className="flex justify-center pt-2 pb-0 sm:pb-4">
+              {/* Quick Action Buttons - Fixed positioning */}
+              <div className="flex justify-center pt-1 sm:pt-2">
                 <button
                   onClick={(e) => {
                     e.preventDefault();
                     e.stopPropagation();
                     navigate(`/product/${product.id}`);
                   }}
-                  className="bg-gradient-to-r from-rose-500 to-pink-600 text-white font-semibold py-2 sm:py-2.5 px-6 sm:px-8 rounded-lg hover:from-rose-600 hover:to-pink-700 transition-all duration-200 shadow-md hover:shadow-lg flex items-center justify-center gap-2"
+                  className="bg-gradient-to-r from-rose-500 to-pink-600 text-white font-semibold py-1.5 sm:py-2.5 px-4 sm:px-8 rounded-lg hover:from-rose-600 hover:to-pink-700 transition-all duration-200 shadow-md hover:shadow-lg flex items-center justify-center gap-1.5 sm:gap-2 text-sm sm:text-base"
                 >
-                  <ShoppingCart className="w-4 h-4 sm:w-5 sm:h-5" />
-                  <span className="text-sm sm:text-base">Add to Cart</span>
+                  <ShoppingCart className="w-3.5 h-3.5 sm:w-5 sm:h-5" />
+                  <span>Add to Cart</span>
                 </button>
               </div>
             </div>
