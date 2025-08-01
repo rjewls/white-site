@@ -306,23 +306,26 @@ const ProductDetail = () => {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          content: "🛍️ **NEW ORDER** 🛍️\n\n" +
-                   "📦 **" + orderData.productTitle + "** | Qty: " + orderData.quantity + 
-                   formatItemsForDiscord() + "\n\n" +
-                   "👤 " + orderData.name + " | 📱 " + orderData.phone + "\n" +
-                   "📍 " + orderData.wilaya + ", " + orderData.commune + "\n" +
-                   "🏠 " + orderData.address + "\n\n" +
-                   "🚚 " + (orderData.deliveryOption === "home" ? "🏠 Home Delivery" : "🏪 Stopdesk Delivery") + "\n\n" +
-                   "💰 **TOTAL: " + orderData.totalPrice + " DZD**\n" +
-                   orderData.productPrice * orderData.quantity + " DZD + " + orderData.deliveryFee + " DZD delivery\n\n" +
-                   "✅ Pending | ⏰ " + new Date().toLocaleString('en-GB', { 
-                     timeZone: 'Africa/Algiers',
-                     day: '2-digit',
-                     month: '2-digit', 
-                     year: 'numeric',
-                     hour: '2-digit',
-                     minute: '2-digit'
-                   }) + " 🌹"
+          embeds: [{
+            color: 0xec4899, // Pink color
+            description: "🛍️ **NEW ORDER** 🛍️\n\n" +
+                        "📦 **" + orderData.productTitle + "** | Qty: " + orderData.quantity + 
+                        formatItemsForDiscord() + "\n\n" +
+                        "👤 " + orderData.name + " | 📱 " + orderData.phone + "\n" +
+                        "📍 " + orderData.wilaya + ", " + orderData.commune + "\n" +
+                        "🏠 " + orderData.address + "\n\n" +
+                        "🚚 " + (orderData.deliveryOption === "home" ? "🏠 Home Delivery" : "🏪 Stopdesk Delivery") + "\n\n" +
+                        "💰 **TOTAL: " + orderData.totalPrice + " DZD**\n" +
+                        orderData.productPrice * orderData.quantity + " DZD + " + orderData.deliveryFee + " DZD delivery\n\n" +
+                        "✅ Pending | ⏰ " + new Date().toLocaleString('en-GB', { 
+                          timeZone: 'Africa/Algiers',
+                          day: '2-digit',
+                          month: '2-digit', 
+                          year: 'numeric',
+                          hour: '2-digit',
+                          minute: '2-digit'
+                        }) + " 🌹"
+          }]
         }),
         
       });

@@ -121,7 +121,7 @@ export const ProductCard = ({ product }: ProductCardProps) => {
       <Link to={`/product/${product.id}`} className="block h-full group">
         <Card className="relative h-full bg-white dark:bg-gray-900 rounded-2xl overflow-hidden shadow-lg lg:hover:shadow-2xl transition-shadow duration-200 lg:hover:scale-[1.01] lg:transform-gpu border-0 ring-1 ring-gray-100 dark:ring-gray-800 flex flex-col">
           {/* Image Container with optimized effects */}
-          <div className="relative w-full h-[224px] sm:h-[216px] md:h-[228px] flex-shrink-0 overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900">
+          <div className="relative w-full h-[269px] sm:h-[216px] md:h-[228px] flex-shrink-0 overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900">
             <img
               src={imageUrl}
               alt={product.title}

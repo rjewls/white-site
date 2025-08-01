@@ -9,9 +9,10 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/hooks/useLanguage";
-import { Plus, Edit, Trash2, Save, X, LogOut, User, ImageIcon } from "lucide-react";
+import { Plus, Edit, Trash2, Save, X, LogOut, User, ImageIcon, Truck } from "lucide-react";
 import { compressImages, formatFileSize, supportsWebP } from "@/lib/imageCompression";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
+import { wilayaDeliveryFees } from "@/lib/deliveryFees";
 
 // Products will be fetched from Supabase
 
@@ -87,6 +88,8 @@ const Admin = () => {
   const [isCompressing, setIsCompressing] = useState(false);
   const [compressionProgress, setCompressionProgress] = useState(0);
   const [compressionStatus, setCompressionStatus] = useState("");
+  const [deliveryFees, setDeliveryFees] = useState(wilayaDeliveryFees);
+  const [showDeliveryFeesForm, setShowDeliveryFeesForm] = useState(false);
   const [formData, setFormData] = useState<FormData>({
     title: "",
     price: "",
@@ -357,6 +360,138 @@ const Admin = () => {
       });
   };
 
+  // Delivery fee management functions
+  const initializeDeliveryFees = useCallback(async () => {
+    try {
+      const dataToInsert = wilayaDeliveryFees.map(fee => ({
+        wilaya_code: fee.code,
+        wilaya_name: fee.name,
+        home_delivery: fee.homeDelivery,
+        stopdesk_delivery: fee.stopdeskDelivery
+      }));
+
+      const { error } = await supabase
+        .from('delivery_fees')
+        .insert(dataToInsert);
+
+      if (error) {
+        console.error('Error initializing delivery fees:', error);
+      } else {
+        toast({
+          title: "Delivery fees initialized",
+          description: "Default delivery fees have been set up successfully"
+        });
+        setDeliveryFees(wilayaDeliveryFees);
+      }
+    } catch (error) {
+      console.error('Error initializing delivery fees:', error);
+    }
+  }, [toast]);
+
+  const fetchDeliveryFees = useCallback(async () => {
+    try {
+      const { data, error } = await supabase
+        .from('delivery_fees')
+        .select('*')
+        .order('wilaya_code');
+
+      if (error) {
+        console.error('Error fetching delivery fees:', error);
+        // Use default fees if Supabase fetch fails
+        setDeliveryFees(wilayaDeliveryFees);
+        return;
+      }
+
+      if (data && data.length > 0) {
+        // Convert Supabase data to match our interface
+        const convertedData = data.map(item => ({
+          code: item.wilaya_code,
+          name: item.wilaya_name,
+          homeDelivery: item.home_delivery,
+          stopdeskDelivery: item.stopdesk_delivery
+        }));
+        setDeliveryFees(convertedData);
+      } else {
+        // Initialize Supabase with default data if no data exists
+        await initializeDeliveryFees();
+      }
+    } catch (error) {
+      console.error('Error fetching delivery fees:', error);
+      setDeliveryFees(wilayaDeliveryFees);
+    }
+  }, [initializeDeliveryFees]);
+
+  const updateDeliveryFee = async (wilayaCode, homeDelivery, stopdeskDelivery) => {
+    try {
+      const { error } = await supabase
+        .from('delivery_fees')
+        .update({
+          home_delivery: parseInt(homeDelivery),
+          stopdesk_delivery: parseInt(stopdeskDelivery)
+        })
+        .eq('wilaya_code', wilayaCode);
+
+      if (error) {
+        toast({
+          title: "Error updating delivery fee",
+          description: error.message,
+          variant: "destructive"
+        });
+        return false;
+      }
+
+      // Update local state
+      setDeliveryFees(prev => prev.map(fee => 
+        fee.code === wilayaCode 
+          ? { ...fee, homeDelivery: parseInt(homeDelivery), stopdeskDelivery: parseInt(stopdeskDelivery) }
+          : fee
+      ));
+
+      return true;
+    } catch (error) {
+      console.error('Error updating delivery fee:', error);
+      toast({
+        title: "Error updating delivery fee",
+        description: "Failed to update delivery fee",
+        variant: "destructive"
+      });
+      return false;
+    }
+  };
+
+  const saveAllDeliveryFees = async () => {
+    let successCount = 0;
+    let failCount = 0;
+
+    for (const fee of deliveryFees) {
+      const success = await updateDeliveryFee(fee.code, fee.homeDelivery, fee.stopdeskDelivery);
+      if (success) {
+        successCount++;
+      } else {
+        failCount++;
+      }
+    }
+
+    if (failCount === 0) {
+      toast({
+        title: "✅ Success! All delivery fees updated",
+        description: `Successfully updated ${successCount} delivery fees. Changes are now live!`,
+        className: "bg-green-50 border-green-200 text-green-800"
+      });
+    } else {
+      toast({
+        title: "Partial update completed",
+        description: `Updated ${successCount} fees, ${failCount} failed`,
+        variant: "destructive"
+      });
+    }
+  };
+
+  // Fetch delivery fees on mount
+  useEffect(() => {
+    fetchDeliveryFees();
+  }, [fetchDeliveryFees]);
+
   return (
     <div className={`min-h-screen bg-gradient-soft ${isRTL ? 'rtl' : 'ltr'}`} dir={isRTL ? 'rtl' : 'ltr'}>
       <Navigation />
@@ -400,6 +535,15 @@ const Admin = () => {
             </Button>
             
             <Button
+              onClick={() => setShowDeliveryFeesForm(true)}
+              variant="outline"
+              className="flex items-center justify-center gap-2 px-3 py-3 sm:py-2 border-blue-200 text-blue-600 hover:bg-blue-50 hover:border-blue-300"
+            >
+              <Truck className="h-4 w-4" />
+              <span className="hidden sm:inline">Delivery Fees</span>
+            </Button>
+            
+            <Button
               onClick={signOut}
               variant="outline"
               className="flex items-center justify-center gap-2 px-4 py-3 sm:py-2 border-red-200 text-red-600 hover:bg-red-50 hover:border-red-300"
@@ -438,6 +582,109 @@ const Admin = () => {
                 compressionStatus={compressionStatus}
                 t={t}
               />
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Delivery Fees Form - Mobile Optimized */}
+        {showDeliveryFeesForm && (
+          <Card className="mb-4 sm:mb-8 bg-gradient-card border-0 shadow-lg">
+            <CardHeader className="px-3 sm:px-6 py-3 sm:py-4 border-b">
+              <div className="flex items-center justify-between">
+                <CardTitle className="font-playfair text-lg sm:text-xl flex items-center gap-2">
+                  <Truck className="h-5 w-5" />
+                  Delivery Fees Management
+                </CardTitle>
+                <Button
+                  onClick={() => setShowDeliveryFeesForm(false)}
+                  variant="ghost"
+                  size="sm"
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent className="px-3 sm:px-6 pb-4 sm:pb-6 pt-4">
+              <div className="space-y-4">
+                <div className="text-sm text-muted-foreground mb-4">
+                  Manage delivery fees for all wilayas. Changes will be saved to the database and applied to all future orders.
+                </div>
+                
+                <div className="grid gap-4 max-h-96 overflow-y-auto">
+                  {deliveryFees.map((fee) => (
+                    <div key={fee.code} className="bg-white rounded-lg p-4 border border-gray-200">
+                      <div className="flex items-center justify-between mb-3">
+                        <h3 className="font-semibold text-gray-900">{fee.name}</h3>
+                        <span className="text-sm text-gray-500">Code: {fee.code}</span>
+                      </div>
+                      
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                          <Label htmlFor={`home-${fee.code}`} className="text-sm font-medium">
+                            Home Delivery (DZD)
+                          </Label>
+                          <Input
+                            id={`home-${fee.code}`}
+                            type="number"
+                            value={fee.homeDelivery}
+                            onChange={(e) => {
+                              const value = parseInt(e.target.value) || 0;
+                              setDeliveryFees(prev => prev.map(f => 
+                                f.code === fee.code 
+                                  ? { ...f, homeDelivery: value }
+                                  : f
+                              ));
+                            }}
+                            className="mt-1"
+                            min="0"
+                          />
+                        </div>
+                        
+                        <div>
+                          <Label htmlFor={`stopdesk-${fee.code}`} className="text-sm font-medium">
+                            Stopdesk Delivery (DZD)
+                          </Label>
+                          <Input
+                            id={`stopdesk-${fee.code}`}
+                            type="number"
+                            value={fee.stopdeskDelivery}
+                            onChange={(e) => {
+                              const value = parseInt(e.target.value) || 0;
+                              setDeliveryFees(prev => prev.map(f => 
+                                f.code === fee.code 
+                                  ? { ...f, stopdeskDelivery: value }
+                                  : f
+                              ));
+                            }}
+                            className="mt-1"
+                            min="0"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                
+                <div className="flex gap-2 pt-4 border-t">
+                  <Button
+                    onClick={saveAllDeliveryFees}
+                    className="flex items-center gap-2 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700"
+                  >
+                    <Save className="h-4 w-4" />
+                    Save All Changes
+                  </Button>
+                  
+                  <Button
+                    onClick={() => {
+                      setDeliveryFees(wilayaDeliveryFees);
+                      setShowDeliveryFeesForm(false);
+                    }}
+                    variant="outline"
+                  >
+                    Cancel
+                  </Button>
+                </div>
+              </div>
             </CardContent>
           </Card>
         )}

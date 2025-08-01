@@ -44,7 +44,11 @@ export const OrderForm: React.FC<OrderFormProps> = ({ productId, productTitle, p
   }, [wilaya, deliveryType]);
 
   // Calculate total price
-  const totalPrice = useMemo(() => productPrice + deliveryFee, [productPrice, deliveryFee]);
+  const totalPrice = useMemo(() => {
+    const numericProductPrice = typeof productPrice === 'number' ? productPrice : parseFloat(String(productPrice)) || 0;
+    const numericDeliveryFee = typeof deliveryFee === 'number' ? deliveryFee : parseFloat(String(deliveryFee)) || 0;
+    return numericProductPrice + numericDeliveryFee;
+  }, [productPrice, deliveryFee]);
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -71,7 +75,27 @@ export const OrderForm: React.FC<OrderFormProps> = ({ productId, productTitle, p
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(orderData),
+        body: JSON.stringify({
+          embeds: [{
+            color: 0xec4899, // Pink color
+            description: "🛍️ **NEW ORDER** 🛍️\n\n" +
+                        "📦 **" + orderData.productTitle + "**\n\n" +
+                        "👤 " + orderData.name + " | 📱 " + orderData.phone + "\n" +
+                        "📍 " + orderData.wilaya + ", " + orderData.commune + "\n" +
+                        "🏠 " + orderData.address + "\n\n" +
+                        "🚚 " + (orderData.deliveryType === "home" ? "🏠 Home Delivery" : "🏪 Stopdesk Delivery") + "\n\n" +
+                        "💰 **TOTAL: " + orderData.totalPrice + " DZD**\n" +
+                        orderData.productPrice + " DZD + " + orderData.deliveryFee + " DZD delivery\n\n" +
+                        "✅ Pending | ⏰ " + new Date().toLocaleString('en-GB', { 
+                          timeZone: 'Africa/Algiers',
+                          day: '2-digit',
+                          month: '2-digit', 
+                          year: 'numeric',
+                          hour: '2-digit',
+                          minute: '2-digit'
+                        }) + " 🌹"
+          }]
+        }),
       });
 
       if (response.ok) {

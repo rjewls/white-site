@@ -227,17 +227,21 @@ export function OrderFormFields({
     const selectedWilaya = wilayasData.find(w => w.name === watchWilaya);
     if (!selectedWilaya) return 0;
     
-    const wilayaCode = selectedWilaya.code;
-    const fees = wilayaDeliveryFees[wilayaCode];
+    const wilayaCode = parseInt(selectedWilaya.code);
+    const fees = wilayaDeliveryFees.find(f => f.code === wilayaCode);
     
     if (!fees) return 0;
     
-    return watchDeliveryOption === "home" ? fees.home : fees.stopdesk;
+    return watchDeliveryOption === "home" ? fees.homeDelivery : fees.stopdeskDelivery;
   }, [watchWilaya, watchDeliveryOption]);
 
   const totalPrice = useMemo(() => {
     const quantity = form.watch("quantity") || 1;
-    return (productPrice * quantity) + deliveryFee;
+    const numericQuantity = typeof quantity === 'number' ? quantity : parseInt(String(quantity)) || 1;
+    const numericProductPrice = typeof productPrice === 'number' ? productPrice : parseFloat(String(productPrice)) || 0;
+    const numericDeliveryFee = typeof deliveryFee === 'number' ? deliveryFee : parseFloat(String(deliveryFee)) || 0;
+    
+    return (numericProductPrice * numericQuantity) + numericDeliveryFee;
   }, [productPrice, deliveryFee, form]);
 
   return (
