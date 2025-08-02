@@ -24,6 +24,8 @@ import { Heart, ShoppingCart, Star } from "lucide-react";
 import ImageCarousel from "@/components/ImageCarousel";
 // Order form fields component
 import { OrderFormFields } from "@/components/OrderFormFields";
+// Rich content renderer
+import { RichContentRenderer } from "@/components/RichTextEditor";
 // React Hook Form for form handling
 import { useForm } from "react-hook-form";
 // Types
@@ -454,9 +456,10 @@ const ProductDetail = () => {
                   <h3 className="font-playfair text-lg font-semibold text-rose-600 mb-2">
                     Description
                   </h3>
-                  <p className="text-gray-700 text-sm leading-relaxed">
-                    {product.description}
-                  </p>
+                  <RichContentRenderer 
+                    content={product.description}
+                    className="text-sm leading-relaxed"
+                  />
                 </div>
               )}
             </div>
@@ -511,9 +514,10 @@ const ProductDetail = () => {
                   <h3 className="font-playfair text-xl font-semibold text-rose-600 mb-4">
                     Description
                   </h3>
-                  <p className="text-gray-700 text-base leading-relaxed">
-                    {product.description}
-                  </p>
+                  <RichContentRenderer 
+                    content={product.description}
+                    className="text-base leading-relaxed"
+                  />
                 </div>
               )}
             </div>

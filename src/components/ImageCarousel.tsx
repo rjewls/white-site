@@ -16,6 +16,7 @@ const ImageCarousel = ({ images, title, autoPlay = true, showThumbnails = true }
   const [isPaused, setIsPaused] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalImageIndex, setModalImageIndex] = useState(0);
+  const [isTransitioning, setIsTransitioning] = useState(true);
   const touchStartX = useRef(0);
   const touchCurrentX = useRef(0);
   
@@ -51,16 +52,60 @@ const ImageCarousel = ({ images, title, autoPlay = true, showThumbnails = true }
   const currentPanX = useRef(0);
   const currentPanY = useRef(0);
 
+  // For infinite loop effect, we'll duplicate first and last images
+  const extendedImages = safeImages.length > 1 
+    ? [safeImages[safeImages.length - 1], ...safeImages, safeImages[0]]
+    : safeImages;
+  
+  // Adjust current index for extended array (add 1 because we added one image at the start)
+  const [displayIndex, setDisplayIndex] = useState(1);
+  const [actualIndex, setActualIndex] = useState(0);
+
   // Continuous auto-play animation that starts immediately
   useEffect(() => {
-    if (autoPlay && safeImages.length > 1 && !isDragging) {
-      // Start animation immediately, cycle every 2.5 seconds for better engagement
+    if (autoPlay && safeImages.length > 1 && !isDragging && !isPaused) {
       const interval = setInterval(() => {
-        setCurrentIndex((prev) => (prev + 1) % safeImages.length);
+        setDisplayIndex(prev => prev + 1);
+        setActualIndex(prev => (prev + 1) % safeImages.length);
       }, 2500);
       return () => clearInterval(interval);
     }
-  }, [autoPlay, safeImages.length, isDragging]);
+  }, [autoPlay, safeImages.length, isDragging, isPaused]);
+
+  // Handle infinite loop transitions
+  useEffect(() => {
+    if (safeImages.length <= 1) return;
+    
+    // When we reach the duplicate first image at the end
+    if (displayIndex === extendedImages.length - 1) {
+      const timer = setTimeout(() => {
+        setIsTransitioning(false); // Disable transition
+        setDisplayIndex(1); // Jump to real first image
+        setCurrentIndex(0);
+        // Re-enable transition on next frame
+        requestAnimationFrame(() => {
+          setIsTransitioning(true);
+        });
+      }, 700); // Wait for transition to complete
+      return () => clearTimeout(timer);
+    }
+    // When we reach the duplicate last image at the beginning
+    else if (displayIndex === 0) {
+      const timer = setTimeout(() => {
+        setIsTransitioning(false); // Disable transition
+        setDisplayIndex(extendedImages.length - 2); // Jump to real last image
+        setCurrentIndex(safeImages.length - 1);
+        // Re-enable transition on next frame
+        requestAnimationFrame(() => {
+          setIsTransitioning(true);
+        });
+      }, 700);
+      return () => clearTimeout(timer);
+    } else {
+      // Update current index normally
+      setCurrentIndex(displayIndex - 1);
+    }
+  }, [displayIndex, extendedImages.length, safeImages.length]);
 
   // Override isPaused behavior - only pause during active user interaction
   useEffect(() => {
@@ -111,18 +156,26 @@ const ImageCarousel = ({ images, title, autoPlay = true, showThumbnails = true }
       if (isRTL) {
         if (diff > 0) {
           // Swiped right in RTL - go to next
-          setCurrentIndex((prev) => (prev + 1) % safeImages.length);
+          const nextIndex = (actualIndex + 1) % safeImages.length;
+          setDisplayIndex(nextIndex + 1);
+          setActualIndex(nextIndex);
         } else {
           // Swiped left in RTL - go to previous
-          setCurrentIndex((prev) => (prev - 1 + safeImages.length) % safeImages.length);
+          const prevIndex = (actualIndex - 1 + safeImages.length) % safeImages.length;
+          setDisplayIndex(prevIndex + 1);
+          setActualIndex(prevIndex);
         }
       } else {
         if (diff > 0) {
           // Swiped right in LTR - go to previous
-          setCurrentIndex((prev) => (prev - 1 + safeImages.length) % safeImages.length);
+          const prevIndex = (actualIndex - 1 + safeImages.length) % safeImages.length;
+          setDisplayIndex(prevIndex + 1);
+          setActualIndex(prevIndex);
         } else {
           // Swiped left in LTR - go to next
-          setCurrentIndex((prev) => (prev + 1) % safeImages.length);
+          const nextIndex = (actualIndex + 1) % safeImages.length;
+          setDisplayIndex(nextIndex + 1);
+          setActualIndex(nextIndex);
         }
       }
     }
@@ -149,9 +202,10 @@ const ImageCarousel = ({ images, title, autoPlay = true, showThumbnails = true }
   };
 
   const goToSlide = (index: number) => {
-    if (isAnimating || index === currentIndex) return;
+    if (isAnimating || index === actualIndex) return;
     setIsAnimating(true);
-    setCurrentIndex(index);
+    setDisplayIndex(index + 1); // Add 1 because of the duplicate image at the start
+    setActualIndex(index);
     setTimeout(() => setIsAnimating(false), 300);
   };
 
@@ -357,11 +411,11 @@ const ImageCarousel = ({ images, title, autoPlay = true, showThumbnails = true }
         onTouchStart={() => setIsPaused(true)}
       >
         <div 
-          className={`flex h-full ${isDragging ? 'transition-none' : 'transition-transform duration-700 ease-in-out'}`}
+          className={`flex h-full ${isDragging || !isTransitioning ? 'transition-none' : 'transition-transform duration-700 ease-in-out'}`}
           style={{ 
             transform: isRTL 
-              ? `translateX(calc(${currentIndex * 100}% - ${dragOffset}px))` 
-              : `translateX(calc(-${currentIndex * 100}% + ${dragOffset}px))`,
+              ? `translateX(calc(${displayIndex * 100}% - ${dragOffset}px))` 
+              : `translateX(calc(-${displayIndex * 100}% + ${dragOffset}px))`,
             willChange: isDragging ? 'transform' : 'auto',
             direction: isRTL ? 'rtl' : 'ltr'
           }}
@@ -369,14 +423,22 @@ const ImageCarousel = ({ images, title, autoPlay = true, showThumbnails = true }
           onTouchMove={handleTouchMove}
           onTouchEnd={handleTouchEnd}
         >
-          {safeImages.map((image, index) => (
+          {extendedImages.map((image, index) => (
             <img
-              key={index}
+              key={`extended-${index}`}
               src={image}
               alt={`${title} ${index + 1}`}
               className="w-full h-full object-cover flex-shrink-0 select-none cursor-pointer"
               draggable={false}
-              onClick={() => openModal(index)}
+              onClick={() => {
+                // Calculate the actual image index for modal
+                const actualImageIndex = index === 0 
+                  ? safeImages.length - 1  // Last image duplicate
+                  : index === extendedImages.length - 1 
+                    ? 0  // First image duplicate
+                    : index - 1;  // Normal images
+                openModal(actualImageIndex);
+              }}
               onError={e => { e.currentTarget.src = "https://images.unsplash.com/photo-1551488831-00ddcb6c6bd3?w=800&h=800&fit=crop"; }}
             />
           ))}
@@ -392,7 +454,7 @@ const ImageCarousel = ({ images, title, autoPlay = true, showThumbnails = true }
                 key={index}
                 onClick={() => goToSlide(index)}
                 className={`relative w-2 h-2 rounded-full transition-all duration-300 ${
-                  index === currentIndex 
+                  index === actualIndex 
                     ? 'bg-primary scale-125' 
                     : 'bg-white/50 hover:bg-white/70'
                 }`}
@@ -421,7 +483,7 @@ const ImageCarousel = ({ images, title, autoPlay = true, showThumbnails = true }
               key={index}
               onClick={() => goToSlide(index)}
               className={`aspect-square overflow-hidden rounded-lg border-2 transition-all duration-200 hover-scale ${
-                currentIndex === index 
+                actualIndex === index 
                   ? 'border-primary shadow-lg scale-105' 
                   : 'border-transparent hover:border-primary/50'
               }`}

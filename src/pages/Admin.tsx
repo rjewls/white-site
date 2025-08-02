@@ -13,6 +13,7 @@ import { Plus, Edit, Trash2, Save, X, LogOut, User, ImageIcon, Truck } from "luc
 import { compressImages, formatFileSize, supportsWebP } from "@/lib/imageCompression";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { wilayaDeliveryFees } from "@/lib/deliveryFees";
+import { RichTextEditor, RichContentRenderer } from "@/components/RichTextEditor";
 
 // Products will be fetched from Supabase
 
@@ -753,7 +754,19 @@ const Admin = () => {
                                 {product.title}
                               </h3>
                               <p className="text-sm text-muted-foreground line-clamp-3 leading-relaxed">
-                                {product.description}
+                                {(() => {
+                                  try {
+                                    const parsed = JSON.parse(product.description);
+                                    if (Array.isArray(parsed)) {
+                                      const textBlocks = parsed.filter(block => block.type === 'text');
+                                      const allText = textBlocks.map(block => block.content).join(' ');
+                                      return allText.substring(0, 150) + (allText.length > 150 ? '...' : '');
+                                    }
+                                  } catch {
+                                    return product.description.substring(0, 150) + (product.description.length > 150 ? '...' : '');
+                                  }
+                                  return product.description.substring(0, 150) + (product.description.length > 150 ? '...' : '');
+                                })()}
                               </p>
                             </div>
                           </div>
@@ -890,7 +903,19 @@ const Admin = () => {
                             {product.title}
                           </h3>
                           <p className="text-muted-foreground mb-2 text-sm line-clamp-1">
-                            {product.description}
+                            {(() => {
+                              try {
+                                const parsed = JSON.parse(product.description);
+                                if (Array.isArray(parsed)) {
+                                  const textBlocks = parsed.filter(block => block.type === 'text');
+                                  const allText = textBlocks.map(block => block.content).join(' ');
+                                  return allText.substring(0, 100) + (allText.length > 100 ? '...' : '');
+                                }
+                              } catch {
+                                return product.description.substring(0, 100) + (product.description.length > 100 ? '...' : '');
+                              }
+                              return product.description.substring(0, 100) + (product.description.length > 100 ? '...' : '');
+                            })()}
                           </p>
                           <div className="flex items-center gap-4 text-sm text-muted-foreground">
                             <span className="font-medium text-primary text-base">Price: {product.price} DZD</span>
@@ -1101,13 +1126,14 @@ const ProductForm: React.FC<ProductFormProps> = ({
       {/* Description */}
       <div>
         <Label htmlFor="description" className="text-sm font-medium">{t('form.description')} {t('form.required')}</Label>
-        <Textarea
-          id="description"
-          value={formData.description}
-          onChange={(e) => setFormData({...formData, description: e.target.value})}
-          placeholder={t('form.description')}
-          className="mt-1 min-h-[100px]"
-        />
+        <div className="mt-1">
+          <RichTextEditor
+            value={formData.description}
+            onChange={(value) => setFormData({...formData, description: value})}
+            placeholder={t('form.description')}
+            t={t}
+          />
+        </div>
       </div>
 
       {/* Colors and Sizes */}
