@@ -20,6 +20,7 @@ import { RichTextEditor, RichContentRenderer } from "@/components/RichTextEditor
 interface FormData {
   title: string;
   price: string;
+  oldPrice?: string; // Optional old price for sale display
   images: (File | string)[];
   description: string;
   colors: string | string[];
@@ -94,6 +95,7 @@ const Admin = () => {
   const [formData, setFormData] = useState<FormData>({
     title: "",
     price: "",
+    oldPrice: "",
     images: [],
     description: "",
     colors: "",
@@ -104,6 +106,7 @@ const Admin = () => {
     setFormData({
       title: "",
       price: "",
+      oldPrice: "",
       images: [],
       description: "",
       colors: "",
@@ -234,6 +237,7 @@ const Admin = () => {
     setFormData({
       title: product.title,
       price: product.price?.toString(),
+      oldPrice: product.oldprice?.toString() || "",
       images: imagesArr,
       description: product.description,
       colors: cleanArrayField(product.colors),
@@ -291,6 +295,7 @@ const Admin = () => {
     const productData = {
       title: formData.title,
       price: parseFloat(formData.price),
+      oldprice: formData.oldPrice && formData.oldPrice.trim() ? parseFloat(formData.oldPrice) : null,
       images: imageUrls,
       description: formData.description,
       colors: Array.isArray(formData.colors)
@@ -775,7 +780,18 @@ const Admin = () => {
                           <div className="flex items-center justify-start bg-muted/30 rounded-lg p-3">
                             <div>
                               <span className="text-xs text-muted-foreground">Price</span>
-                              <div className="font-bold text-primary text-xl">{product.price} DZD</div>
+                              {product.oldprice ? (
+                                <div className="space-y-1">
+                                  <div className="relative">
+                                    <span className="text-sm text-muted-foreground line-through">
+                                      {product.oldprice} DZD
+                                    </span>
+                                  </div>
+                                  <div className="font-bold text-primary text-xl">{product.price} DZD</div>
+                                </div>
+                              ) : (
+                                <div className="font-bold text-primary text-xl">{product.price} DZD</div>
+                              )}
                             </div>
                           </div>
                           
@@ -918,7 +934,13 @@ const Admin = () => {
                             })()}
                           </p>
                           <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                            <span className="font-medium text-primary text-base">Price: {product.price} DZD</span>
+                            {product.oldPrice ? (
+                              <span className="font-medium text-primary text-base">
+                                Price: <span className="line-through text-muted-foreground text-sm">{product.oldPrice} DZD</span> {product.price} DZD
+                              </span>
+                            ) : (
+                              <span className="font-medium text-primary text-base">Price: {product.price} DZD</span>
+                            )}
                             <span className="flex items-center gap-1">Colors:
                               {(Array.isArray(product.colors)
                                 ? product.colors
@@ -1036,6 +1058,26 @@ const ProductForm: React.FC<ProductFormProps> = ({
             className="mt-1"
           />
         </div>
+      </div>
+
+      {/* Old Price and Price Row (if oldPrice is set) */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div>
+          <Label htmlFor="oldPrice" className="text-sm font-medium">Old Price (Optional - for sale display)</Label>
+          <Input
+            id="oldPrice"
+            type="number"
+            step="0.01"
+            value={formData.oldPrice}
+            onChange={(e) => setFormData({...formData, oldPrice: e.target.value})}
+            placeholder="0.00"
+            className="mt-1"
+          />
+          <p className="text-xs text-muted-foreground mt-1">
+            Leave empty for regular pricing. Fill to show strikethrough old price.
+          </p>
+        </div>
+        <div></div> {/* Empty div for grid alignment */}
       </div>
 
       {/* Images Section */}

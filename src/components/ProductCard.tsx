@@ -13,6 +13,7 @@ interface Product {
   id: string;
   title: string;
   price: number;
+  oldprice?: number; // Optional old price for sale display (lowercase as in Supabase)
   image?: string; // Keep for backward compatibility
   images?: string[];
   description: string;
@@ -119,105 +120,67 @@ export const ProductCard = ({ product }: ProductCardProps) => {
   return (
     <div className="h-full">
       <Link to={`/product/${product.id}`} className="block h-full group">
-        <Card className="relative h-full bg-white dark:bg-gray-900 rounded-2xl overflow-hidden shadow-lg lg:hover:shadow-2xl transition-shadow duration-200 lg:hover:scale-[1.01] lg:transform-gpu border-0 ring-1 ring-gray-100 dark:ring-gray-800 flex flex-col">
-          {/* Image Container with optimized effects */}
-          <div className="relative w-full h-[269px] sm:h-[216px] md:h-[228px] flex-shrink-0 overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900">
+        <Card className="relative h-full bg-white rounded-lg overflow-hidden border-2 border-transparent group-hover:border-pink-500 transition-all duration-300 flex flex-col">
+          {/* Image Container - Top Half */}
+          <div className="relative w-full h-1/2 flex-shrink-0 overflow-hidden border-2 border-pink-400 group-hover:border-transparent transition-all duration-300">
             <img
               src={imageUrl}
               alt={product.title}
-              className="w-full h-full object-cover lg:transition-transform lg:duration-300 lg:group-hover:scale-105"
+              className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
               onError={e => { e.currentTarget.src = 'https://images.unsplash.com/photo-1551488831-00ddcb6c6bd3?w=800&h=800&fit=crop'; }}
             />
-            {/* Simplified overlay for mobile performance */}
-            <div className="absolute inset-0 bg-gradient-to-t from-black/10 via-transparent to-transparent lg:opacity-0 lg:group-hover:opacity-100 lg:transition-opacity lg:duration-200" />
-            
-            {/* Simplified floating badge */}
-            <div className="absolute top-3 left-3 bg-white/95 rounded-full px-3 py-1 shadow-md">
-              <div className="flex items-center gap-1">
-                <Star className="w-3 h-3 text-yellow-500 fill-yellow-500" />
-                <span className="text-xs font-medium text-gray-800">4.5</span>
-              </div>
-            </div>
-
-            {/* Heart icon - hidden on mobile for performance */}
-            <div className="hidden lg:block absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-all duration-150 transform translate-y-1 group-hover:translate-y-0">
-              <div className="bg-white/90 rounded-full p-2 shadow-lg hover:bg-white transition-colors duration-100">
-                <Heart className="w-4 h-4 text-gray-600 hover:text-red-500 transition-colors duration-100" />
-              </div>
-            </div>
           </div>
 
-          {/* Content Container with optimized mobile layout */}
-          <CardContent className="pt-3 px-4 pb-4 sm:pt-5 sm:px-5 sm:pb-8 flex flex-col flex-1 min-h-0">
-            <div className="flex-1 flex flex-col justify-between space-y-2 sm:space-y-4">
-              {/* Title with improved typography */}
-              <h3 className="font-semibold text-base sm:text-xl leading-tight text-gray-900 dark:text-white line-clamp-2 group-hover:text-primary transition-colors duration-150">
-                {product.title}
-              </h3>
+          {/* Content Container - Bottom Half */}
+          <CardContent className="flex-1 flex flex-col justify-center items-center text-center p-4 space-y-3">
+            {/* Product Title */}
+            <h3 className="font-semibold text-lg text-gray-900 line-clamp-2">
+              {product.title}
+            </h3>
 
-              {/* Price Section - Featured prominently */}
-              <div className="space-y-1 sm:space-y-2">
-                <div className="flex items-baseline gap-2">
-                  <span className="text-lg sm:text-2xl font-bold text-gray-900 dark:text-white">
+            {/* Product Price */}
+            <div className="space-y-1 min-h-[60px] flex flex-col justify-center">
+              {product.oldprice ? (
+                <div className="flex flex-col items-center">
+                  {/* Old Price with red strikethrough */}
+                  <div className="relative">
+                    <span className="text-lg font-semibold text-gray-400">
+                      {product.oldprice.toLocaleString()} DZD
+                    </span>
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <div className="w-full h-0.5 bg-red-500 transform -rotate-12"></div>
+                    </div>
+                  </div>
+                  {/* New Price - Pink */}
+                  <div className="flex items-baseline gap-1">
+                    <span className="text-xl font-bold text-pink-500">
+                      {product.price.toLocaleString()}
+                    </span>
+                    <span className="text-sm font-medium text-pink-400">DZD</span>
+                  </div>
+                </div>
+              ) : (
+                <div className="flex items-baseline gap-1 justify-center">
+                  <span className="text-xl font-bold text-pink-500">
                     {product.price.toLocaleString()}
                   </span>
-                  <span className="text-sm font-medium text-gray-500">DZD</span>
+                  <span className="text-sm font-medium text-pink-400">DZD</span>
                 </div>
-                
-                {/* Enhanced Rating with better visual hierarchy - Compact on mobile */}
-                <div className="flex items-center gap-1 sm:gap-2">
-                  <div className="flex items-center">
-                    {[...Array(4)].map((_, i) => (
-                      <Star key={i} className="w-3 h-3 sm:w-5 sm:h-5 text-yellow-400 fill-yellow-400" />
-                    ))}
-                    <Star className="w-3 h-3 sm:w-5 sm:h-5 text-yellow-400" style={{ fill: 'url(#half)' }} />
-                  </div>
-                  <span className="text-xs sm:text-base text-gray-600 font-medium">(4.5)</span>
-                  <span className="hidden sm:inline text-gray-400">•</span>
-                  <span className="hidden sm:inline text-base text-gray-600">142 reviews</span>
-                </div>
-              </div>
-
-              {/* Product Info Strip - Simplified on mobile */}
-              <div className="flex items-center gap-2 sm:gap-4 text-xs sm:text-base">
-                <div className="flex items-center gap-1">
-                  <div className="w-1.5 h-1.5 sm:w-2.5 sm:h-2.5 bg-green-500 rounded-full"></div>
-                  <span className="text-green-600 font-medium">In Stock</span>
-                </div>
-                <span className="text-gray-400">•</span>
-                <span className="text-gray-600">
-                  {colors.length === 0 
-                    ? "No colors" 
-                    : colors.length === 1 
-                      ? "1 color" 
-                      : `${colors.length} colors`
-                  }
-                </span>
-              </div>
-
-              {/* Quick Action Buttons - Fixed positioning */}
-              <div className="flex justify-center pt-1 sm:pt-2">
-                <button
-                  onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    navigate(`/product/${product.id}`);
-                  }}
-                  className="bg-gradient-to-r from-rose-500 to-pink-600 text-white font-semibold py-1.5 sm:py-2.5 px-4 sm:px-8 rounded-lg hover:from-rose-600 hover:to-pink-700 transition-all duration-200 shadow-md hover:shadow-lg flex items-center justify-center gap-1.5 sm:gap-2 text-sm sm:text-base"
-                >
-                  <ShoppingCart className="w-3.5 h-3.5 sm:w-5 sm:h-5" />
-                  <span>Add to Cart</span>
-                </button>
-              </div>
+              )}
             </div>
 
-            {/* Hidden gradient for half star */}
-            <svg width="0" height="0">
-              <linearGradient id="half" x1="0" x2="1" y1="0" y2="0">
-                <stop offset="50%" stopColor="#facc15" />
-                <stop offset="50%" stopColor="transparent" />
-              </linearGradient>
-            </svg>
+            {/* Add to Cart Button */}
+            <button
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                navigate(`/product/${product.id}`);
+              }}
+              className="bg-pink-500 text-white font-semibold py-2 px-6 rounded-lg border-2 border-pink-500 hover:bg-white hover:text-pink-500 hover:border-pink-500 transition-all duration-200 flex items-center justify-center gap-2"
+            >
+              <ShoppingCart className="w-4 h-4" />
+              <span>Add to Cart</span>
+            </button>
           </CardContent>
         </Card>
       </Link>
