@@ -1,5 +1,5 @@
 // React hooks for state and lifecycle
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 // Supabase client for database operations
 import { supabase } from "@/lib/supabaseClient";
 // Get route parameters (like product id)
@@ -63,6 +63,9 @@ const ProductDetail = () => {
   });
   // State for communes based on selected wilaya
   const [communes, setCommunes] = useState<string[]>([]);
+  // State for floating order button visibility
+  const [showFloatingButton, setShowFloatingButton] = useState(false);
+  const orderFormRef = useRef<HTMLDivElement>(null);
 
   // Form handling with react-hook-form
   const form = useForm<OrderFormValues>({
@@ -150,6 +153,29 @@ const ProductDetail = () => {
     };
     fetchProduct();
   }, [id]);
+
+  // Intersection Observer to detect if order form is in view (mobile only)
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const [entry] = entries;
+        // Show floating button when order form is NOT in view and we're on mobile
+        setShowFloatingButton(!entry.isIntersecting);
+      },
+      { threshold: 0.1 }
+    );
+
+    const currentRef = orderFormRef.current;
+    if (currentRef) {
+      observer.observe(currentRef);
+    }
+
+    return () => {
+      if (currentRef) {
+        observer.unobserve(currentRef);
+      }
+    };
+  }, [product]); // Re-run when product loads
 
   // Update communes when wilaya changes
   useEffect(() => {
@@ -357,6 +383,16 @@ const ProductDetail = () => {
     }
   };
 
+  // Function to scroll to order form
+  const scrollToOrderForm = () => {
+    if (orderFormRef.current) {
+      orderFormRef.current.scrollIntoView({
+        behavior: 'smooth',
+        block: 'start'
+      });
+    }
+  };
+
   // Show loading spinner/message while fetching
   if (product === null) {
     return (
@@ -465,7 +501,7 @@ const ProductDetail = () => {
             </div>
             
             {/* Purchase Form - Mobile */}
-            <Card className="bg-gradient-card">
+            <Card ref={orderFormRef} className="bg-gradient-card">
               <CardHeader className="pb-3">
                 <CardTitle className="font-playfair text-xl sm:text-2xl">
                   Purchase Details
@@ -608,6 +644,19 @@ const ProductDetail = () => {
           </div>
         </div>
       </div>
+      
+      {/* Floating Order Now Button - Mobile Only */}
+      {showFloatingButton && (
+        <div className="fixed bottom-6 right-6 z-50 lg:hidden">
+          <button
+            onClick={scrollToOrderForm}
+            className="bg-pink-500 hover:bg-pink-600 text-white font-bold py-4 px-6 rounded-full shadow-2xl transform transition-all duration-300 hover:scale-110 animate-shake flex items-center gap-2"
+          >
+            <ShoppingCart className="w-5 h-5" />
+            <span>Order Now</span>
+          </button>
+        </div>
+      )}
       
       {/* Hidden SVG for half-filled star gradient */}
       <svg width="0" height="0" style={{ position: 'absolute' }}>
