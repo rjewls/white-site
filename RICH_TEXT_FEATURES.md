@@ -76,3 +76,23 @@ The formatting toolbar is optimized for mobile devices:
 - **3X-Large (30px)** - Main headlines
 
 This enhanced rich text editor provides complete control over product description styling while maintaining ease of use and mobile compatibility.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

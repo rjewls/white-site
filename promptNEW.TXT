@@ -1,0 +1,116 @@
+
+# E-Commerce Project Requirements for Supabase Free Tier
+
+## Core Functionality
+- Build an e-commerce site with product catalog and order management system
+- Use Supabase for backend database and authentication
+- Implement Row Level Security (RLS) for data protection
+
+## Database Schema
+### Orders Table
+- Columns:
+  - id (primary key)
+  - user_id (foreign key to auth.users)
+  - total_price
+  - status ('pending', 'uploaded', 'expédié', 'livré')
+  - wilaya
+  - commune
+  - shipping_address
+  - delivery type(à domicile or stopdesk)
+  - created_at
+
+
+### Order Items Table
+- Columns:
+  - id (primary key)
+  - order_id (foreign key to orders)
+  - product_id (foreign key to products)
+  - quantity
+  - item_price
+  - subtotal
+
+## Cleanup Strategy Requirements
+### Automated Order Archiving
+1. Create a background job that runs every two weeks
+2. Archive criteria:
+   - Move orders older than 60 days to an archive table
+   - Delete archived orders from the main orders table
+   - Ensure archived orders are still accessible for customer support
+
+### Implementation Approach
+- Use Supabase Edge Functions for cleanup job
+- Create an archive table with the same schema as orders
+- Implement soft delete mechanism with a boolean 'is_archived' flag
+- Ensure the cleanup process is efficient and minimizes database load
+
+## Performance Optimization
+- Add appropriate indexes to frequently queried columns
+- Implement caching strategies
+- Use Supabase connection pooling
+
+## Security Considerations
+- Implement Row Level Security (RLS) on all tables
+- Use Supabase authentication for user management
+- Validate and sanitize all user inputs
+- Implement rate limiting on order creation
+
+## Admin Dashboard Features
+- View all orders
+- Filter orders by status, date range
+- Basic order management (update status, cancel)
+- View archived orders
+
+## Deployment Preparation
+- Set up GitHub Actions for CI/CD
+- Configure environment variables for Supabase credentials
+- Implement error logging and monitoring
+
+## Scalability Considerations
+- Design with upgrade to Pro plan in mind
+- Create modular functions for easy migration
+- Use TypeScript for type safety
+
+## Technical Stack Recommendation
+- Frontend: React with Next.js
+- Backend: Supabase (Postgres, Edge Functions)
+- State Management: Zustand or Redux
+- UI Library: Shadcn/ui or Tailwind UI
+- Payment Integration: Stripe or similar
+
+## Specific Cleanup Function Pseudocode
+```typescript
+async function archiveOldOrders() {
+  const ARCHIVE_THRESHOLD_DAYS = 60;
+  
+  // Begin transaction
+  const { data: archivedOrders, error: archiveError } = await supabase
+    .from('orders')
+    .select('*')
+    .lt('created_at', new Date(Date.now() - ARCHIVE_THRESHOLD_DAYS * 24 * 60 * 60 * 1000))
+    .limit(1000);  // Batch process to avoid overwhelming the database
+
+  if (archiveError) {
+    console.error('Error selecting orders to archive:', archiveError);
+    return;
+  }
+
+  // Insert into archive table
+  const { error: insertArchiveError } = await supabase
+    .from('order_archives')
+    .insert(archivedOrders);
+
+  if (insertArchiveError) {
+    console.error('Error archiving orders:', insertArchiveError);
+    return;
+  }
+
+  // Delete archived orders from main table
+  const { error: deleteError } = await supabase
+    .from('orders')
+    .delete()
+    .lt('created_at', new Date(Date.now() - ARCHIVE_THRESHOLD_DAYS * 24 * 60 * 60 * 1000));
+
+  if (deleteError) {
+    console.error('Error deleting archived orders:', deleteError);
+  }
+}
