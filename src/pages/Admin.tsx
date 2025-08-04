@@ -92,6 +92,8 @@ const Admin = () => {
   const [compressionStatus, setCompressionStatus] = useState("");
   const [deliveryFees, setDeliveryFees] = useState(wilayaDeliveryFees);
   const [showDeliveryFeesForm, setShowDeliveryFeesForm] = useState(false);
+  const [showNoestExpressForm, setShowNoestExpressForm] = useState(false);
+  const [noestExpressConfig, setNoestExpressConfig] = useState({ api_token: '', guid: '' });
   const [formData, setFormData] = useState<FormData>({
     title: "",
     price: "",
@@ -498,6 +500,96 @@ const Admin = () => {
     fetchDeliveryFees();
   }, [fetchDeliveryFees]);
 
+  // Noest Express configuration functions
+  const fetchNoestExpressConfig = useCallback(async () => {
+    try {
+      const { data, error } = await supabase
+        .from('noest_express_config')
+        .select('*')
+        .limit(1)
+        .single();
+
+      if (error && error.code !== 'PGRST116') { // PGRST116 is "no rows returned"
+        console.error('Error fetching Noest Express config:', error);
+        toast({
+          title: "Error loading Noest Express config",
+          description: error.message,
+          variant: "destructive"
+        });
+        return;
+      }
+
+      if (data) {
+        setNoestExpressConfig({
+          api_token: data.api_token || '',
+          guid: data.guid || ''
+        });
+      }
+    } catch (error) {
+      console.error('Error fetching Noest Express config:', error);
+    }
+  }, [toast]);
+
+  const saveNoestExpressConfig = async () => {
+    try {
+      // First, try to update existing record
+      const { data: existingData } = await supabase
+        .from('noest_express_config')
+        .select('id')
+        .limit(1)
+        .single();
+
+      let result;
+      if (existingData) {
+        // Update existing record
+        result = await supabase
+          .from('noest_express_config')
+          .update({
+            api_token: noestExpressConfig.api_token.trim(),
+            guid: noestExpressConfig.guid.trim()
+          })
+          .eq('id', existingData.id);
+      } else {
+        // Insert new record
+        result = await supabase
+          .from('noest_express_config')
+          .insert({
+            api_token: noestExpressConfig.api_token.trim(),
+            guid: noestExpressConfig.guid.trim()
+          });
+      }
+
+      if (result.error) {
+        toast({
+          title: "Error saving Noest Express config",
+          description: result.error.message,
+          variant: "destructive"
+        });
+        return;
+      }
+
+      toast({
+        title: "✅ Success!",
+        description: "Noest Express configuration saved successfully",
+        className: "bg-green-50 border-green-200 text-green-800"
+      });
+
+      setShowNoestExpressForm(false);
+    } catch (error) {
+      console.error('Error saving Noest Express config:', error);
+      toast({
+        title: "Error saving configuration",
+        description: "Failed to save Noest Express configuration",
+        variant: "destructive"
+      });
+    }
+  };
+
+  // Fetch Noest Express config on mount
+  useEffect(() => {
+    fetchNoestExpressConfig();
+  }, [fetchNoestExpressConfig]);
+
   return (
     <div className={`min-h-screen bg-gradient-soft ${isRTL ? 'rtl' : 'ltr'}`} dir={isRTL ? 'rtl' : 'ltr'}>
       <Navigation />
@@ -547,6 +639,15 @@ const Admin = () => {
             >
               <Truck className="h-4 w-4" />
               <span className="hidden sm:inline">Delivery Fees</span>
+            </Button>
+            
+            <Button
+              onClick={() => setShowNoestExpressForm(true)}
+              variant="outline"
+              className="flex items-center justify-center gap-2 px-3 py-3 sm:py-2 border-purple-200 text-purple-600 hover:bg-purple-50 hover:border-purple-300"
+            >
+              <Truck className="h-4 w-4" />
+              <span className="hidden sm:inline">Noest Express</span>
             </Button>
             
             <Button
@@ -684,6 +785,97 @@ const Admin = () => {
                     onClick={() => {
                       setDeliveryFees(wilayaDeliveryFees);
                       setShowDeliveryFeesForm(false);
+                    }}
+                    variant="outline"
+                  >
+                    Cancel
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Noest Express Configuration Form */}
+        {showNoestExpressForm && (
+          <Card className="mb-4 sm:mb-8 bg-gradient-card border-0 shadow-lg">
+            <CardHeader className="px-3 sm:px-6 py-3 sm:py-4 border-b">
+              <div className="flex items-center justify-between">
+                <CardTitle className="font-playfair text-lg sm:text-xl flex items-center gap-2">
+                  <Truck className="h-5 w-5 text-purple-600" />
+                  Noest Express Configuration
+                </CardTitle>
+                <Button
+                  onClick={() => setShowNoestExpressForm(false)}
+                  variant="ghost"
+                  size="sm"
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent className="px-3 sm:px-6 pb-4 sm:pb-6 pt-4">
+              <div className="space-y-6">
+                <div className="text-sm text-muted-foreground mb-4">
+                  Configure your Noest Express API credentials for shipping integration. These settings will be securely stored and used for all shipping operations.
+                </div>
+                
+                <div className="space-y-4">
+                  <div>
+                    <Label htmlFor="noest-api-token" className="text-sm font-medium">
+                      API Token
+                    </Label>
+                    <Input
+                      id="noest-api-token"
+                      type="text"
+                      value={noestExpressConfig.api_token}
+                      onChange={(e) => setNoestExpressConfig(prev => ({
+                        ...prev,
+                        api_token: e.target.value
+                      }))}
+                      placeholder="Enter your Noest Express API token"
+                      className="mt-1"
+                    />
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Your API token from Noest Express dashboard
+                    </p>
+                  </div>
+                  
+                  <div>
+                    <Label htmlFor="noest-guid" className="text-sm font-medium">
+                      GUID
+                    </Label>
+                    <Input
+                      id="noest-guid"
+                      type="text"
+                      value={noestExpressConfig.guid}
+                      onChange={(e) => setNoestExpressConfig(prev => ({
+                        ...prev,
+                        guid: e.target.value
+                      }))}
+                      placeholder="Enter your Noest Express GUID"
+                      className="mt-1"
+                    />
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Your unique GUID identifier from Noest Express
+                    </p>
+                  </div>
+                </div>
+                
+                <div className="flex gap-3 pt-4 border-t">
+                  <Button
+                    onClick={saveNoestExpressConfig}
+                    variant="elegant"
+                    className="flex items-center gap-2"
+                  >
+                    <Save className="h-4 w-4" />
+                    Save Configuration
+                  </Button>
+                  
+                  <Button
+                    onClick={() => {
+                      setNoestExpressConfig({ api_token: '', guid: '' });
+                      setShowNoestExpressForm(false);
                     }}
                     variant="outline"
                   >
