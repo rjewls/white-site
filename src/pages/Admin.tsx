@@ -632,31 +632,69 @@ const Admin = () => {
               <span className="font-medium">{t('admin.addProduct')}</span>
             </Button>
             
+            {/* Logout button - only visible on desktop, moved to mobile section below */}
+            <Button
+              onClick={signOut}
+              variant="outline"
+              className="hidden sm:flex items-center justify-center gap-2 px-4 py-2 border-red-200 text-red-600 hover:bg-red-50 hover:border-red-300"
+            >
+              <LogOut className="h-4 w-4" />
+              <span>{t('admin.logout')}</span>
+            </Button>
+          </div>
+        </div>
+
+        {/* Mobile Configuration & Logout Section */}
+        <div className="mb-4 sm:mb-6 block sm:hidden">
+          <div className="grid grid-cols-2 gap-2 mb-3">
             <Button
               onClick={() => setShowDeliveryFeesForm(true)}
               variant="outline"
-              className="flex items-center justify-center gap-2 px-3 py-3 sm:py-2 border-blue-200 text-blue-600 hover:bg-blue-50 hover:border-blue-300"
+              className="flex items-center justify-center gap-2 py-3 border-blue-200 text-blue-600 hover:bg-blue-50 hover:border-blue-300"
             >
               <Truck className="h-4 w-4" />
-              <span className="hidden sm:inline">Delivery Fees</span>
+              <span className="text-sm">Delivery Fees</span>
             </Button>
             
             <Button
               onClick={() => setShowNoestExpressForm(true)}
               variant="outline"
-              className="flex items-center justify-center gap-2 px-3 py-3 sm:py-2 border-purple-200 text-purple-600 hover:bg-purple-50 hover:border-purple-300"
+              className="flex items-center justify-center gap-2 py-3 border-purple-200 text-purple-600 hover:bg-purple-50 hover:border-purple-300"
             >
               <Truck className="h-4 w-4" />
-              <span className="hidden sm:inline">Noest Express</span>
+              <span className="text-sm">Noest Express</span>
+            </Button>
+          </div>
+          
+          <Button
+            onClick={signOut}
+            variant="outline"
+            className="w-full flex items-center justify-center gap-2 py-3 border-red-200 text-red-600 hover:bg-red-50 hover:border-red-300"
+          >
+            <LogOut className="h-4 w-4" />
+            <span>{t('admin.logout')}</span>
+          </Button>
+        </div>
+
+        {/* Desktop Configuration Section */}
+        <div className="hidden sm:flex justify-center mb-6">
+          <div className="flex gap-3">
+            <Button
+              onClick={() => setShowDeliveryFeesForm(true)}
+              variant="outline"
+              className="flex items-center justify-center gap-2 px-4 py-2 border-blue-200 text-blue-600 hover:bg-blue-50 hover:border-blue-300"
+            >
+              <Truck className="h-4 w-4" />
+              <span>Delivery Fees</span>
             </Button>
             
             <Button
-              onClick={signOut}
+              onClick={() => setShowNoestExpressForm(true)}
               variant="outline"
-              className="flex items-center justify-center gap-2 px-4 py-3 sm:py-2 border-red-200 text-red-600 hover:bg-red-50 hover:border-red-300"
+              className="flex items-center justify-center gap-2 px-4 py-2 border-purple-200 text-purple-600 hover:bg-purple-50 hover:border-purple-300"
             >
-              <LogOut className="h-4 w-4" />
-              <span className="hidden sm:inline">{t('admin.logout')}</span>
+              <Truck className="h-4 w-4" />
+              <span>Noest Express</span>
             </Button>
           </div>
         </div>
