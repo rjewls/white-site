@@ -2,6 +2,8 @@
 import { useState, useEffect, useRef } from "react";
 // Supabase client for database operations
 import { supabase } from "@/lib/supabaseClient";
+// Noest API integration
+import { getWilayaId } from "@/lib/noestApi";
 // Get route parameters (like product id)
 import { useParams } from "react-router-dom";
 // Top navigation bar
@@ -207,8 +209,6 @@ const ProductDetail = () => {
       return;
     }
     
-    const webhookUrl = "https://discord.com/api/webhooks/1398783921738481745/Bg0f-Qp7ePQxfORlP4SZ5So5C7xxRtmTOWOmEXQmMpdvnTqy9CVxg8Sbn4LcpPYN4EBD";
-    
     // Function to get color emoji based on hex color value
     const getColorEmoji = (color: string) => {
       // If it's not a hex color, return default
@@ -312,22 +312,59 @@ const ProductDetail = () => {
     // Calculate total price
     const totalPrice = (product.price * values.quantity) + deliveryFee;
     
-    const orderData = {
-      productId: product.id,
-      productTitle: product.title || product.name,
-      productPrice: product.price,
-      quantity: values.quantity,
-      wilaya: values.wilaya,
-      commune: values.commune,
-      deliveryOption: values.deliveryOption,
-      name: values.name,
-      phone: values.phone,
-      address: values.address,
-      deliveryFee,
-      totalPrice,
-    };
-
+    // Discord webhook URL (keep existing functionality)
+    const webhookUrl = "https://discord.com/api/webhooks/1398783921738481745/Bg0f-Qp7ePQxfORlP4SZ5So5C7xxRtmTOWOmEXQmMpdvnTqy9CVxg8Sbn4LcpPYN4EBD";
+    
     try {
+      // Get wilaya_id for Noest API compatibility
+      const wilayaId = await getWilayaId(values.wilaya);
+      
+      const orderData = {
+        // Noest API compatible fields
+        client: values.name,
+        phone: values.phone,
+        adresse: values.address,
+        wilaya_id: wilayaId,
+        commune: values.commune,
+        produit: product.title,
+        montant: totalPrice,
+        remarque: '',
+        type_id: 1, // 1 = delivery
+        poids: 500, // Default weight in grams
+        stop_desk: values.deliveryOption === 'home' ? 0 : 1,
+        can_open: 1, // Allow opening
+        stock: 0, // Not from Noest stock
+        quantite: values.quantity.toString(),
+        
+        // Keep existing fields for compatibility
+        product_id: product.id,
+        product_title: product.title,
+        product_price: product.price,
+        quantity: values.quantity,
+        delivery_fee: deliveryFee,
+        total_price: totalPrice,
+        customer_name: values.name,
+        customer_phone: values.phone,
+        delivery_address: values.address,
+        wilaya: values.wilaya,
+        delivery_option: values.deliveryOption,
+        status: 'pending', // Default status for new orders
+        
+        // Item details for multi-quantity orders
+        selected_color: values.quantity === 1 ? values.selectedColor : JSON.stringify(values.selectedColors),
+        selected_size: values.quantity === 1 ? values.selectedSize : JSON.stringify(values.selectedSizes),
+      };
+
+      // 1. Save order to Supabase first
+      const { error: supabaseError } = await supabase
+        .from('orders')
+        .insert(orderData);
+
+      if (supabaseError) {
+        throw new Error('Failed to save order: ' + supabaseError.message);
+      }
+
+      // 2. Send to Discord webhook (keep existing functionality)
       const response = await fetch(webhookUrl, {
         method: "POST",
         headers: {
@@ -337,14 +374,14 @@ const ProductDetail = () => {
           embeds: [{
             color: 0xec4899, // Pink color
             description: "🛍️ **NEW ORDER** 🛍️\n\n" +
-                        "📦 **" + orderData.productTitle + "** | Qty: " + orderData.quantity + 
+                        "📦 **" + product.title + "** | Qty: " + values.quantity + 
                         formatItemsForDiscord() + "\n\n" +
-                        "👤 " + orderData.name + " | 📱 " + orderData.phone + "\n" +
-                        "📍 " + orderData.wilaya + ", " + orderData.commune + "\n" +
-                        "🏠 " + orderData.address + "\n\n" +
-                        "🚚 " + (orderData.deliveryOption === "home" ? "🏠 Home Delivery" : "🏪 Stopdesk Delivery") + "\n\n" +
-                        "💰 **TOTAL: " + orderData.totalPrice + " DZD**\n" +
-                        orderData.productPrice * orderData.quantity + " DZD + " + orderData.deliveryFee + " DZD delivery\n\n" +
+                        "👤 " + values.name + " | 📱 " + values.phone + "\n" +
+                        "📍 " + values.wilaya + ", " + values.commune + "\n" +
+                        "🏠 " + values.address + "\n\n" +
+                        "🚚 " + (values.deliveryOption === "home" ? "🏠 Home Delivery" : "🏪 Stopdesk Delivery") + "\n\n" +
+                        "💰 **TOTAL: " + totalPrice + " DZD**\n" +
+                        (product.price * values.quantity) + " DZD + " + deliveryFee + " DZD delivery\n\n" +
                         "✅ Pending | ⏰ " + new Date().toLocaleString('en-GB', { 
                           timeZone: 'Africa/Algiers',
                           day: '2-digit',
@@ -355,31 +392,33 @@ const ProductDetail = () => {
                         }) + " 🌹"
           }]
         }),
-        
       });
 
       if (response.ok) {
-        toast.success("Order sent successfully!");
-        // Reset form
-        form.reset({
-          name: "",
-          phone: "",
-          wilaya: "",
-          commune: "",
-          deliveryOption: "",
-          address: "",
-          quantity: 1,
-          selectedColor: "",
-          selectedColors: [],
-          selectedSize: "",
-          selectedSizes: [],
-        });
+        toast.success("Order placed successfully! We will contact you soon.");
       } else {
-        toast.error("Error sending order");
+        // Order saved to Supabase but Discord failed - still show success
+        toast.success("Order placed successfully! We will contact you soon.");
       }
+      
+      // Reset form
+      form.reset({
+        name: "",
+        phone: "",
+        wilaya: "",
+        commune: "",
+        deliveryOption: "",
+        address: "",
+        quantity: 1,
+        selectedColor: "",
+        selectedColors: [],
+        selectedSize: "",
+        selectedSizes: [],
+      });
+      
     } catch (error) {
-      console.error(error);
-      toast.error("Error sending order");
+      console.error('Error submitting order:', error);
+      toast.error(error.message || 'Failed to place order. Please try again.');
     }
   };
 

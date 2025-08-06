@@ -9,11 +9,12 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/hooks/useLanguage";
-import { Plus, Edit, Trash2, Save, X, LogOut, User, ImageIcon, Truck } from "lucide-react";
+import { Plus, Edit, Trash2, Save, X, LogOut, User, ImageIcon, Truck, Package, Upload, Eye } from "lucide-react";
 import { compressImages, formatFileSize, supportsWebP } from "@/lib/imageCompression";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { wilayaDeliveryFees } from "@/lib/deliveryFees";
 import { RichTextEditor, RichContentRenderer } from "@/components/RichTextEditor";
+import { noestApiService } from "@/lib/noestApi";
 
 // Products will be fetched from Supabase
 
@@ -94,6 +95,13 @@ const Admin = () => {
   const [showDeliveryFeesForm, setShowDeliveryFeesForm] = useState(false);
   const [showNoestExpressForm, setShowNoestExpressForm] = useState(false);
   const [noestExpressConfig, setNoestExpressConfig] = useState({ api_token: '', guid: '' });
+  
+  // Orders state
+  const [orders, setOrders] = useState([]);
+  const [showOrdersSection, setShowOrdersSection] = useState(false);
+  const [editingOrderId, setEditingOrderId] = useState(null);
+  const [editingOrderData, setEditingOrderData] = useState(null);
+  
   const [formData, setFormData] = useState<FormData>({
     title: "",
     price: "",
@@ -503,11 +511,14 @@ const Admin = () => {
   // Noest Express configuration functions
   const fetchNoestExpressConfig = useCallback(async () => {
     try {
+      console.log('Fetching Noest config...');
       const { data, error } = await supabase
         .from('noest_express_config')
         .select('*')
         .limit(1)
         .single();
+
+      console.log('Fetch result:', { data, error });
 
       if (error && error.code !== 'PGRST116') { // PGRST116 is "no rows returned"
         console.error('Error fetching Noest Express config:', error);
@@ -520,9 +531,16 @@ const Admin = () => {
       }
 
       if (data) {
+        console.log('Setting Noest config from data:', data);
         setNoestExpressConfig({
           api_token: data.api_token || '',
           guid: data.guid || ''
+        });
+      } else {
+        console.log('No Noest config found, using empty values');
+        setNoestExpressConfig({
+          api_token: '',
+          guid: ''
         });
       }
     } catch (error) {
@@ -532,25 +550,32 @@ const Admin = () => {
 
   const saveNoestExpressConfig = async () => {
     try {
+      console.log('Saving Noest config:', noestExpressConfig);
+      
       // First, try to update existing record
-      const { data: existingData } = await supabase
+      const { data: existingData, error: selectError } = await supabase
         .from('noest_express_config')
         .select('id')
         .limit(1)
         .single();
 
+      console.log('Existing data query result:', { existingData, selectError });
+
       let result;
       if (existingData) {
         // Update existing record
+        console.log('Updating existing record with ID:', existingData.id);
         result = await supabase
           .from('noest_express_config')
           .update({
             api_token: noestExpressConfig.api_token.trim(),
-            guid: noestExpressConfig.guid.trim()
+            guid: noestExpressConfig.guid.trim(),
+            updated_at: new Date().toISOString()
           })
           .eq('id', existingData.id);
       } else {
         // Insert new record
+        console.log('Inserting new record');
         result = await supabase
           .from('noest_express_config')
           .insert({
@@ -559,7 +584,10 @@ const Admin = () => {
           });
       }
 
+      console.log('Save result:', result);
+
       if (result.error) {
+        console.error('Save error:', result.error);
         toast({
           title: "Error saving Noest Express config",
           description: result.error.message,
@@ -575,6 +603,12 @@ const Admin = () => {
       });
 
       setShowNoestExpressForm(false);
+      
+      // Verify the save by fetching again
+      setTimeout(() => {
+        fetchNoestExpressConfig();
+      }, 1000);
+      
     } catch (error) {
       console.error('Error saving Noest Express config:', error);
       toast({
@@ -585,10 +619,372 @@ const Admin = () => {
     }
   };
 
-  // Fetch Noest Express config on mount
+  // Check Noest Configuration
+  const checkNoestConfig = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('noest_express_config')
+        .select('*')
+        .eq('is_active', true)
+        .single();
+
+      if (error) {
+        console.error('Error fetching config:', error);
+        toast({
+          title: "❌ Config Error",
+          description: `No Noest configuration found: ${error.message}`,
+          variant: "destructive"
+        });
+        return;
+      }
+
+      console.log('Current Noest config:', {
+        id: data.id,
+        hasApiToken: !!data.api_token,
+        apiTokenLength: data.api_token?.length || 0,
+        apiTokenPreview: data.api_token ? `${data.api_token.substring(0, 10)}...` : 'MISSING',
+        hasGuid: !!data.guid,
+        guidLength: data.guid?.length || 0,
+        isActive: data.is_active,
+        createdAt: data.created_at
+      });
+
+      toast({
+        title: "✅ Config Check Complete",
+        description: `Found config with API token (${data.api_token?.length || 0} chars)`,
+        className: "bg-blue-50 border-blue-200 text-blue-800"
+      });
+    } catch (error) {
+      console.error('Error checking config:', error);
+      toast({
+        title: "❌ Config Check Failed",
+        description: error.message,
+        variant: "destructive"
+      });
+    }
+  };
+
+  // Set Noest Configuration (for testing)
+  const setNoestConfig = async () => {
+    const apiToken = prompt('Enter your Noest API Token:');
+    const guid = prompt('Enter your Noest GUID:');
+    
+    if (!apiToken || !guid) {
+      toast({
+        title: "❌ Configuration Cancelled",
+        description: "Both API token and GUID are required",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    try {
+      // Check if config exists
+      const { data: existing } = await supabase
+        .from('noest_express_config')
+        .select('id')
+        .eq('is_active', true)
+        .single();
+
+      let result;
+      if (existing) {
+        // Update existing
+        result = await supabase
+          .from('noest_express_config')
+          .update({ 
+            api_token: apiToken, 
+            guid: guid,
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', existing.id);
+      } else {
+        // Insert new
+        result = await supabase
+          .from('noest_express_config')
+          .insert({ 
+            api_token: apiToken, 
+            guid: guid,
+            is_active: true
+          });
+      }
+
+      if (result.error) {
+        throw result.error;
+      }
+
+      toast({
+        title: "✅ Configuration Saved",
+        description: "Noest API configuration has been updated",
+        className: "bg-green-50 border-green-200 text-green-800"
+      });
+    } catch (error) {
+      console.error('Error saving config:', error);
+      toast({
+        title: "❌ Configuration Failed",
+        description: error.message,
+        variant: "destructive"
+      });
+    }
+  };
+
+  // Orders Management Functions
+  const fetchOrders = useCallback(async () => {
+    try {
+      const { data, error } = await supabase
+        .from('orders')
+        .select('*')
+        .order('created_at', { ascending: false });
+      
+      if (error) {
+        console.error('Error fetching orders:', error);
+        toast({
+          title: "Error fetching orders",
+          description: error.message,
+          variant: "destructive"
+        });
+        return;
+      }
+      
+      setOrders(data || []);
+    } catch (error) {
+      console.error('Error fetching orders:', error);
+      toast({
+        title: "Error fetching orders",
+        description: "Failed to fetch orders",
+        variant: "destructive"
+      });
+    }
+  }, [toast]);
+
+  // Upload order to Noest API
+  const uploadToNoest = async (order) => {
+    try {
+      console.log('Order data before upload:', order);
+      
+      // Check if this is a stopdesk delivery
+      const isStopdesk = order.stop_desk === 1 || order.delivery_option === 'stopdesk';
+      
+      // For stopdesk deliveries, we need to get available stations
+      let stationCode = '';
+      if (isStopdesk) {
+        // For now, we'll need to handle station selection
+        // You can either:
+        // 1. Add a station selection to the order form
+        // 2. Use a default station based on wilaya
+        // 3. Prompt user to select station
+        
+        // For demo purposes, let's use some common station codes based on wilaya
+        const wilayaStationMap = {
+          16: '16A', // Alger
+          31: '31A', // Oran  
+          25: '25A', // Constantine
+          9: '9A',   // Blida
+          35: '35A', // Boumerdès
+          // Add more as needed
+        };
+        
+        stationCode = wilayaStationMap[order.wilaya_id] || '16A'; // Default to Alger station
+        
+        // Show warning that we're using default station
+        toast({
+          title: "⚠️ Using Default Station",
+          description: `Stopdesk delivery detected. Using default station ${stationCode} for wilaya ${order.wilaya_id}. You may need to update this manually.`,
+          className: "bg-yellow-50 border-yellow-200 text-yellow-800"
+        });
+      }
+      
+      // Ensure all required fields are present and valid
+      const orderData = {
+        reference: `ORDER-${order.id}`,
+        client: order.client || order.customer_name || '',
+        phone: (order.phone || order.customer_phone || '').replace(/\D/g, ''), // Remove non-digits
+        phone_2: order.phone_2 || '',
+        adresse: order.adresse || order.delivery_address || '',
+        wilaya_id: order.wilaya_id || 16, // Default to Alger if missing
+        commune: order.commune || 'Alger Centre', // Default commune if missing
+        montant: parseFloat(order.montant || order.total_price || 0),
+        remarque: order.remarque || '',
+        produit: order.produit || order.product_title || '',
+        type_id: order.type_id || 1, // Default to delivery
+        poids: parseInt(order.poids) || 500, // Default weight 500g
+        stop_desk: isStopdesk ? 1 : 0,
+        station_code: isStopdesk ? stationCode : '', // Only set if stopdesk
+        stock: order.stock || 0,
+        quantite: order.quantite || order.quantity?.toString() || '1',
+        can_open: order.can_open || 1
+      };
+
+      console.log('Processed order data for Noest:', orderData);
+      
+      // Validate required fields before sending
+      const requiredFields = ['reference', 'client', 'phone', 'adresse', 'wilaya_id', 'commune', 'montant', 'produit'];
+      const missingFields = requiredFields.filter(field => !orderData[field] || orderData[field] === '');
+      
+      if (missingFields.length > 0) {
+        throw new Error(`Missing required fields: ${missingFields.join(', ')}`);
+      }
+      
+      // Additional validation
+      if (orderData.phone.length < 9) {
+        throw new Error('Phone number must be at least 9 digits');
+      }
+      
+      if (orderData.montant <= 0) {
+        throw new Error('Amount must be greater than 0');
+      }
+      
+      if (!orderData.commune.trim()) {
+        throw new Error('Commune cannot be empty');
+      }
+
+      console.log('=== NOEST UPLOAD DEBUG ===');
+      console.log('Original order from database:', order);
+
+      // Create order in Noest
+      const noestResponse = await noestApiService.createOrder(orderData);
+      
+      console.log('Noest createOrder response:', noestResponse);
+
+      if (noestResponse.success) {
+        // Validate order automatically
+        const validateResponse = await noestApiService.validateOrder(noestResponse.tracking);
+        
+        if (validateResponse.success) {
+          // Update order in database
+          const { error } = await supabase
+            .from('orders')
+            .update({ 
+              tracking: noestResponse.tracking,
+              is_validated: true,
+              status: 'expédié',
+              station_code: isStopdesk ? stationCode : null // Save the station code used
+            })
+            .eq('id', order.id);
+
+          if (!error) {
+            toast({
+              title: "✅ Success!",
+              description: `Order uploaded to Noest. Tracking: ${noestResponse.tracking}`,
+              className: "bg-green-50 border-green-200 text-green-800"
+            });
+            
+            // Refresh orders list
+            fetchOrders();
+          } else {
+            throw new Error('Failed to update order status');
+          }
+        } else {
+          throw new Error('Failed to validate order in Noest');
+        }
+      } else {
+        throw new Error(noestResponse.error || 'Failed to create order in Noest');
+      }
+    } catch (error) {
+      console.error('Error uploading to Noest:', error);
+      
+      let errorMessage = error.message;
+      if (error.message.includes('CORS')) {
+        errorMessage = 'CORS Error: Unable to call Noest API directly from browser. Solutions:\n' +
+                      '1. Deploy to Netlify (production)\n' +
+                      '2. Run: npm run dev:netlify (for local testing)\n' +
+                      '3. Open Chrome with --disable-web-security flag\n' +
+                      '4. Use a backend proxy service';
+      }
+      
+      toast({
+        title: "Error uploading to Noest",
+        description: errorMessage,
+        variant: "destructive"
+      });
+    }
+  };
+
+  // Test order creation for debugging
+  const createTestOrder = async () => {
+    try {
+      const testOrderData = {
+        reference: `TEST-${Date.now()}`,
+        client: "Ahmed Benali",
+        phone: "0551234567",
+        phone_2: "",
+        adresse: "Rue Didouche Mourad, Alger Centre",
+        wilaya_id: 16,
+        commune: "Alger Centre",
+        montant: 2500,
+        remarque: "Test order from admin",
+        produit: "Test Product",
+        type_id: 1,
+        poids: 500,
+        stop_desk: 0,
+        station_code: "",
+        stock: 1,
+        quantite: "1",
+        can_open: 1
+      };
+
+      console.log('Creating test order with data:', testOrderData);
+      
+      const response = await noestApiService.createOrder(testOrderData);
+      console.log('Test order response:', response);
+      
+      if (response.success) {
+        toast({
+          title: "✅ Test Order Success!",
+          description: `Test order created. Tracking: ${response.tracking}`,
+          className: "bg-green-50 border-green-200 text-green-800"
+        });
+      } else {
+        toast({
+          title: "❌ Test Order Failed",
+          description: response.error,
+          variant: "destructive"
+        });
+      }
+    } catch (error) {
+      console.error('Test order error:', error);
+      toast({
+        title: "❌ Test Order Error",
+        description: error.message,
+        variant: "destructive"
+      });
+    }
+  };
+
+  // Update order
+  const updateOrder = async (orderId, updateData) => {
+    try {
+      const { error } = await supabase
+        .from('orders')
+        .update(updateData)
+        .eq('id', orderId);
+
+      if (error) {
+        throw new Error(error.message);
+      }
+
+      toast({
+        title: "✅ Success!",
+        description: "Order updated successfully",
+        className: "bg-green-50 border-green-200 text-green-800"
+      });
+
+      setEditingOrderId(null);
+      setEditingOrderData(null);
+      fetchOrders();
+    } catch (error) {
+      console.error('Error updating order:', error);
+      toast({
+        title: "Error updating order",
+        description: error.message,
+        variant: "destructive"
+      });
+    }
+  };
+
+  // Fetch orders on mount
   useEffect(() => {
-    fetchNoestExpressConfig();
-  }, [fetchNoestExpressConfig]);
+    fetchOrders();
+  }, [fetchOrders]);
 
   return (
     <div className={`min-h-screen bg-gradient-soft ${isRTL ? 'rtl' : 'ltr'}`} dir={isRTL ? 'rtl' : 'ltr'}>
@@ -646,14 +1042,14 @@ const Admin = () => {
 
         {/* Mobile Configuration & Logout Section */}
         <div className="mb-4 sm:mb-6 block sm:hidden">
-          <div className="grid grid-cols-2 gap-2 mb-3">
+          <div className="grid grid-cols-3 gap-2 mb-3">
             <Button
               onClick={() => setShowDeliveryFeesForm(true)}
               variant="outline"
               className="flex items-center justify-center gap-2 py-3 border-blue-200 text-blue-600 hover:bg-blue-50 hover:border-blue-300"
             >
               <Truck className="h-4 w-4" />
-              <span className="text-sm">Delivery Fees</span>
+              <span className="text-xs">Delivery</span>
             </Button>
             
             <Button
@@ -662,7 +1058,16 @@ const Admin = () => {
               className="flex items-center justify-center gap-2 py-3 border-purple-200 text-purple-600 hover:bg-purple-50 hover:border-purple-300"
             >
               <Truck className="h-4 w-4" />
-              <span className="text-sm">Noest Express</span>
+              <span className="text-xs">Noest</span>
+            </Button>
+
+            <Button
+              onClick={() => setShowOrdersSection(true)}
+              variant="outline"
+              className="flex items-center justify-center gap-2 py-3 border-orange-200 text-orange-600 hover:bg-orange-50 hover:border-orange-300"
+            >
+              <Package className="h-4 w-4" />
+              <span className="text-xs">Orders</span>
             </Button>
           </div>
           
@@ -695,6 +1100,15 @@ const Admin = () => {
             >
               <Truck className="h-4 w-4" />
               <span>Noest Express</span>
+            </Button>
+
+            <Button
+              onClick={() => setShowOrdersSection(true)}
+              variant="outline"
+              className="flex items-center justify-center gap-2 px-4 py-2 border-orange-200 text-orange-600 hover:bg-orange-50 hover:border-orange-300"
+            >
+              <Package className="h-4 w-4" />
+              <span>Orders</span>
             </Button>
           </div>
         </div>
@@ -925,6 +1339,283 @@ const Admin = () => {
           </Card>
         )}
 
+        {/* Orders Management Section */}
+        {showOrdersSection && (
+          <Card className="mb-4 sm:mb-8 bg-gradient-card border-0 shadow-lg">
+            <CardHeader className="px-3 sm:px-6 py-3 sm:py-4 border-b">
+              <div className="flex items-center justify-between">
+                <CardTitle className="font-playfair text-lg sm:text-xl flex items-center gap-2">
+                  <Package className="h-5 w-5 text-orange-600" />
+                  Orders Management
+                </CardTitle>
+                <div className="flex gap-2">
+                  <Button
+                    onClick={checkNoestConfig}
+                    variant="outline"
+                    size="sm"
+                    className="text-xs"
+                  >
+                    🔍 Check Config
+                  </Button>
+                  <Button
+                    onClick={setNoestConfig}
+                    variant="outline"
+                    size="sm"
+                    className="text-xs"
+                  >
+                    ⚙️ Set Config
+                  </Button>
+                  <Button
+                    onClick={createTestOrder}
+                    variant="outline"
+                    size="sm"
+                    className="text-xs"
+                  >
+                    🧪 Test API
+                  </Button>
+                  <Button
+                    onClick={() => setShowOrdersSection(false)}
+                    variant="ghost"
+                    size="sm"
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent className="px-3 sm:px-6 pb-4 sm:pb-6 pt-4">
+              <div className="space-y-6">
+                
+                {/* Prêt à expédier Section */}
+                <div>
+                  <div className="flex items-center gap-2 mb-4">
+                    <Package className="h-5 w-5 text-blue-600" />
+                    <h3 className="font-semibold text-lg text-blue-600">Prêt à expédier</h3>
+                    <span className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full">
+                      {orders.filter(order => !order.is_validated).length}
+                    </span>
+                  </div>
+                  
+                  {orders.filter(order => !order.is_validated).length === 0 ? (
+                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 text-center">
+                      <p className="text-blue-600 text-sm">No pending orders</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      {orders.filter(order => !order.is_validated).map((order) => (
+                        <div key={order.id} className="bg-white border rounded-lg p-4 hover:shadow-md transition-shadow">
+                          {editingOrderId === order.id ? (
+                            // Edit mode
+                            <div className="space-y-4">
+                              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                                <div>
+                                  <Label className="text-xs font-medium text-gray-600">Client</Label>
+                                  <Input
+                                    value={editingOrderData?.client || ''}
+                                    onChange={(e) => setEditingOrderData(prev => ({...prev, client: e.target.value}))}
+                                    className="mt-1"
+                                  />
+                                </div>
+                                <div>
+                                  <Label className="text-xs font-medium text-gray-600">Phone</Label>
+                                  <Input
+                                    value={editingOrderData?.phone || ''}
+                                    onChange={(e) => setEditingOrderData(prev => ({...prev, phone: e.target.value}))}
+                                    className="mt-1"
+                                  />
+                                </div>
+                                <div>
+                                  <Label className="text-xs font-medium text-gray-600">Address</Label>
+                                  <Input
+                                    value={editingOrderData?.adresse || ''}
+                                    onChange={(e) => setEditingOrderData(prev => ({...prev, adresse: e.target.value}))}
+                                    className="mt-1"
+                                  />
+                                </div>
+                                <div>
+                                  <Label className="text-xs font-medium text-gray-600">Commune</Label>
+                                  <Input
+                                    value={editingOrderData?.commune || ''}
+                                    onChange={(e) => setEditingOrderData(prev => ({...prev, commune: e.target.value}))}
+                                    className="mt-1"
+                                  />
+                                </div>
+                                <div>
+                                  <Label className="text-xs font-medium text-gray-600">Product</Label>
+                                  <Input
+                                    value={editingOrderData?.produit || ''}
+                                    onChange={(e) => setEditingOrderData(prev => ({...prev, produit: e.target.value}))}
+                                    className="mt-1"
+                                  />
+                                </div>
+                                <div>
+                                  <Label className="text-xs font-medium text-gray-600">Amount (DZD)</Label>
+                                  <Input
+                                    type="number"
+                                    value={editingOrderData?.montant || ''}
+                                    onChange={(e) => setEditingOrderData(prev => ({...prev, montant: parseFloat(e.target.value)}))}
+                                    className="mt-1"
+                                  />
+                                </div>
+                              </div>
+                              <div className="flex gap-2">
+                                <Button
+                                  onClick={() => updateOrder(order.id, editingOrderData)}
+                                  size="sm"
+                                  className="bg-green-600 hover:bg-green-700"
+                                >
+                                  <Save className="h-4 w-4 mr-1" />
+                                  Save
+                                </Button>
+                                <Button
+                                  onClick={() => {
+                                    setEditingOrderId(null);
+                                    setEditingOrderData(null);
+                                  }}
+                                  size="sm"
+                                  variant="outline"
+                                >
+                                  <X className="h-4 w-4 mr-1" />
+                                  Cancel
+                                </Button>
+                              </div>
+                            </div>
+                          ) : (
+                            // View mode
+                            <div className="space-y-3">
+                              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-sm">
+                                <div>
+                                  <span className="font-medium text-gray-600">Client:</span>
+                                  <p className="text-gray-900">{order.client}</p>
+                                </div>
+                                <div>
+                                  <span className="font-medium text-gray-600">Phone:</span>
+                                  <p className="text-gray-900">{order.phone}</p>
+                                </div>
+                                <div>
+                                  <span className="font-medium text-gray-600">Address:</span>
+                                  <p className="text-gray-900 truncate">{order.adresse}</p>
+                                </div>
+                                <div>
+                                  <span className="font-medium text-gray-600">Commune:</span>
+                                  <p className="text-gray-900">{order.commune}</p>
+                                </div>
+                              </div>
+                              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 text-sm">
+                                <div>
+                                  <span className="font-medium text-gray-600">Product:</span>
+                                  <p className="text-gray-900">{order.produit}</p>
+                                </div>
+                                <div>
+                                  <span className="font-medium text-gray-600">Amount:</span>
+                                  <p className="text-gray-900 font-semibold">{order.montant} DZD</p>
+                                </div>
+                                <div>
+                                  <span className="font-medium text-gray-600">Delivery:</span>
+                                  <p className="text-gray-900">{order.stop_desk ? 'Stop Desk' : 'Home'}</p>
+                                </div>
+                              </div>
+                              <div className="flex flex-wrap gap-2 pt-2 border-t">
+                                <Button
+                                  onClick={() => {
+                                    setEditingOrderId(order.id);
+                                    setEditingOrderData({
+                                      client: order.client,
+                                      phone: order.phone,
+                                      adresse: order.adresse,
+                                      commune: order.commune,
+                                      produit: order.produit,
+                                      montant: order.montant
+                                    });
+                                  }}
+                                  size="sm"
+                                  variant="outline"
+                                  className="text-blue-600 border-blue-300 hover:bg-blue-50"
+                                >
+                                  <Edit className="h-4 w-4 mr-1" />
+                                  Edit
+                                </Button>
+                                <Button
+                                  onClick={() => uploadToNoest(order)}
+                                  size="sm"
+                                  className="bg-purple-600 hover:bg-purple-700 text-white"
+                                >
+                                  <Upload className="h-4 w-4 mr-1" />
+                                  Upload to Noest
+                                </Button>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* Expédié Section */}
+                <div>
+                  <div className="flex items-center gap-2 mb-4">
+                    <Truck className="h-5 w-5 text-green-600" />
+                    <h3 className="font-semibold text-lg text-green-600">Expédié</h3>
+                    <span className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">
+                      {orders.filter(order => order.is_validated).length}
+                    </span>
+                  </div>
+                  
+                  {orders.filter(order => order.is_validated).length === 0 ? (
+                    <div className="bg-green-50 border border-green-200 rounded-lg p-4 text-center">
+                      <p className="text-green-600 text-sm">No shipped orders</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      {orders.filter(order => order.is_validated).map((order) => (
+                        <div key={order.id} className="bg-white border border-green-200 rounded-lg p-4">
+                          <div className="space-y-3">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-sm">
+                              <div>
+                                <span className="font-medium text-gray-600">Client:</span>
+                                <p className="text-gray-900">{order.client}</p>
+                              </div>
+                              <div>
+                                <span className="font-medium text-gray-600">Phone:</span>
+                                <p className="text-gray-900">{order.phone}</p>
+                              </div>
+                              <div>
+                                <span className="font-medium text-gray-600">Address:</span>
+                                <p className="text-gray-900 truncate">{order.adresse}</p>
+                              </div>
+                              <div>
+                                <span className="font-medium text-gray-600">Tracking:</span>
+                                <p className="text-green-600 font-mono text-xs">{order.tracking}</p>
+                              </div>
+                            </div>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 text-sm">
+                              <div>
+                                <span className="font-medium text-gray-600">Product:</span>
+                                <p className="text-gray-900">{order.produit}</p>
+                              </div>
+                              <div>
+                                <span className="font-medium text-gray-600">Amount:</span>
+                                <p className="text-gray-900 font-semibold">{order.montant} DZD</p>
+                              </div>
+                              <div>
+                                <span className="font-medium text-gray-600">Status:</span>
+                                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-green-100 text-green-800">
+                                  ✅ Shipped
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         {/* Products List - Mobile Optimized */}
         <div className="space-y-3 sm:space-y-6">
           {products.length === 0 ? (
@@ -1039,7 +1730,7 @@ const Admin = () => {
                                   />
                                 ))}
                                 {(Array.isArray(product.images) ? product.images : typeof product.images === 'string' && product.images ? (product.images as string).split(',').map(img => img.trim()).filter(Boolean) : []).length > 6 && (
-                                  <div className="w-16 h-16 bg-muted rounded-lg flex items-center justify-center text-xs text-muted-foreground flex-shrink-0 border">
+                                  <div className="w-16 h-16 bg-muted rounded-lg flex items-center justify-center text-xs text-muted-foreground flex-shrink-0">
                                     +{(Array.isArray(product.images) ? product.images : typeof product.images === 'string' && product.images ? (product.images as string).split(',').map(img => img.trim()).filter(Boolean) : []).length - 6}
                                   </div>
                                 )}

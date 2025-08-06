@@ -8,6 +8,17 @@ export default defineConfig(({ mode }) => ({
   server: {
     host: "::",
     port: 8080,
+    proxy: {
+      '/api/noest': {
+        target: 'https://app.noest-dz.com',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api\/noest/, '/api/public'),
+        secure: true,
+        headers: {
+          'Origin': 'https://app.noest-dz.com'
+        }
+      }
+    }
   },
   plugins: [
     react(),
