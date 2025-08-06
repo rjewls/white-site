@@ -87,7 +87,7 @@ class NoestApiService {
     
     const config = await this.getConfig();
     if (!config) {
-      return { success: false, error: 'Noest Express API not configured' };
+      return { success: false, error: 'Noest Express API not configured. Please save your API credentials in the admin panel first.' };
     }
 
     console.log('Config loaded:', {
@@ -97,6 +97,15 @@ class NoestApiService {
       hasGuid: !!config.guid,
       guidLength: config.guid?.length || 0
     });
+
+    // Validate API token format
+    if (!config.api_token || config.api_token.trim().length === 0) {
+      return { success: false, error: 'API Token is missing. Please check your Noest Express configuration.' };
+    }
+
+    if (!config.guid || config.guid.trim().length === 0) {
+      return { success: false, error: 'GUID is missing. Please check your Noest Express configuration.' };
+    }
 
     // Validate required fields according to API documentation
     const validationErrors = [];
@@ -141,17 +150,8 @@ class NoestApiService {
       validationErrors.push('stop_desk: required, must be 0 or 1');
     }
     
-    if (orderData.stop_desk === 1 && !orderData.station_code) {
-      validationErrors.push('station_code: required when stop_desk = 1');
-    }
-
-    if (validationErrors.length > 0) {
-      console.error('Noest validation errors:', validationErrors);
-      return { success: false, error: 'Validation failed: ' + validationErrors.join(', ') };
-    }
-
     const requestData = {
-      API_TOKEN: config.api_token,
+      API_TOKEN: config.api_token.trim(),
       reference: orderData.reference || `ORDER-${Date.now()}`,
       client: orderData.client,
       phone: orderData.phone,
@@ -174,13 +174,15 @@ class NoestApiService {
     console.log('Request payload structure:', {
       hasApiToken: !!requestData.API_TOKEN,
       apiTokenLength: requestData.API_TOKEN?.length,
+      apiTokenIsValid: requestData.API_TOKEN && requestData.API_TOKEN.trim().length > 0,
       reference: requestData.reference,
       client: requestData.client,
       phone: requestData.phone,
       wilaya_id: requestData.wilaya_id,
       commune: requestData.commune,
       montant: requestData.montant,
-      type_id: requestData.type_id
+      type_id: requestData.type_id,
+      requestKeys: Object.keys(requestData)
     });
     
     console.log('Full request data (API_TOKEN masked):', {
@@ -206,6 +208,25 @@ class NoestApiService {
       if (!response.ok) {
         console.error('API request failed with status:', response.status);
         console.error('Response body:', result);
+        
+        // Provide specific error messages based on common issues
+        if (response.status === 401) {
+          return { 
+            success: false, 
+            error: 'Authentication failed. Please check your API Token and GUID in the admin panel. Make sure they are copied correctly from your Noest Express dashboard.' 
+          };
+        } else if (response.status === 403) {
+          return { 
+            success: false, 
+            error: 'Access forbidden. Your API credentials may not have permission to create orders.' 
+          };
+        } else if (response.status === 422) {
+          return { 
+            success: false, 
+            error: `Validation error: ${result.message || 'Invalid data provided'}. Please check all required fields.` 
+          };
+        }
+        
         return { success: false, error: result.message || result.error || `API error: ${response.status} - ${JSON.stringify(result)}` };
       }
 

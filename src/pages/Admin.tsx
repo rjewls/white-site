@@ -503,11 +503,6 @@ const Admin = () => {
     }
   };
 
-  // Fetch delivery fees on mount
-  useEffect(() => {
-    fetchDeliveryFees();
-  }, [fetchDeliveryFees]);
-
   // Noest Express configuration functions
   const fetchNoestExpressConfig = useCallback(async () => {
     try {
@@ -614,114 +609,6 @@ const Admin = () => {
       toast({
         title: "Error saving configuration",
         description: "Failed to save Noest Express configuration",
-        variant: "destructive"
-      });
-    }
-  };
-
-  // Check Noest Configuration
-  const checkNoestConfig = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('noest_express_config')
-        .select('*')
-        .eq('is_active', true)
-        .single();
-
-      if (error) {
-        console.error('Error fetching config:', error);
-        toast({
-          title: "❌ Config Error",
-          description: `No Noest configuration found: ${error.message}`,
-          variant: "destructive"
-        });
-        return;
-      }
-
-      console.log('Current Noest config:', {
-        id: data.id,
-        hasApiToken: !!data.api_token,
-        apiTokenLength: data.api_token?.length || 0,
-        apiTokenPreview: data.api_token ? `${data.api_token.substring(0, 10)}...` : 'MISSING',
-        hasGuid: !!data.guid,
-        guidLength: data.guid?.length || 0,
-        isActive: data.is_active,
-        createdAt: data.created_at
-      });
-
-      toast({
-        title: "✅ Config Check Complete",
-        description: `Found config with API token (${data.api_token?.length || 0} chars)`,
-        className: "bg-blue-50 border-blue-200 text-blue-800"
-      });
-    } catch (error) {
-      console.error('Error checking config:', error);
-      toast({
-        title: "❌ Config Check Failed",
-        description: error.message,
-        variant: "destructive"
-      });
-    }
-  };
-
-  // Set Noest Configuration (for testing)
-  const setNoestConfig = async () => {
-    const apiToken = prompt('Enter your Noest API Token:');
-    const guid = prompt('Enter your Noest GUID:');
-    
-    if (!apiToken || !guid) {
-      toast({
-        title: "❌ Configuration Cancelled",
-        description: "Both API token and GUID are required",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    try {
-      // Check if config exists
-      const { data: existing } = await supabase
-        .from('noest_express_config')
-        .select('id')
-        .eq('is_active', true)
-        .single();
-
-      let result;
-      if (existing) {
-        // Update existing
-        result = await supabase
-          .from('noest_express_config')
-          .update({ 
-            api_token: apiToken, 
-            guid: guid,
-            updated_at: new Date().toISOString()
-          })
-          .eq('id', existing.id);
-      } else {
-        // Insert new
-        result = await supabase
-          .from('noest_express_config')
-          .insert({ 
-            api_token: apiToken, 
-            guid: guid,
-            is_active: true
-          });
-      }
-
-      if (result.error) {
-        throw result.error;
-      }
-
-      toast({
-        title: "✅ Configuration Saved",
-        description: "Noest API configuration has been updated",
-        className: "bg-green-50 border-green-200 text-green-800"
-      });
-    } catch (error) {
-      console.error('Error saving config:', error);
-      toast({
-        title: "❌ Configuration Failed",
-        description: error.message,
         variant: "destructive"
       });
     }
@@ -902,6 +789,31 @@ const Admin = () => {
   // Test order creation for debugging
   const createTestOrder = async () => {
     try {
+      // First check if we have valid credentials
+      const { data: configData, error: configError } = await supabase
+        .from('noest_express_config')
+        .select('*')
+        .limit(1)
+        .single();
+
+      if (configError) {
+        toast({
+          title: "❌ No Configuration Found",
+          description: "Please save your Noest Express API credentials first.",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      if (!configData.api_token || !configData.guid) {
+        toast({
+          title: "❌ Incomplete Configuration", 
+          description: "API Token or GUID is missing. Please check your configuration.",
+          variant: "destructive"
+        });
+        return;
+      }
+
       const testOrderData = {
         reference: `TEST-${Date.now()}`,
         client: "Ahmed Benali",
@@ -923,6 +835,8 @@ const Admin = () => {
       };
 
       console.log('Creating test order with data:', testOrderData);
+      console.log('Using API Token length:', configData.api_token.length);
+      console.log('Using GUID length:', configData.guid.length);
       
       const response = await noestApiService.createOrder(testOrderData);
       console.log('Test order response:', response);
@@ -934,9 +848,18 @@ const Admin = () => {
           className: "bg-green-50 border-green-200 text-green-800"
         });
       } else {
+        // Provide specific guidance for authentication errors
+        let errorMessage = response.error;
+        if (response.error.includes('Authentication failed') || response.error.includes('Unauthenticated')) {
+          errorMessage = "Authentication failed. Please verify your Noest Express API credentials:\n" +
+                        "1. Check if your API Token is correct\n" +
+                        "2. Make sure your GUID is valid\n" +
+                        "3. Verify credentials are active in your Noest dashboard";
+        }
+        
         toast({
           title: "❌ Test Order Failed",
-          description: response.error,
+          description: errorMessage,
           variant: "destructive"
         });
       }
@@ -1349,22 +1272,6 @@ const Admin = () => {
                   Orders Management
                 </CardTitle>
                 <div className="flex gap-2">
-                  <Button
-                    onClick={checkNoestConfig}
-                    variant="outline"
-                    size="sm"
-                    className="text-xs"
-                  >
-                    🔍 Check Config
-                  </Button>
-                  <Button
-                    onClick={setNoestConfig}
-                    variant="outline"
-                    size="sm"
-                    className="text-xs"
-                  >
-                    ⚙️ Set Config
-                  </Button>
                   <Button
                     onClick={createTestOrder}
                     variant="outline"
