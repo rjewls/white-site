@@ -1,4 +1,5 @@
 import { supabase } from './supabaseClient';
+import axios, { AxiosResponse } from 'axios';
 
 interface NoestExpressConfig {
   api_token: string;
@@ -6,7 +7,6 @@ interface NoestExpressConfig {
 }
 
 interface NoestOrderData {
-  reference?: string;
   client: string;
   phone: string;
   phone_2?: string;
@@ -151,15 +151,15 @@ class NoestApiService {
     }
     
     const requestData = {
-      API_TOKEN: config.api_token.trim(),
-      reference: orderData.reference || `ORDER-${Date.now()}`,
+      api_token: config.api_token,
+      user_guid: config.guid,
+      reference: `ORDER-${Date.now()}`,
       client: orderData.client,
       phone: orderData.phone,
-      phone_2: orderData.phone_2 || '',
-      adresse: orderData.adresse,
-      wilaya_id: orderData.wilaya_id,
-      commune: orderData.commune,
-      montant: orderData.montant,
+      phone_2: orderData.phone_2 || '',        adresse: orderData.adresse,
+        wilaya_id: orderData.wilaya_id,
+        commune: orderData.commune, // Must be exactly spelled as per Noest database
+        montant: orderData.montant,
       remarque: orderData.remarque || '',
       produit: orderData.produit,
       type_id: orderData.type_id,
@@ -168,13 +168,14 @@ class NoestApiService {
       station_code: orderData.station_code || '',
       stock: orderData.stock || 0,
       quantite: orderData.quantite || '1',
-      can_open: orderData.can_open || 1
+      can_open: orderData.can_open || 0
     };
 
     console.log('Request payload structure:', {
-      hasApiToken: !!requestData.API_TOKEN,
-      apiTokenLength: requestData.API_TOKEN?.length,
-      apiTokenIsValid: requestData.API_TOKEN && requestData.API_TOKEN.trim().length > 0,
+      hasApiToken: !!requestData.api_token,
+      apiTokenLength: requestData.api_token?.length,
+      apiTokenIsValid: requestData.api_token && requestData.api_token.trim().length > 0,
+      hasUserGuid: !!requestData.user_guid,
       reference: requestData.reference,
       client: requestData.client,
       phone: requestData.phone,
@@ -185,65 +186,100 @@ class NoestApiService {
       requestKeys: Object.keys(requestData)
     });
     
-    console.log('Full request data (API_TOKEN masked):', {
+    console.log('Full request data (api_token masked):', {
       ...requestData,
-      API_TOKEN: requestData.API_TOKEN ? `${requestData.API_TOKEN.substring(0, 10)}...` : 'MISSING'
+      api_token: requestData.api_token ? `${requestData.api_token.substring(0, 10)}...` : 'MISSING'
     });
 
     try {
-      const response = await fetch('https://app.noest-dz.com/api/public/create/order', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-        },
-        body: JSON.stringify(requestData),
-      });
+      console.log('Making API request to:', 'https://app.noest-dz.com/api/public/create/order');
+      
+      const response = await axios.post(
+        'https://app.noest-dz.com/api/public/create/order',
+        requestData,
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+          },
+          timeout: 10000
+        }
+      );
 
-      const result = await response.json();
       console.log('Noest API response status:', response.status);
-      console.log('Noest API response headers:', Object.fromEntries(response.headers.entries()));
-      console.log('Noest API response body:', result);
+      console.log('Noest API response headers:', response.headers);
+      console.log('Noest API response body:', response.data);
 
-      if (!response.ok) {
-        console.error('API request failed with status:', response.status);
-        console.error('Response body:', result);
-        
+      // Check if response matches expected format
+      if (!response.data || typeof response.data !== 'object') {
+        console.error('Invalid response format:', response.data);
+        return { success: false, error: 'Invalid response format from Noest API' };
+      }
+
+      // Check for success flag
+      if (response.data.success !== true) {
+        console.error('Noest API Error Details:', {
+          success: response.data.success,
+          message: response.data.message,
+          error: response.data.error,
+          fullResponse: response.data
+        });
+        return { success: false, error: response.data.message || response.data.error || 'Unknown API error' };
+      }
+
+      // Check for tracking number
+      if (!response.data.tracking || typeof response.data.tracking !== 'string') {
+        console.error('Noest API response missing or invalid tracking number:', response.data);
+        return { success: false, error: 'Noest API response missing or invalid tracking number' };
+      }
+
+      console.log('Order created successfully! Tracking number:', response.data.tracking);
+
+      return { 
+        success: true, 
+        data: response.data,
+        tracking: response.data.tracking 
+      };
+    } catch (error) {
+      console.error('Noest API error:', error);
+      
+      if (axios.isAxiosError(error)) {
+        console.error('API Error Details:', {
+          status: error.response?.status,
+          statusText: error.response?.statusText,
+          data: error.response?.data,
+          headers: error.response?.headers,
+          config: {
+            url: error.config?.url,
+            method: error.config?.method,
+            headers: error.config?.headers,
+            data: error.config?.data
+          }
+        });
+
         // Provide specific error messages based on common issues
-        if (response.status === 401) {
+        if (error.response?.status === 401) {
           return { 
             success: false, 
-            error: 'Authentication failed. Please check your API Token and GUID in the admin panel. Make sure they are copied correctly from your Noest Express dashboard.' 
+            error: 'Authentication failed. Please check your API Token and GUID in the admin panel.' 
           };
-        } else if (response.status === 403) {
+        } else if (error.response?.status === 403) {
           return { 
             success: false, 
             error: 'Access forbidden. Your API credentials may not have permission to create orders.' 
           };
-        } else if (response.status === 422) {
+        } else if (error.response?.status === 422) {
           return { 
             success: false, 
-            error: `Validation error: ${result.message || 'Invalid data provided'}. Please check all required fields.` 
+            error: `Validation error: ${error.response.data?.message || 'Invalid data provided'}. Please check all required fields.` 
           };
         }
         
-        return { success: false, error: result.message || result.error || `API error: ${response.status} - ${JSON.stringify(result)}` };
-      }
-
-      return { 
-        success: true, 
-        data: result,
-        tracking: result.tracking 
-      };
-    } catch (error) {
-      console.error('Noest API network error:', error);
-      
-      // Check if it's a CORS error
-      if (error.message.includes('Failed to fetch') || error.name === 'TypeError') {
-        return { 
-          success: false, 
-          error: 'CORS Error: Direct API calls are blocked by browser security. Please use a backend proxy or check your API configuration.' 
-        };
+        // Try to get a more detailed error message
+        const errorMessage = error.response?.data?.message || 
+                           error.response?.data?.error || 
+                           error.message;
+        return { success: false, error: `API request failed: ${errorMessage}` };
       }
       
       return { success: false, error: 'Network error: ' + error.message };
@@ -258,27 +294,31 @@ class NoestApiService {
     }
 
     try {
-      const response = await fetch('https://app.noest-dz.com/api/public/valid/order', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-        },
-        body: JSON.stringify({
-          API_TOKEN: config.api_token,
+      const response = await axios.post(
+        'https://app.noest-dz.com/api/public/valid/order',
+        {
+          api_token: config.api_token,
+          user_guid: config.guid,
           tracking: tracking
-        }),
-      });
+        },
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+          },
+          timeout: 10000
+        }
+      );
 
-      const result = await response.json();
-
-      if (!response.ok) {
-        return { success: false, error: result.message || 'Validation failed' };
-      }
-
-      return { success: true, data: result };
+      return { success: true, data: response.data };
     } catch (error) {
       console.error('Noest validation error:', error);
+      
+      if (axios.isAxiosError(error)) {
+        const errorMessage = error.response?.data?.message || error.message;
+        return { success: false, error: errorMessage };
+      }
+      
       return { success: false, error: 'Network error' };
     }
   }
@@ -291,27 +331,31 @@ class NoestApiService {
     }
 
     try {
-      const response = await fetch('https://app.noest-dz.com/api/public/get/trackings/info', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-        },
-        body: JSON.stringify({
-          API_TOKEN: config.api_token,
+      const response = await axios.post(
+        'https://app.noest-dz.com/api/public/get/trackings/info',
+        {
+          api_token: config.api_token,
+          user_guid: config.guid,
           trackings: trackingNumbers
-        }),
-      });
+        },
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+          },
+          timeout: 10000
+        }
+      );
 
-      const result = await response.json();
-
-      if (!response.ok) {
-        return { success: false, error: result.message || 'Tracking failed' };
-      }
-
-      return { success: true, data: result };
+      return { success: true, data: response.data };
     } catch (error) {
       console.error('Noest tracking error:', error);
+      
+      if (axios.isAxiosError(error)) {
+        const errorMessage = error.response?.data?.message || error.message;
+        return { success: false, error: errorMessage };
+      }
+      
       return { success: false, error: 'Network error' };
     }
   }

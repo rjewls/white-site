@@ -19,7 +19,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { wilayasData } from "@/lib/locations";
+import { WILAYA_LIST } from "@/lib/wilayaMapping";
 import { wilayaDeliveryFees } from "@/lib/deliveryFees";
 import { OrderFormValues } from "@/types/product";
 
@@ -224,10 +224,10 @@ export function OrderFormFields({
   const deliveryFee = useMemo(() => {
     if (!watchWilaya || !watchDeliveryOption) return 0;
     
-    const selectedWilaya = wilayasData.find(w => w.name === watchWilaya);
+    const selectedWilaya = WILAYA_LIST.find(w => w.name === watchWilaya);
     if (!selectedWilaya) return 0;
     
-    const wilayaCode = parseInt(selectedWilaya.code);
+    const wilayaCode = selectedWilaya.id;
     const fees = wilayaDeliveryFees.find(f => f.code === wilayaCode);
     
     if (!fees) return 0;
@@ -309,8 +309,8 @@ export function OrderFormFields({
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {wilayasData.map((wilaya) => (
-                        <SelectItem key={wilaya.code} value={wilaya.name}>
+                      {WILAYA_LIST.map((wilaya) => (
+                        <SelectItem key={wilaya.id} value={wilaya.name}>
                           {wilaya.name}
                         </SelectItem>
                       ))}

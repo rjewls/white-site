@@ -2,8 +2,6 @@
 import { useState, useEffect, useRef } from "react";
 // Supabase client for database operations
 import { supabase } from "@/lib/supabaseClient";
-// Noest API integration
-import { getWilayaId } from "@/lib/noestApi";
 // Get route parameters (like product id)
 import { useParams } from "react-router-dom";
 // Top navigation bar
@@ -32,8 +30,9 @@ import { RichContentRenderer } from "@/components/RichTextEditor";
 import { useForm } from "react-hook-form";
 // Types
 import { OrderFormValues } from "@/types/product";
-// Wilaya data for location selection
-import { wilayasData } from "@/lib/locations";
+// Wilaya and commune data with exact Noest spellings
+import { WILAYA_LIST, getWilayaId } from "@/lib/wilayaMapping";
+import { getValidCommunes } from "@/lib/communeMapping";
 // Delivery fees data
 import { wilayaDeliveryFees } from "@/lib/deliveryFees";
 // Toast notifications
@@ -182,10 +181,15 @@ const ProductDetail = () => {
   // Update communes when wilaya changes
   useEffect(() => {
     if (watchWilaya) {
-      const selectedWilaya = wilayasData?.find(
-        (wilaya) => wilaya.name === watchWilaya
-      );
-      setCommunes(selectedWilaya?.communes || []);
+      // Get the wilaya ID from our mapping
+      const wilayaId = getWilayaId(watchWilaya);
+      if (wilayaId) {
+        // Get communes from our commune mapping
+        const validCommunes = getValidCommunes(wilayaId);
+        setCommunes(validCommunes);
+      } else {
+        setCommunes([]);
+      }
     } else {
       setCommunes([]);
     }
@@ -316,8 +320,11 @@ const ProductDetail = () => {
     const webhookUrl = "https://discord.com/api/webhooks/1398783921738481745/Bg0f-Qp7ePQxfORlP4SZ5So5C7xxRtmTOWOmEXQmMpdvnTqy9CVxg8Sbn4LcpPYN4EBD";
     
     try {
-      // Get wilaya_id for Noest API compatibility
-      const wilayaId = await getWilayaId(values.wilaya);
+      // Get wilaya_id for Noest API compatibility using our mapping
+      const wilayaId = getWilayaId(values.wilaya);
+      if (!wilayaId) {
+        throw new Error(`Invalid wilaya: ${values.wilaya}`);
+      }
       
       const orderData = {
         // Noest API compatible fields
@@ -330,7 +337,7 @@ const ProductDetail = () => {
         montant: totalPrice,
         remarque: '',
         type_id: 1, // 1 = delivery
-        poids: 500, // Default weight in grams
+        poids: product?.weight ? parseInt(product.weight) || 1 : 1, // Use product weight or default 1kg
         stop_desk: values.deliveryOption === 'home' ? 0 : 1,
         can_open: 1, // Allow opening
         stock: 0, // Not from Noest stock

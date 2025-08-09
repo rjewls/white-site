@@ -9,12 +9,14 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/hooks/useLanguage";
-import { Plus, Edit, Trash2, Save, X, LogOut, User, ImageIcon, Truck, Package, Upload, Eye } from "lucide-react";
+import { Plus, Edit, Trash2, Save, X, LogOut, User, ImageIcon, Truck, Package, Upload, Eye, CheckCircle } from "lucide-react";
 import { compressImages, formatFileSize, supportsWebP } from "@/lib/imageCompression";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { wilayaDeliveryFees } from "@/lib/deliveryFees";
 import { RichTextEditor, RichContentRenderer } from "@/components/RichTextEditor";
 import { noestApiService } from "@/lib/noestApi";
+import { isValidCommune, suggestCommune, getDefaultCommune } from '../lib/communeMapping';
+import { VALID_WILAYA_IDS } from '../lib/communeMapping';
 
 // Products will be fetched from Supabase
 
@@ -22,6 +24,7 @@ interface FormData {
   title: string;
   price: string;
   oldPrice?: string; // Optional old price for sale display
+  weight?: string; // Product weight in kg
   images: (File | string)[];
   description: string;
   colors: string | string[];
@@ -106,6 +109,7 @@ const Admin = () => {
     title: "",
     price: "",
     oldPrice: "",
+    weight: "1", // Default 1kg
     images: [],
     description: "",
     colors: "",
@@ -117,6 +121,7 @@ const Admin = () => {
       title: "",
       price: "",
       oldPrice: "",
+      weight: "1", // Default 1kg
       images: [],
       description: "",
       colors: "",
@@ -248,6 +253,7 @@ const Admin = () => {
       title: product.title,
       price: product.price?.toString(),
       oldPrice: product.oldprice?.toString() || "",
+      weight: product.weight?.toString() || "1",
       images: imagesArr,
       description: product.description,
       colors: cleanArrayField(product.colors),
@@ -306,6 +312,7 @@ const Admin = () => {
       title: formData.title,
       price: parseFloat(formData.price),
       oldprice: formData.oldPrice && formData.oldPrice.trim() ? parseFloat(formData.oldPrice) : null,
+      weight: formData.weight && formData.weight.trim() ? parseFloat(formData.weight) : 1, // Default 1kg
       images: imageUrls,
       description: formData.description,
       colors: Array.isArray(formData.colors)
@@ -633,6 +640,19 @@ const Admin = () => {
       }
       
       setOrders(data || []);
+      
+      // Debug logging to see order statuses
+      console.log('📊 Orders fetched:', data?.length || 0);
+      if (data && data.length > 0) {
+        const statusCounts = data.reduce((acc, order) => {
+          const status = order.status || 'null';
+          const hasTracking = !!order.tracking;
+          const key = `${status} (tracking: ${hasTracking})`;
+          acc[key] = (acc[key] || 0) + 1;
+          return acc;
+        }, {});
+        console.log('📊 Order status breakdown:', statusCounts);
+      }
     } catch (error) {
       console.error('Error fetching orders:', error);
       toast({
@@ -660,14 +680,56 @@ const Admin = () => {
         // 2. Use a default station based on wilaya
         // 3. Prompt user to select station
         
-        // For demo purposes, let's use some common station codes based on wilaya
+        // Expanded station mapping for major wilayas
         const wilayaStationMap = {
-          16: '16A', // Alger
-          31: '31A', // Oran  
-          25: '25A', // Constantine
+          1: '1A',   // Adrar
+          2: '2A',   // Chlef
+          3: '3A',   // Laghouat
+          4: '4A',   // Oum El Bouaghi
+          5: '5A',   // Batna
+          6: '6A',   // Béjaïa
+          7: '7A',   // Biskra
+          8: '8A',   // Béchar
           9: '9A',   // Blida
+          10: '10A', // Bouira
+          11: '11A', // Tamanrasset
+          12: '12A', // Tébessa
+          13: '13A', // Tlemcen
+          14: '14A', // Tiaret
+          15: '15A', // Tizi Ouzou
+          16: '16A', // Alger
+          17: '17A', // Djelfa
+          18: '18A', // Jijel
+          19: '19A', // Sétif
+          20: '20A', // Saïda
+          21: '21A', // Skikda
+          22: '22A', // Sidi Bel Abbès
+          23: '23A', // Annaba
+          24: '24A', // Guelma
+          25: '25A', // Constantine
+          26: '26A', // Médéa
+          27: '27A', // Mostaganem
+          28: '28A', // M'Sila
+          29: '29A', // Mascara
+          30: '30A', // Ouargla
+          31: '31A', // Oran
+          32: '32A', // El Bayadh
+          33: '33A', // Illizi
+          34: '34A', // Bordj Bou Arréridj
           35: '35A', // Boumerdès
-          // Add more as needed
+          36: '36A', // El Tarf
+          37: '37A', // Tindouf
+          38: '38A', // Tissemsilt
+          39: '39A', // El Oued
+          40: '40A', // Khenchela
+          41: '41A', // Souk Ahras
+          42: '42A', // Tipaza
+          43: '43A', // Mila
+          44: '44A', // Aïn Defla
+          45: '45A', // Naâma
+          46: '46A', // Aïn Témouchent
+          47: '47A', // Ghardaïa
+          48: '48A'  // Relizane
         };
         
         stationCode = wilayaStationMap[order.wilaya_id] || '16A'; // Default to Alger station
@@ -680,52 +742,261 @@ const Admin = () => {
         });
       }
       
-      // Ensure all required fields are present and valid
-      const orderData = {
-        reference: `ORDER-${order.id}`,
-        client: order.client || order.customer_name || '',
-        phone: (order.phone || order.customer_phone || '').replace(/\D/g, ''), // Remove non-digits
-        phone_2: order.phone_2 || '',
-        adresse: order.adresse || order.delivery_address || '',
-        wilaya_id: order.wilaya_id || 16, // Default to Alger if missing
-        commune: order.commune || 'Alger Centre', // Default commune if missing
-        montant: parseFloat(order.montant || order.total_price || 0),
-        remarque: order.remarque || '',
-        produit: order.produit || order.product_title || '',
-        type_id: order.type_id || 1, // Default to delivery
-        poids: parseInt(order.poids) || 500, // Default weight 500g
-        stop_desk: isStopdesk ? 1 : 0,
-        station_code: isStopdesk ? stationCode : '', // Only set if stopdesk
-        stock: order.stock || 0,
-        quantite: order.quantite || order.quantity?.toString() || '1',
-        can_open: order.can_open || 1
-      };
+      console.log('=== NOEST UPLOAD DEBUG ===');
+      console.log('Original order from database:', order);
+      console.log('Order poids field:', order.poids, typeof order.poids);
+      console.log('Order weight parsing:', parseInt(order.poids), typeof parseInt(order.poids));
+      console.log('Is stopdesk delivery?', isStopdesk);
+      console.log('Station code selected:', stationCode);
 
-      console.log('Processed order data for Noest:', orderData);
+      // Build detailed product information for remarque
+      const productDetails = [];
       
-      // Validate required fields before sending
-      const requiredFields = ['reference', 'client', 'phone', 'adresse', 'wilaya_id', 'commune', 'montant', 'produit'];
-      const missingFields = requiredFields.filter(field => !orderData[field] || orderData[field] === '');
-      
-      if (missingFields.length > 0) {
-        throw new Error(`Missing required fields: ${missingFields.join(', ')}`);
+      // Add basic product info
+      if (order.product_title || order.produit) {
+        productDetails.push(`Produit: ${order.product_title || order.produit}`);
       }
       
+      // Add quantity if available
+      if (order.quantity || order.quantite) {
+        productDetails.push(`Quantité: ${order.quantity || order.quantite}`);
+      }
+      
+      // Add product variants/options if available
+      if (order.selected_color || order.product_color) {
+        const colorData = order.selected_color || order.product_color;
+        // Handle both single color and multiple colors (JSON array)
+        let colorText = colorData;
+        try {
+          if (typeof colorData === 'string' && colorData.startsWith('[')) {
+            const colorArray = JSON.parse(colorData);
+            if (Array.isArray(colorArray)) {
+              colorText = colorArray.filter(Boolean).join(', ');
+            }
+          }
+        } catch (e) {
+          // Use original string if parsing fails
+        }
+        productDetails.push(`Couleur: ${colorText}`);
+      }
+      
+      if (order.selected_size || order.product_size) {
+        const sizeData = order.selected_size || order.product_size;
+        // Handle both single size and multiple sizes (JSON array)
+        let sizeText = sizeData;
+        try {
+          if (typeof sizeData === 'string' && sizeData.startsWith('[')) {
+            const sizeArray = JSON.parse(sizeData);
+            if (Array.isArray(sizeArray)) {
+              sizeText = sizeArray.filter(Boolean).join(', ');
+            }
+          }
+        } catch (e) {
+          // Use original string if parsing fails
+        }
+        productDetails.push(`Taille: ${sizeText}`);
+      }
+      
+      if (order.product_variant) {
+        productDetails.push(`Variante: ${order.product_variant}`);
+      }
+      
+      if (order.product_option) {
+        productDetails.push(`Option: ${order.product_option}`);
+      }
+      
+      // Add delivery preferences
+      if (order.delivery_option) {
+        productDetails.push(`Livraison: ${order.delivery_option === 'home' ? 'À domicile' : 'Point relais'}`);
+      }
+      
+      if (order.delivery_time) {
+        productDetails.push(`Heure de livraison: ${order.delivery_time}`);
+      }
+      
+      // Add any existing remarks
+      if (order.remarque) {
+        productDetails.push(`Note: ${order.remarque}`);
+      }
+      
+      if (order.customer_notes) {
+        productDetails.push(`Notes client: ${order.customer_notes}`);
+      }
+      
+      // Add order metadata
+      if (order.created_at) {
+        productDetails.push(`Commande créée: ${new Date(order.created_at).toLocaleString('fr-FR')}`);
+      }
+      
+      // Clean and format phone number
+      const cleanPhone = (order.phone || order.customer_phone || '').toString().replace(/\D/g, '');
+      
+      // Get basic product name (simplified for API)
+      const basicProductName = (order.product_title || order.produit || 'Produit').split(' ').slice(0, 3).join(' ');
+
+      // Ensure weight is available - try to get from order, then from product, then default to 1
+      let orderWeight = order.poids;
+      if (!orderWeight || orderWeight <= 0) {
+        // Try to get weight from the related product if available
+        if (order.product_id) {
+          try {
+            const { data: productData, error: productError } = await supabase
+              .from('products')
+              .select('weight')
+              .eq('id', order.product_id)
+              .single();
+            
+            if (!productError && productData?.weight) {
+              orderWeight = productData.weight;
+              console.log('Using product weight:', orderWeight);
+            }
+          } catch (err) {
+            console.log('Could not fetch product weight:', err);
+          }
+        }
+        
+        // Final fallback
+        if (!orderWeight || orderWeight <= 0) {
+          orderWeight = 1;
+          console.log('Using default weight: 1kg');
+        }
+      }
+
+      console.log('Final weight value:', orderWeight, typeof orderWeight);
+
+      // Validate and fix commune name for Noest API
+      let communeName = (order.commune || 'Alger Centre').toString().trim();
+      
+      // Get wilaya ID and validate it's in our supported list
+      let wilayaId = parseInt(order.wilaya_id) || 16; // Default to Alger
+      if (!VALID_WILAYA_IDS.includes(wilayaId)) {
+        console.warn(`Invalid wilaya ID: ${wilayaId}. Using default: 16 (Alger)`);
+        wilayaId = 16; // Fallback to Alger
+      }
+      
+      // Check if commune is valid for the wilaya
+      if (!isValidCommune(wilayaId, communeName)) {
+        console.warn(`Invalid commune "${communeName}" for wilaya ${wilayaId}`);
+        
+        // Try to suggest a valid commune
+        const suggestion = suggestCommune(wilayaId, communeName);
+        if (suggestion) {
+          console.log(`Using suggested commune: ${suggestion}`);
+          communeName = suggestion;
+        } else {
+          // Use default commune for the wilaya
+          const defaultCommune = getDefaultCommune(wilayaId);
+          console.log(`Using default commune: ${defaultCommune}`);
+          communeName = defaultCommune;
+          
+          // Show warning to user
+          toast({
+            title: "Commune Adjusted",
+            description: `Original commune "${order.commune}" not recognized. Using "${defaultCommune}" instead.`,
+            variant: "destructive",
+          });
+        }
+      }
+
+      // Ensure all required fields are present and valid
+      const orderData = {
+        reference: `ORDER-${order.id}`.substring(0, 255), // Ensure max length
+        client: (order.client || order.customer_name || 'Client').toString().trim().substring(0, 255),
+        phone: cleanPhone.substring(0, 10), // Ensure max 10 digits
+        phone_2: (order.phone_2 || '').toString().trim().substring(0, 10),
+        adresse: (order.adresse || order.delivery_address || 'Adresse').toString().trim().substring(0, 255),
+        wilaya_id: wilayaId, // Use validated wilaya_id
+        commune: communeName.substring(0, 255), // Use validated commune name
+        montant: Math.max(0.01, parseFloat(order.montant || order.total_price || order.product_price || 1)),
+        remarque: productDetails.join(' | ').substring(0, 500), // Limit length
+        produit: basicProductName.substring(0, 255), // Ensure max length
+        type_id: Math.max(1, Math.min(3, parseInt(order.type_id) || 1)), // Ensure between 1-3
+        poids: Math.round(parseFloat(orderWeight)) || 1, // Ensure it's a positive integer
+        stop_desk: isStopdesk ? 1 : 0,
+        station_code: isStopdesk ? stationCode.substring(0, 10) : '', // Limit length
+        stock: 0, // Set to 0 like working project
+        quantite: (order.quantity || order.quantite || '1').toString().substring(0, 10),
+        can_open: 0 // Set to 0 like working project
+      };
+
+      console.log('Reshaped order data for Noest API:', orderData);
+      console.log('Weight value being sent:', orderData.poids, typeof orderData.poids);
+      console.log('All field types:', {
+        reference: typeof orderData.reference,
+        client: typeof orderData.client,
+        phone: typeof orderData.phone,
+        adresse: typeof orderData.adresse,
+        wilaya_id: typeof orderData.wilaya_id,
+        commune: typeof orderData.commune,
+        montant: typeof orderData.montant,
+        produit: typeof orderData.produit,
+        poids: typeof orderData.poids,
+        quantite: typeof orderData.quantite,
+        type_id: typeof orderData.type_id,
+        stop_desk: typeof orderData.stop_desk,
+        can_open: typeof orderData.can_open,
+        stock: typeof orderData.stock
+      });      // Validate required fields before sending
+      const requiredFields = ['reference', 'client', 'phone', 'adresse', 'wilaya_id', 'commune', 'montant', 'produit'];
+      const missingFields = requiredFields.filter(field => {
+        const value = orderData[field];
+        return !value || (typeof value === 'string' && value.trim() === '') || (typeof value === 'number' && (isNaN(value) || value <= 0));
+      });
+      
+      if (missingFields.length > 0) {
+        console.error('Missing/invalid required fields:', missingFields);
+        console.error('Field values:', missingFields.reduce((acc, field) => {
+          acc[field] = orderData[field];
+          return acc;
+        }, {}));
+        throw new Error(`Missing or invalid required fields: ${missingFields.join(', ')}`);
+      }
+
       // Additional validation
       if (orderData.phone.length < 9) {
-        throw new Error('Phone number must be at least 9 digits');
+        console.error('Phone too short:', orderData.phone);
+        throw new Error(`Phone number must be at least 9 digits (got: ${orderData.phone.length} digits)`);
       }
       
       if (orderData.montant <= 0) {
-        throw new Error('Amount must be greater than 0');
+        console.error('Invalid amount:', orderData.montant);
+        throw new Error(`Amount must be greater than 0 (got: ${orderData.montant})`);
       }
       
       if (!orderData.commune.trim()) {
+        console.error('Empty commune:', orderData.commune);
         throw new Error('Commune cannot be empty');
       }
 
-      console.log('=== NOEST UPLOAD DEBUG ===');
-      console.log('Original order from database:', order);
+      // Validate numeric fields
+      if (!Number.isInteger(orderData.poids) || orderData.poids <= 0) {
+        console.error('Invalid weight value:', orderData.poids, typeof orderData.poids);
+        throw new Error(`Weight must be a positive integer (got: ${orderData.poids}, type: ${typeof orderData.poids})`);
+      }
+
+      if (!Number.isInteger(orderData.wilaya_id) || orderData.wilaya_id < 1 || orderData.wilaya_id > 48) {
+        console.error('Invalid wilaya_id:', orderData.wilaya_id);
+        throw new Error(`Wilaya ID must be between 1 and 48 (got: ${orderData.wilaya_id})`);
+      }
+
+      if (!Number.isInteger(orderData.type_id) || orderData.type_id < 1 || orderData.type_id > 3) {
+        console.error('Invalid type_id:', orderData.type_id);
+        throw new Error(`Type ID must be between 1 and 3 (got: ${orderData.type_id})`);
+      }
+
+      // Validate client name has reasonable content
+      if (orderData.client.length < 2) {
+        console.error('Client name too short:', orderData.client);
+        throw new Error(`Client name must be at least 2 characters (got: "${orderData.client}")`);
+      }
+
+      // Validate address has reasonable content
+      if (orderData.adresse.length < 5) {
+        console.error('Address too short:', orderData.adresse);
+        throw new Error(`Address must be at least 5 characters (got: "${orderData.adresse}")`);
+      }
+
+      console.log('✅ All validations passed, sending to Noest API...');
 
       // Create order in Noest
       const noestResponse = await noestApiService.createOrder(orderData);
@@ -733,38 +1004,47 @@ const Admin = () => {
       console.log('Noest createOrder response:', noestResponse);
 
       if (noestResponse.success) {
-        // Validate order automatically
-        const validateResponse = await noestApiService.validateOrder(noestResponse.tracking);
-        
-        if (validateResponse.success) {
-          // Update order in database
-          const { error } = await supabase
-            .from('orders')
-            .update({ 
-              tracking: noestResponse.tracking,
-              is_validated: true,
-              status: 'expédié',
-              station_code: isStopdesk ? stationCode : null // Save the station code used
-            })
-            .eq('id', order.id);
+        // Update order in database (order was created successfully)
+        const { error } = await supabase
+          .from('orders')
+          .update({ 
+            tracking: noestResponse.tracking,
+            is_validated: false, // Not validated yet
+            status: 'inséré', // Set status to "inséré"
+            station_code: isStopdesk ? stationCode : null // Save the station code used
+          })
+          .eq('id', order.id);
 
-          if (!error) {
-            toast({
-              title: "✅ Success!",
-              description: `Order uploaded to Noest. Tracking: ${noestResponse.tracking}`,
-              className: "bg-green-50 border-green-200 text-green-800"
-            });
-            
-            // Refresh orders list
-            fetchOrders();
-          } else {
-            throw new Error('Failed to update order status');
-          }
+        if (error) {
+          console.error('Database update error:', error);
         } else {
-          throw new Error('Failed to validate order in Noest');
+          console.log('✅ Order updated successfully in database');
+          console.log('Order ID:', order.id);
+          console.log('New tracking:', noestResponse.tracking);
+          console.log('Status set to: inséré');
         }
+
+        // Show success message for upload only
+        toast({
+          title: "✅ Upload Success!",
+          description: `Order uploaded to Noest successfully. Tracking: ${noestResponse.tracking}`,
+          className: "bg-green-50 border-green-200 text-green-800"
+        });
+        
+        // Refresh orders list
+        fetchOrders();
       } else {
-        throw new Error(noestResponse.error || 'Failed to create order in Noest');
+        // Log the full error details for debugging
+        console.error('Noest API returned error:', noestResponse);
+        
+        let errorDetails = noestResponse.error || 'Unknown error';
+        
+        // Try to parse detailed validation errors if available
+        if (typeof noestResponse.error === 'string' && noestResponse.error.includes('validation')) {
+          errorDetails = `Validation error: ${noestResponse.error}. Please check all required fields.`;
+        }
+        
+        throw new Error(errorDetails);
       }
     } catch (error) {
       console.error('Error uploading to Noest:', error);
@@ -781,6 +1061,96 @@ const Admin = () => {
       toast({
         title: "Error uploading to Noest",
         description: errorMessage,
+        variant: "destructive"
+      });
+    }
+  };
+
+  // Delete order function
+  const deleteOrder = async (orderId: string) => {
+    try {
+      const { error } = await supabase
+        .from('orders')
+        .delete()
+        .eq('id', orderId);
+
+      if (error) {
+        console.error('Error deleting order:', error);
+        toast({
+          title: "Error",
+          description: "Failed to delete order: " + error.message,
+          variant: "destructive"
+        });
+        return;
+      }
+
+      toast({
+        title: "Success",
+        description: "Order deleted successfully",
+      });
+
+      // Refresh orders list
+      fetchOrders();
+    } catch (error) {
+      console.error('Error deleting order:', error);
+      toast({
+        title: "Error",
+        description: "Failed to delete order",
+        variant: "destructive"
+      });
+    }
+  };
+
+  // Manual validation function for orders that were uploaded but not auto-validated
+  const manualValidateOrder = async (order) => {
+    if (!order.tracking) {
+      toast({
+        title: "Error",
+        description: "Order has no tracking number. Please upload to Noest first.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    try {
+      console.log('Manually validating order with tracking:', order.tracking);
+      const validateResponse = await noestApiService.validateOrder(order.tracking);
+      console.log('Manual validation response:', validateResponse);
+      
+      if (validateResponse.success) {
+        // Update order to validated status
+        const { error } = await supabase
+          .from('orders')
+          .update({ 
+            is_validated: true,
+            status: 'expédié'
+          })
+          .eq('id', order.id);
+
+        if (!error) {
+          toast({
+            title: "✅ Order Shipped!",
+            description: `Order ${order.tracking} has been marked as shipped (expédié).`,
+            className: "bg-green-50 border-green-200 text-green-800"
+          });
+          
+          // Refresh orders list
+          fetchOrders();
+        } else {
+          throw new Error('Failed to update order status in database');
+        }
+      } else {
+        toast({
+          title: "Shipping Failed",
+          description: `Failed to mark order ${order.tracking} as shipped: ${validateResponse.error || 'Unknown error'}`,
+          variant: "destructive"
+        });
+      }
+    } catch (error) {
+      console.error('Manual validation error:', error);
+      toast({
+        title: "Shipping Error",
+        description: `Error marking order as shipped: ${error.message}`,
         variant: "destructive"
       });
     }
@@ -822,19 +1192,19 @@ const Admin = () => {
         adresse: "Rue Didouche Mourad, Alger Centre",
         wilaya_id: 16,
         commune: "Alger Centre",
-        montant: 2500,
-        remarque: "Test order from admin",
+        montant: 2500.00,
+        remarque: "Produit: Test Product | Quantité: 1 | Couleur: Rouge | Taille: M | Livraison: À domicile | Test order from admin",
         produit: "Test Product",
         type_id: 1,
-        poids: 500,
+        poids: 1, // 1kg - reasonable weight for test
         stop_desk: 0,
         station_code: "",
         stock: 1,
         quantite: "1",
-        can_open: 1
+        can_open: 0
       };
 
-      console.log('Creating test order with data:', testOrderData);
+      console.log('Creating test order with reshaped data:', testOrderData);
       console.log('Using API Token length:', configData.api_token.length);
       console.log('Using GUID length:', configData.guid.length);
       
@@ -1293,23 +1663,23 @@ const Admin = () => {
             <CardContent className="px-3 sm:px-6 pb-4 sm:pb-6 pt-4">
               <div className="space-y-6">
                 
-                {/* Prêt à expédier Section */}
+                {/* Prêt à expédier Section - Orders not yet uploaded to Noest */}
                 <div>
                   <div className="flex items-center gap-2 mb-4">
                     <Package className="h-5 w-5 text-blue-600" />
                     <h3 className="font-semibold text-lg text-blue-600">Prêt à expédier</h3>
                     <span className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full">
-                      {orders.filter(order => !order.is_validated).length}
+                      {orders.filter(order => !order.tracking && (!order.status || order.status === 'pending')).length}
                     </span>
                   </div>
                   
-                  {orders.filter(order => !order.is_validated).length === 0 ? (
+                  {orders.filter(order => !order.tracking && (!order.status || order.status === 'pending')).length === 0 ? (
                     <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 text-center">
                       <p className="text-blue-600 text-sm">No pending orders</p>
                     </div>
                   ) : (
                     <div className="space-y-3">
-                      {orders.filter(order => !order.is_validated).map((order) => (
+                      {orders.filter(order => !order.tracking && (!order.status || order.status === 'pending')).map((order) => (
                         <div key={order.id} className="bg-white border rounded-lg p-4 hover:shadow-md transition-shadow">
                           {editingOrderId === order.id ? (
                             // Edit mode
@@ -1421,6 +1791,12 @@ const Admin = () => {
                                   <span className="font-medium text-gray-600">Delivery:</span>
                                   <p className="text-gray-900">{order.stop_desk ? 'Stop Desk' : 'Home'}</p>
                                 </div>
+                                {order.tracking && (
+                                  <div className="lg:col-span-3">
+                                    <span className="font-medium text-gray-600">Tracking:</span>
+                                    <p className="text-orange-600 font-mono text-xs">{order.tracking} (Awaiting Validation)</p>
+                                  </div>
+                                )}
                               </div>
                               <div className="flex flex-wrap gap-2 pt-2 border-t">
                                 <Button
@@ -1450,9 +1826,97 @@ const Admin = () => {
                                   <Upload className="h-4 w-4 mr-1" />
                                   Upload to Noest
                                 </Button>
+                                <Button
+                                  onClick={() => deleteOrder(order.id)}
+                                  size="sm"
+                                  variant="outline"
+                                  className="text-red-600 border-red-300 hover:bg-red-50"
+                                >
+                                  <Trash2 className="h-4 w-4 mr-1" />
+                                  Delete
+                                </Button>
                               </div>
                             </div>
                           )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* Inséré Section - Orders uploaded to Noest but not validated yet */}
+                <div>
+                  <div className="flex items-center gap-2 mb-4">
+                    <Upload className="h-5 w-5 text-orange-600" />
+                    <h3 className="font-semibold text-lg text-orange-600">Inséré</h3>
+                    <span className="bg-orange-100 text-orange-800 text-xs px-2 py-1 rounded-full">
+                      {orders.filter(order => order.tracking && order.status === 'inséré' && !order.is_validated).length}
+                    </span>
+                  </div>
+                  
+                  {orders.filter(order => order.tracking && order.status === 'inséré' && !order.is_validated).length === 0 ? (
+                    <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 text-center">
+                      <p className="text-orange-600 text-sm">No orders uploaded to Noest</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      {orders.filter(order => order.tracking && order.status === 'inséré' && !order.is_validated).map((order) => (
+                        <div key={order.id} className="bg-white border border-orange-200 rounded-lg p-4">
+                          <div className="space-y-3">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-sm">
+                              <div>
+                                <span className="font-medium text-gray-600">Client:</span>
+                                <p className="text-gray-900">{order.client}</p>
+                              </div>
+                              <div>
+                                <span className="font-medium text-gray-600">Phone:</span>
+                                <p className="text-gray-900">{order.phone}</p>
+                              </div>
+                              <div>
+                                <span className="font-medium text-gray-600">Address:</span>
+                                <p className="text-gray-900 truncate">{order.adresse}</p>
+                              </div>
+                              <div>
+                                <span className="font-medium text-gray-600">Tracking:</span>
+                                <p className="text-orange-600 font-mono text-xs">{order.tracking}</p>
+                              </div>
+                            </div>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 text-sm">
+                              <div>
+                                <span className="font-medium text-gray-600">Product:</span>
+                                <p className="text-gray-900">{order.produit}</p>
+                              </div>
+                              <div>
+                                <span className="font-medium text-gray-600">Amount:</span>
+                                <p className="text-gray-900 font-semibold">{order.montant} DZD</p>
+                              </div>
+                              <div>
+                                <span className="font-medium text-gray-600">Status:</span>
+                                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-orange-100 text-orange-800">
+                                  📤 Uploaded
+                                </span>
+                              </div>
+                            </div>
+                            <div className="flex gap-2 pt-2 border-t">
+                              <Button
+                                onClick={() => manualValidateOrder(order)}
+                                size="sm"
+                                className="bg-green-600 hover:bg-green-700 text-white"
+                              >
+                                <CheckCircle className="h-4 w-4 mr-1" />
+                                Expédié
+                              </Button>
+                              <Button
+                                onClick={() => deleteOrder(order.id)}
+                                size="sm"
+                                variant="outline"
+                                className="text-red-600 border-red-300 hover:bg-red-50"
+                              >
+                                <Trash2 className="h-4 w-4 mr-1" />
+                                Delete
+                              </Button>
+                            </div>
+                          </div>
                         </div>
                       ))}
                     </div>
@@ -1465,17 +1929,17 @@ const Admin = () => {
                     <Truck className="h-5 w-5 text-green-600" />
                     <h3 className="font-semibold text-lg text-green-600">Expédié</h3>
                     <span className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">
-                      {orders.filter(order => order.is_validated).length}
+                      {orders.filter(order => order.is_validated && order.status === 'expédié').length}
                     </span>
                   </div>
                   
-                  {orders.filter(order => order.is_validated).length === 0 ? (
+                  {orders.filter(order => order.is_validated && order.status === 'expédié').length === 0 ? (
                     <div className="bg-green-50 border border-green-200 rounded-lg p-4 text-center">
                       <p className="text-green-600 text-sm">No shipped orders</p>
                     </div>
                   ) : (
                     <div className="space-y-3">
-                      {orders.filter(order => order.is_validated).map((order) => (
+                      {orders.filter(order => order.is_validated && order.status === 'expédié').map((order) => (
                         <div key={order.id} className="bg-white border border-green-200 rounded-lg p-4">
                           <div className="space-y-3">
                             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-sm">
@@ -1511,6 +1975,17 @@ const Admin = () => {
                                   ✅ Shipped
                                 </span>
                               </div>
+                            </div>
+                            <div className="flex gap-2 pt-2 border-t">
+                              <Button
+                                onClick={() => deleteOrder(order.id)}
+                                size="sm"
+                                variant="outline"
+                                className="text-red-600 border-red-300 hover:bg-red-50"
+                              >
+                                <Trash2 className="h-4 w-4 mr-1" />
+                                Delete
+                              </Button>
                             </div>
                           </div>
                         </div>
@@ -1888,7 +2363,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
         </div>
       </div>
 
-      {/* Old Price and Price Row (if oldPrice is set) */}
+      {/* Old Price and Weight Row */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
           <Label htmlFor="oldPrice" className="text-sm font-medium">Old Price (Optional - for sale display)</Label>
@@ -1905,7 +2380,22 @@ const ProductForm: React.FC<ProductFormProps> = ({
             Leave empty for regular pricing. Fill to show strikethrough old price.
           </p>
         </div>
-        <div></div> {/* Empty div for grid alignment */}
+        <div>
+          <Label htmlFor="weight" className="text-sm font-medium">Product Weight (kg)</Label>
+          <Input
+            id="weight"
+            type="number"
+            step="0.1"
+            min="0.1"
+            value={formData.weight}
+            onChange={(e) => setFormData({...formData, weight: e.target.value})}
+            placeholder="1.0"
+            className="mt-1"
+          />
+          <p className="text-xs text-muted-foreground mt-1">
+            Weight in kilograms for shipping calculations.
+          </p>
+        </div>
       </div>
 
       {/* Images Section */}
