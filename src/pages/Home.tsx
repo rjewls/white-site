@@ -338,12 +338,12 @@ const Home = () => {
             </div>
           </div>
           
-          {/* Enhanced Product Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+      {/* Enhanced Product Grid */}
+      <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
             {products.map((product, index) => (
               <div
                 key={product.id}
-                className="aspect-[4/5] md:aspect-auto md:h-[380px] lg:h-[420px] flex flex-col lg:transform lg:hover:scale-[1.02] lg:transition-all lg:duration-300"
+        className="h-auto md:h-[380px] lg:h-[420px] flex flex-col lg:transform lg:hover:scale-[1.02] lg:transition-all lg:duration-300"
                 style={{ 
                   animationDelay: `${index * 0.1}s`,
                   filter: 'drop-shadow(0 4px 20px rgba(0,0,0,0.1))'

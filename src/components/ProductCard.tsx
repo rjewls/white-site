@@ -121,8 +121,8 @@ export const ProductCard = ({ product }: ProductCardProps) => {
     <div className="h-full">
       <Link to={`/product/${product.id}`} className="block h-full group">
         <Card className="relative h-full bg-white rounded-lg overflow-hidden border-2 border-transparent group-hover:border-pink-500 transition-all duration-300 flex flex-col">
-          {/* Image Container - Top Half */}
-          <div className="relative w-full h-1/2 flex-shrink-0 overflow-hidden border-2 border-pink-400 group-hover:border-transparent transition-all duration-300">
+          {/* Image Container with fixed aspect ratio for consistent card height */}
+          <div className="relative w-full aspect-[3/4] md:aspect-[4/5] overflow-hidden border-2 border-pink-400 group-hover:border-transparent transition-all duration-300">
             <img
               src={imageUrl}
               alt={product.title}
@@ -131,20 +131,20 @@ export const ProductCard = ({ product }: ProductCardProps) => {
             />
           </div>
 
-          {/* Content Container - Bottom Half */}
-          <CardContent className="flex-1 flex flex-col justify-center items-center text-center p-4 space-y-3">
+          {/* Content Container */}
+          <CardContent className="flex-1 flex flex-col justify-center items-center text-center p-3 sm:p-4 space-y-2 sm:space-y-3">
             {/* Product Title */}
-            <h3 className="font-semibold text-lg text-gray-900 line-clamp-2">
+            <h3 className="font-semibold text-base sm:text-lg text-gray-900 line-clamp-2">
               {product.title}
             </h3>
 
             {/* Product Price */}
-            <div className="space-y-1 min-h-[60px] flex flex-col justify-center">
+            <div className="space-y-1 min-h-[54px] sm:min-h-[60px] flex flex-col justify-center">
               {product.oldprice ? (
                 <div className="flex flex-col items-center">
                   {/* Old Price with red strikethrough */}
                   <div className="relative">
-                    <span className="text-lg font-semibold text-gray-400">
+                    <span className="text-base sm:text-lg font-semibold text-gray-400">
                       {product.oldprice.toLocaleString()} DZD
                     </span>
                     <div className="absolute inset-0 flex items-center justify-center">
@@ -153,18 +153,18 @@ export const ProductCard = ({ product }: ProductCardProps) => {
                   </div>
                   {/* New Price - Pink */}
                   <div className="flex items-baseline gap-1">
-                    <span className="text-xl font-bold text-pink-500">
+                    <span className="text-lg sm:text-xl font-bold text-pink-500">
                       {product.price.toLocaleString()}
                     </span>
-                    <span className="text-sm font-medium text-pink-400">DZD</span>
+                    <span className="text-xs sm:text-sm font-medium text-pink-400">DZD</span>
                   </div>
                 </div>
               ) : (
                 <div className="flex items-baseline gap-1 justify-center">
-                  <span className="text-xl font-bold text-pink-500">
+                  <span className="text-lg sm:text-xl font-bold text-pink-500">
                     {product.price.toLocaleString()}
                   </span>
-                  <span className="text-sm font-medium text-pink-400">DZD</span>
+                  <span className="text-xs sm:text-sm font-medium text-pink-400">DZD</span>
                 </div>
               )}
             </div>
@@ -176,7 +176,7 @@ export const ProductCard = ({ product }: ProductCardProps) => {
                 e.stopPropagation();
                 navigate(`/product/${product.id}`);
               }}
-              className="bg-pink-500 text-white font-semibold py-2 px-6 rounded-lg border-2 border-pink-500 hover:bg-white hover:text-pink-500 hover:border-pink-500 transition-all duration-200 flex items-center justify-center gap-2"
+              className="bg-pink-500 text-white font-semibold py-2 px-4 sm:px-6 rounded-lg border-2 border-pink-500 hover:bg-white hover:text-pink-500 hover:border-pink-500 transition-all duration-200 flex items-center justify-center gap-2 w-full sm:w-auto"
             >
               <ShoppingCart className="w-4 h-4" />
               <span>Add to Cart</span>
