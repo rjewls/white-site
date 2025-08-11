@@ -53,6 +53,29 @@ export function OrderFormFields({
   
   // Refs for form fields to enable scrolling to them
   const fieldRefs = useRef<{ [key: string]: HTMLElement | null }>({});
+
+  // Helper: is this basic field missing?
+  const isBasicFieldMissing = (field: keyof OrderFormValues) => {
+    const value = watchedValues[field];
+    return !value || String(value).trim() === '';
+  };
+
+  // Helper: is color/size selection missing considering quantity
+  const isColorMissing = () => {
+    if (availableColors.length === 0) return false;
+    const quantity = watchedValues.quantity || 1;
+    if (quantity === 1) return !watchedValues.selectedColor;
+    const arr = watchedValues.selectedColors || [];
+    return Array.from({ length: quantity }).some((_, i) => !arr[i]);
+  };
+
+  const isSizeMissing = () => {
+    if (availableSizes.length === 0) return false;
+    const quantity = watchedValues.quantity || 1;
+    if (quantity === 1) return !watchedValues.selectedSize;
+    const arr = watchedValues.selectedSizes || [];
+    return Array.from({ length: quantity }).some((_, i) => !arr[i]);
+  };
   
   // Check if all required fields are filled
   const isFormValid = useMemo(() => {
@@ -221,6 +244,49 @@ export function OrderFormFields({
     }
   };
 
+  // Highlight all missing fields with a red ring/border for a short time
+  const highlightAllMissingFields = () => {
+    const missingKeys: string[] = [];
+    const requiredFields = ['name', 'phone', 'wilaya', 'commune', 'deliveryOption', 'address'];
+    for (const field of requiredFields) {
+      const value = watchedValues[field as keyof OrderFormValues];
+      if (!value || String(value).trim() === '') {
+        missingKeys.push(field);
+      }
+    }
+    if (availableColors.length > 0) {
+      const quantity = watchedValues.quantity || 1;
+      if (quantity === 1) {
+        if (!watchedValues.selectedColor) missingKeys.push('selectedColor');
+      } else {
+        const selectedColors = watchedValues.selectedColors || [];
+        for (let i = 0; i < quantity; i++) {
+          if (!selectedColors[i]) missingKeys.push(`selectedColors.${i}`);
+        }
+      }
+    }
+    if (availableSizes.length > 0) {
+      const quantity = watchedValues.quantity || 1;
+      if (quantity === 1) {
+        if (!watchedValues.selectedSize) missingKeys.push('selectedSize');
+      } else {
+        const selectedSizes = watchedValues.selectedSizes || [];
+        for (let i = 0; i < quantity; i++) {
+          if (!selectedSizes[i]) missingKeys.push(`selectedSizes.${i}`);
+        }
+      }
+    }
+    missingKeys.forEach((key) => {
+      const el = fieldRefs.current[key];
+      if (el) {
+        el.classList.add('ring-2', 'ring-red-500', 'ring-opacity-75');
+        setTimeout(() => {
+          el.classList.remove('ring-2', 'ring-red-500', 'ring-opacity-75');
+        }, 3000);
+      }
+    });
+  };
+
   const deliveryFee = useMemo(() => {
     if (!watchWilaya || !watchDeliveryOption) return 0;
     
@@ -260,7 +326,7 @@ export function OrderFormFields({
                     <Input 
                       placeholder={t('enter_name')} 
                       {...field} 
-                      className="h-10 text-sm"
+                      className={`h-10 text-sm ${isBasicFieldMissing('name') ? 'border-red-500 focus-visible:ring-red-500' : ''}`}
                     />
                   </FormControl>
                   <FormMessage />
@@ -279,7 +345,7 @@ export function OrderFormFields({
                       type="tel"
                       placeholder={t('enter_phone')}
                       {...field}
-                      className="h-10 text-sm"
+                      className={`h-10 text-sm ${isBasicFieldMissing('phone') ? 'border-red-500 focus-visible:ring-red-500' : ''}`}
                       onChange={(e) => {
                         const value = e.target.value.replace(/[^0-9]/g, '');
                         if (value.length <= 10) {
@@ -304,7 +370,7 @@ export function OrderFormFields({
                     value={field.value}
                   >
                     <FormControl>
-                      <SelectTrigger className="h-10 text-sm">
+                      <SelectTrigger className={`h-10 text-sm ${isBasicFieldMissing('wilaya') ? 'border-red-500 focus:ring-red-500' : ''}`}>
                         <SelectValue placeholder={t('select_wilaya')} />
                       </SelectTrigger>
                     </FormControl>
@@ -333,7 +399,7 @@ export function OrderFormFields({
                     disabled={!watchWilaya || communes.length === 0}
                   >
                     <FormControl>
-                      <SelectTrigger className="h-10 text-sm">
+                      <SelectTrigger className={`h-10 text-sm ${isBasicFieldMissing('commune') ? 'border-red-500 focus:ring-red-500' : ''}`}>
                         <SelectValue placeholder={t('select_commune')} />
                       </SelectTrigger>
                     </FormControl>
@@ -363,7 +429,7 @@ export function OrderFormFields({
                   disabled={!watchWilaya}
                 >
                   <FormControl>
-                    <SelectTrigger className="h-10 text-sm">
+                    <SelectTrigger className={`h-10 text-sm ${isBasicFieldMissing('deliveryOption') ? 'border-red-500 focus:ring-red-500' : ''}`}>
                       <SelectValue placeholder={t('select_delivery')} />
                     </SelectTrigger>
                   </FormControl>
@@ -387,7 +453,7 @@ export function OrderFormFields({
                   <Input 
                     placeholder={t('enter_address')} 
                     {...field} 
-                    className="h-10 text-sm"
+                    className={`h-10 text-sm ${isBasicFieldMissing('address') ? 'border-red-500 focus-visible:ring-red-500' : ''}`}
                   />
                 </FormControl>
                 <FormMessage />
@@ -444,7 +510,7 @@ export function OrderFormFields({
                             <FormItem className="flex-1" ref={(el) => fieldRefs.current[`selectedColors.${index}`] = el}>
                               <Select onValueChange={field.onChange} value={field.value || ""}>
                                 <FormControl>
-                                  <SelectTrigger className="h-10">
+                                  <SelectTrigger className={`h-10 ${isColorMissing() ? 'border-red-500 focus:ring-red-500' : ''}`}>
                                     <SelectValue placeholder="Choose color" />
                                   </SelectTrigger>
                                 </FormControl>
@@ -478,7 +544,7 @@ export function OrderFormFields({
                       <FormItem ref={(el) => fieldRefs.current['selectedColor'] = el}>
                         <Select onValueChange={field.onChange} value={field.value || ""}>
                           <FormControl>
-                            <SelectTrigger className="h-12">
+                            <SelectTrigger className={`h-12 ${isColorMissing() ? 'border-red-500 focus:ring-red-500' : ''}`}>
                               <SelectValue placeholder="Choose a color" />
                             </SelectTrigger>
                           </FormControl>
@@ -523,7 +589,7 @@ export function OrderFormFields({
                             <FormItem className="flex-1" ref={(el) => fieldRefs.current[`selectedSizes.${index}`] = el}>
                               <Select onValueChange={field.onChange} value={field.value || ""}>
                                 <FormControl>
-                                  <SelectTrigger className="h-10">
+                                  <SelectTrigger className={`h-10 ${isSizeMissing() ? 'border-red-500 focus:ring-red-500' : ''}`}>
                                     <SelectValue placeholder="Choose size" />
                                   </SelectTrigger>
                                 </FormControl>
@@ -554,7 +620,7 @@ export function OrderFormFields({
                       <FormItem ref={(el) => fieldRefs.current['selectedSize'] = el}>
                         <Select onValueChange={field.onChange} value={field.value || ""}>
                           <FormControl>
-                            <SelectTrigger className="h-12">
+                            <SelectTrigger className={`h-12 ${isSizeMissing() ? 'border-red-500 focus:ring-red-500' : ''}`}>
                               <SelectValue placeholder="Choose a size" />
                             </SelectTrigger>
                           </FormControl>
@@ -609,12 +675,13 @@ export function OrderFormFields({
         <Button 
           type="submit" 
           className="w-full h-11 sm:h-10 text-sm font-medium bg-gradient-to-r from-rose-500 to-pink-600 hover:from-rose-600 hover:to-pink-700 text-white border-0 shadow-md hover:shadow-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed" 
-          disabled={isSubmitting || !isFormValid}
+          disabled={isSubmitting}
           onClick={(e) => {
             if (!isFormValid) {
               e.preventDefault();
               // Scroll to first empty field and highlight it
               scrollToFirstEmptyField();
+              highlightAllMissingFields();
               // Trigger form validation to show error messages
               form.trigger();
               return;

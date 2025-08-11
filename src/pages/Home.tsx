@@ -9,7 +9,7 @@ import { ProductCard } from "@/components/ProductCard";
 // Hero image for homepage
 import heroImage from "@/assets/hero-image.jpg";
 // Icons for service features
-import { Truck, CreditCard, RefreshCw } from "lucide-react";
+import { Truck, CreditCard, RefreshCw, Quote } from "lucide-react";
 // Language hook
 import { useLanguage } from "@/hooks/useLanguage";
 
@@ -55,6 +55,28 @@ const Home = () => {
   return (
     <div className={`min-h-screen bg-gradient-soft ${isRTL ? 'rtl' : 'ltr'}`} dir={isRTL ? 'rtl' : 'ltr'}>
       <Navigation />
+
+      {/* Announcement Bar */}
+      <section aria-label="announcement" className="bg-gradient-to-r from-rose-600 to-pink-600 text-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2">
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-6 text-xs sm:text-sm font-medium">
+            <div className="flex items-center gap-2">
+              <Truck className="w-4 h-4" />
+              <span>Fast shipping 24–48h</span>
+            </div>
+            <span className="hidden sm:inline opacity-50">|</span>
+            <div className="flex items-center gap-2">
+              <CreditCard className="w-4 h-4" />
+              <span>Cash on delivery</span>
+            </div>
+            <span className="hidden sm:inline opacity-50">|</span>
+            <div className="flex items-center gap-2">
+              <RefreshCw className="w-4 h-4" />
+              <span>Easy exchange within 7 days</span>
+            </div>
+          </div>
+        </div>
+      </section>
       
       {/* Hero Section */}
       <section className="relative min-h-[80vh] lg:min-h-[90vh] overflow-hidden">
@@ -297,6 +319,21 @@ const Home = () => {
         </div>
       </section>
 
+      {/* Brand trust strip */}
+      <section aria-label="trusted-brands" className="bg-white/60 backdrop-blur-sm border-t border-rose-100/60">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+            <p className="text-sm text-gray-600 font-medium">Trusted by shoppers across Algeria</p>
+            <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+              <span className="px-3 py-1.5 text-xs font-semibold rounded-full bg-gradient-to-r from-rose-50 to-pink-50 text-rose-600 border border-rose-100">Top Quality</span>
+              <span className="px-3 py-1.5 text-xs font-semibold rounded-full bg-gradient-to-r from-purple-50 to-indigo-50 text-purple-700 border border-purple-100">Curated Styles</span>
+              <span className="px-3 py-1.5 text-xs font-semibold rounded-full bg-gradient-to-r from-emerald-50 to-teal-50 text-emerald-700 border border-emerald-100">Verified COD</span>
+              <span className="px-3 py-1.5 text-xs font-semibold rounded-full bg-gradient-to-r from-amber-50 to-orange-50 text-amber-700 border border-amber-100">5★ Support</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Products Grid - Enhanced with Hero-style Design */}
       <section id="featured-collection" className="relative py-20 overflow-hidden">
         {/* Background with multiple gradient overlays - Hero Style */}
@@ -470,6 +507,40 @@ const Home = () => {
                 <span>24/7 Customer support</span>
               </div>
             </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Testimonials */}
+      <section aria-label="testimonials" className="relative py-20 overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-br from-rose-50/80 via-white to-pink-50/70"></div>
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <h2 className="font-playfair text-3xl md:text-4xl font-bold">
+              <span className="bg-gradient-to-r from-rose-600 via-pink-600 to-purple-600 bg-clip-text text-transparent">What customers say</span>
+            </h2>
+            <p className="font-inter text-gray-600 mt-3">Real stories from happy shoppers</p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8">
+            {[1,2,3].map((i) => (
+              <div key={i} className="group relative">
+                <div className="absolute inset-0 rounded-3xl bg-gradient-to-br from-white/80 to-white/60 border border-rose-100/60 shadow-lg"></div>
+                <div className="relative p-6 rounded-3xl">
+                  <Quote className="w-8 h-8 text-rose-500 mb-4" />
+                  <p className="text-gray-700 leading-relaxed">
+                    “Beautiful quality and super fast delivery. I’m in love with my new outfit!”
+                  </p>
+                  <div className="mt-5 flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-rose-400 to-pink-500"></div>
+                    <div>
+                      <p className="text-sm font-semibold text-gray-900">Sara B.</p>
+                      <p className="text-xs text-gray-500">Algiers</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       </section>

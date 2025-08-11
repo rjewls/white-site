@@ -18,6 +18,7 @@ import { ProtectedRoute } from "@/components/ProtectedRoute";
 import Home from "./pages/Home";
 // Product detail page component
 import ProductDetail from "./pages/ProductDetail";
+import OrderSuccess from "./pages/OrderSuccess";
 // Admin page component
 import Admin from "./pages/Admin";
 // Not found page component
@@ -38,6 +39,7 @@ const App = () => (
             <Routes>
               <Route path="/" element={<Home />} />
               <Route path="/product/:id" element={<ProductDetail />} />
+              <Route path="/order-success" element={<OrderSuccess />} />
               <Route path="/admin" element={
                 <ProtectedRoute>
                   <Admin />

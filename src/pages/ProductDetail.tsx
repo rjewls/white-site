@@ -3,7 +3,7 @@ import { useState, useEffect, useRef } from "react";
 // Supabase client for database operations
 import { supabase } from "@/lib/supabaseClient";
 // Get route parameters (like product id)
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 // Top navigation bar
 import { Navigation } from "@/components/Navigation";
 // UI button component
@@ -45,6 +45,7 @@ import { toast } from "@/components/ui/sonner";
 const ProductDetail = () => {
   // Get product id from URL
   const { id } = useParams();
+  const navigate = useNavigate();
   // Product state: null means loading, object means loaded, false means not found
   const [product, setProduct] = useState(null);
   
@@ -210,7 +211,7 @@ const ProductDetail = () => {
     
     if (!isValid) {
       console.log("Form validation failed - not sending to Discord");
-      return;
+      return; // UI will handle scroll/highlight via button click handler
     }
     
     // Function to get color emoji based on hex color value
@@ -363,9 +364,11 @@ const ProductDetail = () => {
       };
 
       // 1. Save order to Supabase first
-      const { error: supabaseError } = await supabase
+      const { data: insertedOrder, error: supabaseError } = await supabase
         .from('orders')
-        .insert(orderData);
+        .insert(orderData)
+        .select()
+        .single();
 
       if (supabaseError) {
         throw new Error('Failed to save order: ' + supabaseError.message);
@@ -401,12 +404,15 @@ const ProductDetail = () => {
         }),
       });
 
-      if (response.ok) {
-        toast.success("Order placed successfully! We will contact you soon.");
-      } else {
-        // Order saved to Supabase but Discord failed - still show success
-        toast.success("Order placed successfully! We will contact you soon.");
-      }
+      // Regardless of Discord webhook result, redirect to success page
+      navigate('/order-success', {
+        state: {
+          orderId: insertedOrder?.id ?? null,
+          productTitle: product.title,
+          quantity: values.quantity,
+          name: values.name,
+        }
+      });
       
       // Reset form
       form.reset({
