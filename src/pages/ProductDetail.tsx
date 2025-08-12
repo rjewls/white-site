@@ -37,6 +37,8 @@ import { getValidCommunes } from "@/lib/communeMapping";
 import { wilayaDeliveryFees } from "@/lib/deliveryFees";
 // Toast notifications
 import { toast } from "@/components/ui/sonner";
+// Color utilities
+import { parseColorEntry, getDisplayColorText, getColorValue } from "@/lib/colorUtils";
 
 // Mock product data - will be replaced with Supabase
 // Removed mockProducts. Now using Supabase.
@@ -532,7 +534,8 @@ const ProductDetail = () => {
                     <span
                       key={idx}
                       className="w-4 h-4 sm:w-5 sm:h-5 rounded-full border border-border inline-block"
-                      style={{ backgroundColor: color }}
+                      style={{ backgroundColor: getColorValue(color) }}
+                      title={getDisplayColorText(color)}
                     />
                   ))}
                 </div>
@@ -654,7 +657,8 @@ const ProductDetail = () => {
                       <span
                         key={idx}
                         className="w-5 h-5 rounded-full border border-border inline-block"
-                        style={{ backgroundColor: color }}
+                        style={{ backgroundColor: getColorValue(color) }}
+                        title={getDisplayColorText(color)}
                       />
                     ))}
                   </div>

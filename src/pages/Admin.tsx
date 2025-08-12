@@ -17,6 +17,7 @@ import { RichTextEditor, RichContentRenderer } from "@/components/RichTextEditor
 import { noestApiService } from "@/lib/noestApi";
 import { isValidCommune, suggestCommune, getDefaultCommune } from '../lib/communeMapping';
 import { VALID_WILAYA_IDS } from '../lib/communeMapping';
+import { parseColorEntry, getDisplayColorText, createLabeledColor, getColorValue, normalizeColorValue } from '@/lib/colorUtils';
 
 // Products will be fetched from Supabase
 
@@ -754,7 +755,7 @@ const Admin = () => {
       
       // Add basic product info
       if (order.product_title || order.produit) {
-        productDetails.push(`Produit: ${order.product_title || order.produit}`);
+        productDetails.push(`${order.product_title || order.produit}`);
       }
       
       // Add quantity if available
@@ -807,7 +808,7 @@ const Admin = () => {
       
       // Add delivery preferences
       if (order.delivery_option) {
-        productDetails.push(`Livraison: ${order.delivery_option === 'home' ? 'À domicile' : 'Point relais'}`);
+        productDetails.push(`Livraison: ${order.delivery_option === 'home' ? 'À domicile' : 'Stop Desk'}`);
       }
       
       if (order.delivery_time) {
@@ -2502,50 +2503,77 @@ const ProductForm: React.FC<ProductFormProps> = ({
         <div>
           <Label className="text-sm font-medium">{t('form.colors')}</Label>
           <div className="mt-2 space-y-3">
-            {/* Color Display */}
-            <div className="flex gap-2 flex-wrap min-h-[32px] p-2 border rounded-lg bg-muted/30">
+            {/* Color Display with Rename Capability */}
+            <div className="space-y-2">
               {(!formData.colors || formData.colors.length === 0) ? (
-                <span className="text-sm text-muted-foreground">{t('form.noColors')}</span>
+                <div className="min-h-[32px] p-2 border rounded-lg bg-muted/30 flex items-center">
+                  <span className="text-sm text-muted-foreground">{t('form.noColors')}</span>
+                </div>
               ) : (
-                (Array.isArray(formData.colors) ? formData.colors : typeof formData.colors === 'string' && formData.colors ? formData.colors.split(',').map(c => c.trim()).filter(Boolean) : []).map((color, idx) => (
-                  <span key={idx} className="relative inline-flex items-center group">
-                    <span 
-                      style={{ 
-                        background: color, 
-                        border: '1px solid #ccc', 
-                        width: 24, 
-                        height: 24, 
-                        borderRadius: '50%', 
-                        display: 'inline-block' 
-                      }} 
-                    />
-                    <button
-                      type="button"
-                      className="absolute -top-1 -right-1 bg-white border border-border rounded-full w-5 h-5 flex items-center justify-center text-xs text-muted-foreground hover:bg-red-500 hover:text-white transition-all sm:opacity-0 sm:group-hover:opacity-100 opacity-100"
-                      onClick={() => {
-                        const colorsArr = Array.isArray(formData.colors) ? formData.colors : typeof formData.colors === 'string' ? formData.colors.split(',').map(c => c.trim()).filter(Boolean) : [];
-                        const newColors = colorsArr.filter((_, i) => i !== idx);
-                        setFormData({ ...formData, colors: newColors });
-                      }}
-                      tabIndex={-1}
-                      aria-label="Remove color"
-                    >
-                      ×
-                    </button>
-                  </span>
-                ))
+                (Array.isArray(formData.colors) ? formData.colors : typeof formData.colors === 'string' && formData.colors ? formData.colors.split(',').map(c => c.trim()).filter(Boolean) : []).map((colorEntry, idx) => {
+                  const parsedColor = parseColorEntry(colorEntry);
+                  const colorValue = getColorValue(colorEntry);
+                  
+                  return (
+                    <div key={idx} className="flex items-center gap-2 p-2 border rounded-lg bg-background">
+                      {/* Color Swatch */}
+                      <div
+                        className="w-6 h-6 rounded-full border border-gray-300 flex-shrink-0"
+                        style={{ background: colorValue }}
+                        title={colorValue}
+                      />
+                      
+                      {/* Color Label Input */}
+                      <div className="flex-1">
+                        <Input
+                          value={parsedColor.label}
+                          onChange={(e) => {
+                            const newLabel = e.target.value;
+                            const colorsArr = Array.isArray(formData.colors) ? formData.colors : typeof formData.colors === 'string' ? formData.colors.split(',').map(c => c.trim()).filter(Boolean) : [];
+                            const updatedColors = colorsArr.map((c, i) => 
+                              i === idx ? createLabeledColor(newLabel, colorValue) : c
+                            );
+                            setFormData({ ...formData, colors: updatedColors });
+                          }}
+                          placeholder="Enter color name..."
+                          className="text-sm"
+                        />
+                      </div>
+                      
+                      {/* Color Value Display */}
+                      <div className="text-xs text-muted-foreground font-mono flex-shrink-0 min-w-[70px]">
+                        {colorValue}
+                      </div>
+                      
+                      {/* Remove Button */}
+                      <button
+                        type="button"
+                        className="text-muted-foreground hover:text-red-500 transition-colors p-1"
+                        onClick={() => {
+                          const colorsArr = Array.isArray(formData.colors) ? formData.colors : typeof formData.colors === 'string' ? formData.colors.split(',').map(c => c.trim()).filter(Boolean) : [];
+                          const newColors = colorsArr.filter((_, i) => i !== idx);
+                          setFormData({ ...formData, colors: newColors });
+                        }}
+                        aria-label="Remove color"
+                      >
+                        <X className="h-4 w-4" />
+                      </button>
+                    </div>
+                  );
+                })
               )}
-            </div>
-            
-            {/* Color Selection */}
+            </div>            {/* Color Selection */}
             <select
               value=""
               onChange={e => {
                 const selected = e.target.value;
                 if (!selected) return;
+                const normalizedColor = normalizeColorValue(selected.toLowerCase());
                 const colorsArr = Array.isArray(formData.colors) ? formData.colors : typeof formData.colors === 'string' && formData.colors ? formData.colors.split(',').map(c => c.trim()).filter(Boolean) : [];
-                if (!colorsArr.includes(selected)) {
-                  setFormData({ ...formData, colors: [...colorsArr, selected] });
+                // Check if this color value already exists
+                const existingColorValues = colorsArr.map(c => getColorValue(c));
+                if (!existingColorValues.includes(normalizedColor)) {
+                  setFormData({ ...formData, colors: [...colorsArr, normalizedColor] });
                 }
               }}
               className="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
@@ -2575,7 +2603,9 @@ const ProductForm: React.FC<ProductFormProps> = ({
                   onClick={() => {
                     const selected = colorPickerValue;
                     const colorsArr = Array.isArray(formData.colors) ? formData.colors : typeof formData.colors === 'string' && formData.colors ? formData.colors.split(',').map(c => c.trim()).filter(Boolean) : [];
-                    if (!colorsArr.includes(selected)) {
+                    // Check if this color value already exists
+                    const existingColorValues = colorsArr.map(c => getColorValue(c));
+                    if (!existingColorValues.includes(selected)) {
                       setFormData({ ...formData, colors: [...colorsArr, selected] });
                     }
                   }}
@@ -2584,7 +2614,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
                 </Button>
               </div>
               <span className="text-xs text-muted-foreground">
-                Pick a custom color and click Add Custom
+                Pick a custom color and click Add Custom. You can rename it after adding.
               </span>
             </div>
           </div>

@@ -22,6 +22,7 @@ import { Button } from "@/components/ui/button";
 import { WILAYA_LIST } from "@/lib/wilayaMapping";
 import { wilayaDeliveryFees } from "@/lib/deliveryFees";
 import { OrderFormValues } from "@/types/product";
+import { parseColorEntry, getDisplayColorText, getColorValue } from "@/lib/colorUtils";
 
 const t = (key: string) => key; // Simple translation function placeholder
 
@@ -520,9 +521,9 @@ export function OrderFormFields({
                                       <div className="flex items-center gap-2">
                                         <span
                                           className="w-4 h-4 rounded-full border border-border"
-                                          style={{ backgroundColor: color }}
+                                          style={{ backgroundColor: getColorValue(color) }}
                                         />
-                                        <span>{color}</span>
+                                        <span>{getDisplayColorText(color)}</span>
                                       </div>
                                     </SelectItem>
                                   ))}
@@ -554,9 +555,9 @@ export function OrderFormFields({
                                 <div className="flex items-center gap-3">
                                   <span
                                     className="w-5 h-5 rounded-full border border-border"
-                                    style={{ backgroundColor: color }}
+                                    style={{ backgroundColor: getColorValue(color) }}
                                   />
-                                  <span>{color}</span>
+                                  <span>{getDisplayColorText(color)}</span>
                                 </div>
                               </SelectItem>
                             ))}
