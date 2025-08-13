@@ -79,7 +79,7 @@ try {
         }
     } else {
         Write-Host "⚠️ No new repository URL provided." -ForegroundColor Yellow
-        Write-Host "To add remote later, use: git remote add origin <your-new-repo-url>" -ForegroundColor Gray
+        Write-Host "To add remote later, use: git remote add origin [your-new-repo-url]" -ForegroundColor Gray
         Write-Host "Then push with: git push -u origin main" -ForegroundColor Gray
     }
     
@@ -298,7 +298,7 @@ if (!$newRepoUrl) {
     Write-Host "`n⚠️  Repository Remote Setup:" -ForegroundColor Yellow
     Write-Host "You didn't provide a new repository URL. To set it up:" -ForegroundColor White
     Write-Host "1. Create a new repository on GitHub/GitLab" -ForegroundColor Gray
-    Write-Host "2. Run: git remote add origin <your-new-repo-url>" -ForegroundColor Gray
+    Write-Host "2. Run: git remote add origin [your-new-repo-url]" -ForegroundColor Gray
     Write-Host "3. Run: git push -u origin main" -ForegroundColor Gray
 }
 

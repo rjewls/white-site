@@ -11,12 +11,8 @@ This folder contains everything you need to create perfect clones of your boutiq
 ```
 cloning-system/
 ├── README.md                    # This file - overview and quick start
-├── COMPLETE_GUIDE.md           # Comprehensive step-by-step guide
+├── COMPLETE_GUIDE.md           # Comprehensive step-by-step manual guide
 ├── TROUBLESHOOTING.md          # Common issues and solutions
-├── scripts/
-│   ├── setup-clone.ps1         # Windows PowerShell setup script
-│   ├── setup-clone.sh          # Linux/Mac Bash setup script
-│   └── verify-setup.js         # Verification script
 ├── templates/
 │   ├── .env.example            # Environment variables template
 │   ├── site-config.ts          # Site configuration template
@@ -32,53 +28,58 @@ cloning-system/
 
 ---
 
-## 🚀 Quick Start Options
+## 🚀 Manual Setup Process
 
-### Option 1: Complete New Repository Setup (Recommended)
-**Creates a completely independent site with new repository:**
+**Create completely independent boutique sites by following these manual steps:**
 
+### Step 1: Clone and Setup Repository
 ```bash
-# Download the new repository setup script
-# From any directory, run:
+# Clone the original repository
+git clone https://github.com/rjewls/rosebud-boutique-builder my-new-boutique
+cd my-new-boutique
 
-# Windows PowerShell:
-git clone <your-original-repo-url> temp-clone
-cd temp-clone
-.\cloning-system\scripts\setup-new-repo.ps1
+# Remove original remote and add your new one
+git remote remove origin
+git remote add origin <your-new-repository-url>
 
-# Linux/Mac:
-git clone <your-original-repo-url> temp-clone
-cd temp-clone
-chmod +x cloning-system/scripts/setup-new-repo.sh
-./cloning-system/scripts/setup-new-repo.sh
+# Install dependencies
+npm install
 ```
 
-This will:
-- ✅ Clone the original repository
-- ✅ Set up new repository remote
-- ✅ Configure your site settings
-- ✅ Install dependencies  
-- ✅ Create initial commit
-- ✅ Guide you through database setup
-
-### Option 2: Quick Setup (Existing Repository)
-**For when you already have the code locally:**
-
+### Step 2: Configure Environment
 ```bash
-# In your existing repository directory
-# Windows:
-.\cloning-system\scripts\setup-clone.ps1
+# Copy the environment template
+cp cloning-system/templates/.env.example .env.local
 
-# Linux/Mac:
-chmod +x cloning-system/scripts/setup-clone.sh
-./cloning-system/scripts/setup-clone.sh
+# Edit .env.local with your site details
+# - Site name, description, URL
+# - Business information
+# - Supabase credentials
+# - Social media links
+# - Discord webhook (optional)
 ```
 
-### Option 3: Manual Setup
-1. Follow the detailed guide in `COMPLETE_GUIDE.md`
-2. Use templates from `templates/` folder
-3. Run SQL scripts from `sql/` folder
-4. Reference troubleshooting guide as needed
+### Step 3: Setup Database
+1. Create new Supabase project at [supabase.com](https://supabase.com)
+2. Copy SQL from `cloning-system/sql/complete-database-schema.sql`
+3. Run in Supabase SQL Editor
+4. Update `.env.local` with your Supabase URL and keys
+
+### Step 4: Copy Configuration Files
+```bash
+# Copy necessary template files
+cp cloning-system/templates/_redirects public/_redirects
+cp cloning-system/templates/site-config.ts src/config/site.ts
+```
+
+### Step 5: Customize and Deploy
+1. Choose colors from `cloning-system/templates/tailwind-colors.js`
+2. Update `tailwind.config.ts` with your theme
+3. Replace logos in `public/` directory
+4. Test locally: `npm run dev`
+5. Deploy to Netlify or your preferred platform
+
+**Detailed instructions available in `COMPLETE_GUIDE.md`**
 
 ---
 
@@ -107,33 +108,43 @@ Before starting, ensure you have:
 
 ## 🔧 File Descriptions
 
-### Scripts
-- **`setup-clone.ps1`** - Windows PowerShell automated setup
-- **`setup-clone.sh`** - Linux/Mac Bash automated setup  
-- **`verify-setup.js`** - Validates configuration after setup
+### Templates (Copy These)
+- **`.env.example`** - Environment variables template - copy to `.env.local`
+- **`site-config.ts`** - Site configuration template - copy to `src/config/site.ts`  
+- **`supabase-client.ts`** - Database connection template (optional update)
+- **`discord-notifications.ts`** - Order notification system (optional)
+- **`_redirects`** - Netlify deployment config - copy to `public/_redirects`
+- **`tailwind-colors.js`** - Custom color scheme examples for customization
 
-### Templates
-- **`.env.example`** - All environment variables with examples
-- **`site-config.ts`** - Centralized site configuration
-- **`supabase-client.ts`** - Database connection setup
-- **`discord-notifications.ts`** - Order notification system
-- **`_redirects`** - Netlify deployment configuration
-- **`tailwind-colors.js`** - Custom color scheme examples
+### SQL Scripts (Run These)
+- **`complete-database-schema.sql`** - Complete database setup (run this in Supabase)
+- **`delivery-fees-only.sql`** - Just delivery fees for Algeria (alternative)
+- **`sample-data.sql`** - Sample products and orders for testing (optional)
 
-### SQL Scripts
-- **`complete-database-schema.sql`** - Full database with all tables, policies, and data
-- **`delivery-fees-only.sql`** - Just delivery fees for 48 Algerian wilayas
-- **`sample-data.sql`** - Sample products and orders for testing
-
-### Documentation
-- **`COMPLETE_GUIDE.md`** - Comprehensive step-by-step instructions
+### Documentation (Read These)
+- **`COMPLETE_GUIDE.md`** - Step-by-step manual instructions
 - **`TROUBLESHOOTING.md`** - Solutions for common issues
 
 ---
 
-## ⚡ Quick Commands
+## ⚡ Quick Commands Reference
 
-### Development
+### Initial Setup
+```bash
+# Clone and prepare
+git clone https://github.com/rjewls/rosebud-boutique-builder my-boutique
+cd my-boutique
+git remote remove origin
+git remote add origin <your-new-repo-url>
+npm install
+
+# Copy essential files
+cp cloning-system/templates/.env.example .env.local
+cp cloning-system/templates/_redirects public/_redirects
+cp cloning-system/templates/site-config.ts src/config/site.ts
+```
+
+### Development & Testing
 ```bash
 # Start development server
 npm run dev
@@ -141,37 +152,31 @@ npm run dev
 # Build for production
 npm run build
 
-# Deploy to Netlify
-npm run deploy
+# Preview production build  
+npm run preview
 ```
 
 ### Database Setup
-```bash
-# Copy SQL and run in Supabase SQL Editor
-cat sql/complete-database-schema.sql
-```
-
-### Verification
-```bash
-# Check setup is correct
-node scripts/verify-setup.js
-```
+1. Create Supabase project
+2. Copy `cloning-system/sql/complete-database-schema.sql`
+3. Run in Supabase SQL Editor
+4. Update `.env.local` with your Supabase credentials
 
 ---
 
 ## 🆘 Need Help?
 
-1. **Read the guides**: Start with `COMPLETE_GUIDE.md`
-2. **Check troubleshooting**: Common issues in `TROUBLESHOOTING.md`
-3. **Verify setup**: Run `verify-setup.js` to check configuration
-4. **Test locally**: Use `npm run dev` to test changes
+1. **Start with the guide**: Read `COMPLETE_GUIDE.md` for detailed instructions
+2. **Check for issues**: Common problems and solutions in `TROUBLESHOOTING.md`
+3. **Test your setup**: Use `npm run dev` to verify everything works
+4. **Check console**: Look for errors in browser developer console
 
 ---
 
 ## 📞 Support Resources
 
 - **Supabase Docs**: [supabase.com/docs](https://supabase.com/docs)
-- **React Documentation**: [react.dev](https://react.dev)
+- **React Documentation**: [react.dev](https://react.dev)  
 - **Tailwind CSS**: [tailwindcss.com](https://tailwindcss.com)
 - **Netlify Docs**: [docs.netlify.com](https://docs.netlify.com)
 
@@ -180,15 +185,15 @@ node scripts/verify-setup.js
 ## 🎉 Success Indicators
 
 Your clone is ready when:
-- ✅ Development server runs without errors
-- ✅ Admin panel is accessible
-- ✅ Products can be added/edited
-- ✅ Orders are saved to database
-- ✅ Noest Express integration works
-- ✅ Site loads on production URL
+- ✅ Development server runs without errors (`npm run dev`)
+- ✅ Admin panel is accessible at `/admin`  
+- ✅ Products can be added/edited through admin
+- ✅ Orders are saved to your Supabase database
+- ✅ Custom branding and colors appear
+- ✅ Site builds and deploys successfully
 
 ---
 
-**Happy Cloning! 🚀**
+**Happy Manual Cloning! 🚀**
 
-*Each clone is completely independent and ready for customization.*
+*Each clone is completely independent and ready for your custom branding.*

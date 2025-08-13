@@ -19,40 +19,17 @@
 
 ---
 
-## 🚀 Quick Start
+## 🚀 Manual Setup Process
 
-### Option 1: Complete New Repository (Recommended)
-**Creates a completely independent site with new repository:**
+**Follow these step-by-step manual instructions to create your boutique site clone:**
 
-```bash
-# From any directory:
-# Windows PowerShell:
-git clone <your-original-repo-url> temp-clone
-cd temp-clone
-.\cloning-system\scripts\setup-new-repo.ps1
-
-# Linux/Mac:
-git clone <your-original-repo-url> temp-clone  
-cd temp-clone
-chmod +x cloning-system/scripts/setup-new-repo.sh
-./cloning-system/scripts/setup-new-repo.sh
-```
-
-### Option 2: Existing Repository Setup
-**For configuring an existing local repository:**
-
-```bash
-# In your repository directory:
-# Windows PowerShell:
-.\cloning-system\scripts\setup-clone.ps1
-
-# Linux/Mac:
-chmod +x cloning-system/scripts/setup-clone.sh
-./cloning-system/scripts/setup-clone.sh
-```
-
-### Option 3: Manual Setup
-Follow the detailed steps below if you prefer manual configuration or need custom setup.
+### Step-by-Step Manual Setup
+1. [Repository Setup](#step-1-repository-setup)
+2. [Environment Configuration](#step-2-environment-configuration) 
+3. [Database Setup](#step-3-database-setup)
+4. [File Configuration](#step-4-file-configuration)
+5. [Customization](#step-5-customization)
+6. [Testing & Deployment](#step-6-testing--deployment)
 
 ---
 
@@ -85,79 +62,47 @@ Each clone will be a completely independent website with:
 
 ---
 
-## 🔧 Step 1: Repository Setup & Environment Setup
+## 🔧 Step 1: Repository Setup
 
-### 1.1 Create Independent Repository (Recommended)
-
-For a completely independent site, follow these steps:
-
-#### A. Clone Original Repository
+### 1.1 Clone the Original Repository
 ```bash
-# Clone the original repository
-git clone <original-repo-url> my-new-boutique-site
-cd my-new-boutique-site
+# Clone to your desired directory
+git clone https://github.com/rjewls/rosebud-boutique-builder my-boutique-site
+cd my-boutique-site
 ```
 
-#### B. Create New Repository
-1. Create a new repository on GitHub/GitLab (don't initialize with README)
-2. Copy the new repository URL
+### 1.2 Set Up Your Own Repository
+1. **Create a new repository** on GitHub/GitLab (don't initialize with README)
+2. **Remove the original remote:**
+   ```bash
+   git remote remove origin
+   ```
+3. **Add your new repository as origin:**
+   ```bash
+   git remote add origin <your-new-repository-url>
+   ```
+4. **Verify the remote:**
+   ```bash
+   git remote -v
+   ```
 
-#### C. Update Remote Repository
+### 1.3 Install Dependencies
 ```bash
-# Remove original remote
-git remote remove origin
-
-# Add your new remote
-git remote add origin <your-new-repo-url>
-
-# Push to new repository
-git push -u origin main
-```
-
-#### D. Verify Repository Setup
-```bash
-# Check remote is correct
-git remote -v
-# Should show your new repository URL
-```
-
-### 1.2 Alternative: Use Existing Repository
-
-If you prefer to work with an existing local copy:
-
-```bash
-# Navigate to your existing repository
-cd path/to/your/boutique-repo
-
-# Continue with configuration steps below
-```
-
-### 1.3 Automated Repository Setup
-
-Use the automated scripts which handle all repository setup:
-
-```bash
-# This handles cloning, remote setup, and configuration
-.\cloning-system\scripts\setup-new-repo.ps1  # Windows
-# OR  
-./cloning-system/scripts/setup-new-repo.sh   # Linux/Mac
-```
-
-### 1.1 Clone and Prepare Repository
-```bash
-# Clone your original repository
-git clone <your-repo-url> my-boutique-clone
-cd my-boutique-clone
-
-# Install dependencies
 npm install
+```
 
-# Create environment file from template
+---
+
+## 🔧 Step 2: Environment Configuration
+
+### 2.1 Create Environment File
+```bash
+# Copy the template
 cp cloning-system/templates/.env.example .env.local
 ```
 
-### 1.2 Configure Environment Variables
-Edit `.env.local` with your specific values:
+### 2.2 Edit .env.local File
+Open `.env.local` in your text editor and customize these values:
 
 ```env
 # Site Configuration
@@ -190,67 +135,77 @@ VITE_GOOGLE_ANALYTICS_ID="G-XXXXXXXXXX"
 
 ---
 
-## 🗄️ Step 2: Database Setup
+## 🗄️ Step 3: Database Setup
 
-### 2.1 Create New Supabase Project
+### 3.1 Create New Supabase Project
 1. Go to [Supabase Dashboard](https://supabase.com/dashboard)
-2. Click "New Project"
+2. Click "**New Project**"
 3. Choose organization and name your project
 4. Set a strong database password
 5. Wait for project creation (2-3 minutes)
-6. Copy your project URL and anon key
+6. Copy your **Project URL** and **anon key**
 
-### 2.2 Run Database Setup SQL
-1. Go to your Supabase project → SQL Editor
-2. Copy the complete SQL from `cloning-system/sql/complete-database-schema.sql`
-3. Paste and run the script
-4. Wait for completion (you should see "Database setup completed successfully! 🎉")
+### 3.2 Set Up Database Schema
+1. In Supabase Dashboard → **SQL Editor**
+2. Open the file `cloning-system/sql/complete-database-schema.sql`
+3. **Copy all the SQL content**
+4. **Paste into SQL Editor** and click "Run"
+5. Wait for completion (you should see "Database setup completed successfully! 🎉")
 
-### 2.3 Configure Storage Policies
-The SQL script automatically configures storage policies, but verify in:
-Supabase Dashboard → Storage → Policies
-
----
-
-## ⚙️ Step 3: Configuration
-
-### 3.1 Copy Configuration Templates
-```bash
-# Copy site configuration
-cp cloning-system/templates/site-config.ts src/config/site.ts
-
-# Copy Supabase client (if needed to update)
-cp cloning-system/templates/supabase-client.ts src/lib/supabaseClient.ts
-
-# Copy Discord notifications (if needed)
-cp cloning-system/templates/discord-notifications.ts src/lib/discordNotifications.ts
-
-# Copy Netlify redirects
-cp cloning-system/templates/_redirects public/_redirects
+### 3.3 Update Environment Variables
+Update your `.env.local` file with the actual Supabase credentials:
+```env
+VITE_SUPABASE_URL="https://your-actual-project.supabase.co"
+VITE_SUPABASE_ANON_KEY="your-actual-supabase-anon-key"
 ```
 
-### 3.2 Update Configuration Files
-The templates use environment variables, so they should work automatically with your `.env.local` file.
+---
+
+## ⚙️ Step 4: File Configuration
+
+### 4.1 Copy Required Template Files
+```bash
+# Copy Netlify redirects
+cp cloning-system/templates/_redirects public/_redirects
+
+# Copy site configuration
+cp cloning-system/templates/site-config.ts src/config/site.ts
+```
+
+### 4.2 Optional Template Files
+```bash
+# Update Supabase client if needed
+cp cloning-system/templates/supabase-client.ts src/lib/supabaseClient.ts
+
+# Add Discord notifications if wanted  
+cp cloning-system/templates/discord-notifications.ts src/lib/discordNotifications.ts
+```
+
+### 4.3 Create Required Directories
+```bash
+# Create config directory if it doesn't exist
+mkdir -p src/config
+```
 
 ---
 
-## 🎨 Step 4: Customization
+## 🎨 Step 5: Customization
 
-### 4.1 Customize Brand Colors
-Choose a color scheme from `cloning-system/templates/tailwind-colors.js` or create your own:
-
-1. Edit `tailwind.config.ts`:
+### 5.1 Choose Your Color Scheme
+1. **Open** `cloning-system/templates/tailwind-colors.js`
+2. **Choose a theme** (roseGoldTheme, emeraldLuxTheme, etc.) or create your own
+3. **Edit** `tailwind.config.ts` and replace the theme:
 ```typescript
 import { roseGoldTheme, generateTailwindColors } from './cloning-system/templates/tailwind-colors.js';
 
 export default {
   content: ["./index.html", "./src/**/*.{js,ts,jsx,tsx}"],
-  theme: generateTailwindColors(roseGoldTheme), // Choose your theme
+  theme: generateTailwindColors(roseGoldTheme), // Choose your theme here
   plugins: []
 };
 ```
 
-### 4.2 Update Site Metadata
+### 5.2 Update Site Metadata
 Edit `index.html`:
 ```html
 <title>Your Boutique Name</title>
@@ -260,117 +215,161 @@ Edit `index.html`:
 <meta property="og:url" content="https://yourdomain.com" />
 ```
 
-### 4.3 Add Custom Logo and Images
-Replace files in `public/` directory:
+### 5.3 Replace Brand Assets
+Replace these files in the `public/` directory:
 - `logo.png` - Main logo
-- `logo-white.png` - White version
-- `favicon.svg` - Site favicon
-- `og-image.png` - Social media preview
+- `logo-white.png` - White version for dark backgrounds  
+- `favicon.svg` - Browser tab icon
+- `og-image.png` - Social media preview image
 
 ---
 
-## 🚀 Step 5: Deployment
+## 🧪 Step 6: Testing & Deployment
 
-### 5.1 Test Locally First
+### 6.1 Test Locally
 ```bash
 # Start development server
 npm run dev
+```
+- Visit `http://localhost:5173`
+- Test all pages load correctly
+- Verify your branding appears
+- Check mobile responsiveness
 
-# Run verification script
-node cloning-system/scripts/verify-setup.js
-
-# Build for production
+### 6.2 Build for Production
+```bash
+# Create production build
 npm run build
 
-# Preview production build
+# Test production build
 npm run preview
 ```
 
-### 5.2 Deploy to Netlify
+### 6.3 Initial Git Commit
+```bash
+# Add all changes
+git add .
 
-#### Automatic Deployment (Recommended)
-1. Push your code to GitHub/GitLab
+# Create initial commit
+git commit -m "Initial setup: Configure new boutique site
+
+- Set up environment configuration
+- Configure Supabase database  
+- Apply custom branding
+- Ready for deployment"
+
+# Push to your repository
+git push -u origin main
+```
+
+### 6.4 Deploy to Netlify
+
+#### Option A: Automatic Deployment (Recommended)
+1. **Push code to GitHub/GitLab** (if not done already)
 2. Go to [Netlify Dashboard](https://app.netlify.com)
-3. Click "New site from Git"
-4. Connect your repository
-5. Configure build settings:
+3. Click "**New site from Git**"
+4. **Connect your repository**
+5. **Configure build settings:**
    ```
    Build command: npm run build
    Publish directory: dist
    ```
-6. Add environment variables:
-   - Go to Site Settings → Environment Variables
-   - Add all variables from your `.env.local`
+6. **Add environment variables:**
+   - Go to **Site Settings** → **Environment Variables**
+   - Add all variables from your `.env.local` file
 
-#### Manual Deployment
+#### Option B: Manual Deployment
 ```bash
 # Build the project
 npm run build
 
-# Install Netlify CLI
+# Install Netlify CLI (if not installed)
 npm install -g netlify-cli
+
+# Login to Netlify
+netlify login
 
 # Deploy
 netlify deploy --prod --dir=dist
 ```
 
-### 5.3 Configure Custom Domain (Optional)
-1. In Netlify Dashboard → Domain Management
-2. Add custom domain
-3. Configure DNS with your domain provider
-4. Update `VITE_SITE_URL` in environment variables
+### 6.5 Configure Custom Domain (Optional)
+1. In **Netlify Dashboard** → **Domain Management**
+2. **Add custom domain**
+3. **Configure DNS** with your domain provider
+4. **Update** `VITE_SITE_URL` in environment variables
 
 ---
 
-## ✅ Post-Launch Checklist
+## ✅ Post-Launch Manual Checklist
 
-### Testing Phase
-- [ ] **Site Loading**
-  - [ ] Homepage loads without errors
-  - [ ] All pages accessible
-  - [ ] Mobile responsive design works
-  - [ ] Images load properly
+### Site Functionality Testing
+**Test each of these manually:**
 
-- [ ] **Functionality**
+- [ ] **Homepage Loading**
+  - [ ] Site loads without errors
+  - [ ] Your custom branding appears
+  - [ ] Navigation works properly
+  - [ ] Mobile view looks correct
+
+- [ ] **Product Management** 
   - [ ] Product catalog displays
-  - [ ] Product detail pages work
-  - [ ] Order form functions
-  - [ ] Form validation works
+  - [ ] Individual product pages work
+  - [ ] Product images load correctly
+  - [ ] Product search functions
 
-- [ ] **Admin Panel**
-  - [ ] Admin login works
-  - [ ] Products can be added/edited/deleted
-  - [ ] Orders display correctly
-  - [ ] Noest Express configuration saves
+- [ ] **Order System**
+  - [ ] Order form opens and functions
+  - [ ] Form validation works properly
+  - [ ] Orders save to Supabase database
+  - [ ] Confirmation messages appear
 
-- [ ] **Integrations**
-  - [ ] Supabase database operations work
-  - [ ] Image uploads function
-  - [ ] Discord notifications sent (if configured)
-  - [ ] Noest Express test order works
+- [ ] **Admin Panel Access**
+  - [ ] Admin login works (create account first)
+  - [ ] Can add/edit/delete products  
+  - [ ] Can view submitted orders
+  - [ ] Color picker and renaming works
 
-### Performance & SEO
+### Integration Configuration
+**Set up these manually through admin panel:**
+
+- [ ] **Noest Express Setup**
+  - [ ] Access admin panel: `/admin`
+  - [ ] Go to "Noest Express Configuration"
+  - [ ] Enter your shipping credentials
+  - [ ] Test with sample order
+
+- [ ] **Discord Notifications** (if configured)
+  - [ ] Test order submission
+  - [ ] Verify webhook receives notifications
+  - [ ] Check message format is correct
+
+### Performance & SEO Checks
+**Verify these manually:**
+
 - [ ] **Performance**
-  - [ ] Page load times under 3 seconds
-  - [ ] Images optimized
-  - [ ] No JavaScript errors in console
+  - [ ] Pages load in under 3 seconds
+  - [ ] Images are optimized and load quickly
+  - [ ] No JavaScript errors in browser console
 
-- [ ] **SEO**
-  - [ ] Meta tags updated
-  - [ ] Social media previews work
-  - [ ] Structured data added (if applicable)
+- [ ] **SEO & Social**
+  - [ ] Page titles are customized
+  - [ ] Meta descriptions are set  
+  - [ ] Social media previews work correctly
+  - [ ] Favicon displays properly
 
-### Security & Monitoring
-- [ ] **Security**
-  - [ ] RLS policies working
-  - [ ] Admin panel protected
-  - [ ] HTTPS enabled
-  - [ ] Environment variables secured
+### Security & Access
+**Confirm these settings:**
 
-- [ ] **Monitoring**
-  - [ ] Error logging working
-  - [ ] Analytics tracking (if configured)
-  - [ ] Backup strategy in place
+- [ ] **Database Security**
+  - [ ] Test that non-admin users cannot access admin functions
+  - [ ] Verify image uploads work for admins only
+  - [ ] Check that orders are private to admin users
+
+- [ ] **Environment Security**  
+  - [ ] `.env.local` is not committed to git
+  - [ ] Production environment variables are set correctly
+  - [ ] HTTPS is enabled on live site
 
 ---
 
