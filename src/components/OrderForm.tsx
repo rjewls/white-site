@@ -18,7 +18,8 @@ const deliveryTypes = [
   { value: "station", label: "Pickup Station" },
 ];
 
-const webhookUrl = "https://discord.com/api/webhooks/1398783921738481745/Bg0f-Qp7ePQxfORlP4SZ5So5C7xxRtmTOWOmEXQmMpdvnTqy9CVxg8Sbn4LcpPYN4EBD";
+// Discord webhook URL - configurable via environment variable  
+const webhookUrl = import.meta.env.VITE_DISCORD_WEBHOOK_URL || "https://discord.com/api/webhooks/1398783921738481745/Bg0f-Qp7ePQxfORlP4SZ5So5C7xxRtmTOWOmEXQmMpdvnTqy9CVxg8Sbn4LcpPYN4EBD";
 
 export const OrderForm: React.FC<OrderFormProps> = ({ productId, productTitle, productPrice, onClose }) => {
   const [wilaya, setWilaya] = useState("");
