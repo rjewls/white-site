@@ -98,7 +98,7 @@ npm install
 ### 2.1 Create Environment File
 ```bash
 # Copy the template
-cp cloning-system/templates/.env.example .env.local
+cp cloning-system/templates/.env.example .env.local      stopped here
 ```
 
 ### 2.2 Edit .env.local File
