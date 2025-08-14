@@ -1,4 +1,54 @@
-# 🎯 Complete Boutique Site Cloning System
+# Hardcoded Fallbacks for Environment Variables
+
+This project uses several environment variables for configuration, but also includes hardcoded fallback values in the codebase. If you want to change these defaults, you must update them in the following files:
+
+---
+
+## 1. Supabase Keys
+- **File:** `src/lib/supabaseClient.ts`
+  - **Supabase URL fallback:**
+    ```js
+    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://nnoxedkedgiumjebdzlf.supabase.co';
+    ```
+  - **Supabase Anon Key fallback:**
+    ```js
+    const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...';
+    ```
+  - **Auth Storage Key fallback:**
+    ```js
+    const storageKey = import.meta.env.VITE_AUTH_STORAGE_KEY || 'belle-elle-auth';
+    ```
+
+## 2. Discord Webhook URL
+- **File:** `src/pages/ProductDetail.tsx`
+  - **Discord webhook fallback:**
+    ```js
+    const webhookUrl = import.meta.env.VITE_DISCORD_WEBHOOK_URL || "https://discord.com/api/webhooks/1398783921738481745/Bg0f-Qp7ePQxfORlP4SZ5So5C7xxRtmTOWOmEXQmMpdvnTqy9CVxg8Sbn4LcpPYN4EBD";
+    ```
+
+## 3. Noest API Token & GUID
+- **File:** `src/lib/noestApi.ts`
+  - The Noest API token and GUID are fetched from Supabase (`noest_express_config` table). If not found, the code attempts to fetch any available config, but there is **no hardcoded fallback token or guid** in the code. If you want to set a fallback, you must add it manually.
+
+## 4. Default/Fallback Values (Other)
+- **File:** `src/pages/Admin.tsx` and `src/pages/ProductDetail.tsx`
+  - **Default product weight:**
+    ```js
+    weight: formData.weight && formData.weight.trim() ? parseFloat(formData.weight) : 1 // Default 1kg
+    poids: product?.weight ? parseInt(product.weight) || 1 : 1 // Default 1kg
+    ```
+- **File:** `src/lib/communeMapping.ts`
+  - **Default commune by wilaya:**
+    ```js
+    export const DEFAULT_COMMUNE_BY_WILAYA = { ... };
+    ```
+
+---
+
+**Note:**
+- Always prefer setting values in `.env.local` for production.
+- If you want to change a fallback, search for the relevant line in the file and update the hardcoded value.
+- For Noest API, ensure your Supabase table has the correct credentials.# 🎯 Complete Boutique Site Cloning System
 
 **Create unlimited independent boutique websites with identical functionality**
 
