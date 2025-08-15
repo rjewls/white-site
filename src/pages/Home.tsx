@@ -6,12 +6,16 @@ import { supabase } from "@/lib/supabaseClient";
 import { Navigation } from "@/components/Navigation";
 // Product card component
 import { ProductCard } from "@/components/ProductCard";
+// Animated section component
+import { AnimatedSection } from "@/components/AnimatedSection";
 // Hero image for homepage
 import heroImage from "@/assets/hero-image.jpg";
 // Icons for service features
 import { Truck, CreditCard, RefreshCw, Quote } from "lucide-react";
 // Language hook
 import { useLanguage } from "@/hooks/useLanguage";
+// Scroll animation hooks
+import { useScrollAnimation, useStaggeredScrollAnimation } from "@/hooks/useScrollAnimation";
 
 
 // Main component for homepage
@@ -20,6 +24,11 @@ const Home = () => {
   const [products, setProducts] = useState([]);
   // Language context
   const { t, isRTL } = useLanguage();
+  // Staggered animation for products
+  const { containerRef: productsRef, visibleItems: visibleProducts } = useStaggeredScrollAnimation(
+    products.length,
+    150
+  );
 
   // Fetch products from Supabase when component mounts
   useEffect(() => {
@@ -57,26 +66,28 @@ const Home = () => {
       <Navigation />
 
       {/* Announcement Bar */}
-      <section aria-label="announcement" className="bg-gradient-to-r from-rose-600 to-pink-600 text-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2">
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-6 text-xs sm:text-sm font-medium">
-            <div className="flex items-center gap-2">
-              <Truck className="w-4 h-4" />
-              <span>Fast shipping 24–48h</span>
-            </div>
-            <span className="hidden sm:inline opacity-50">|</span>
-            <div className="flex items-center gap-2">
-              <CreditCard className="w-4 h-4" />
-              <span>Cash on delivery</span>
-            </div>
-            <span className="hidden sm:inline opacity-50">|</span>
-            <div className="flex items-center gap-2">
-              <RefreshCw className="w-4 h-4" />
-              <span>Easy exchange within 7 days</span>
+      <AnimatedSection animation="fadeInDown" delay={200}>
+        <section aria-label="announcement" className="bg-gradient-to-r from-rose-600 to-pink-600 text-white">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2">
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-6 text-xs sm:text-sm font-medium">
+              <div className="flex items-center gap-2">
+                <Truck className="w-4 h-4" />
+                <span>Fast shipping 24–48h</span>
+              </div>
+              <span className="hidden sm:inline opacity-50">|</span>
+              <div className="flex items-center gap-2">
+                <CreditCard className="w-4 h-4" />
+                <span>Cash on delivery</span>
+              </div>
+              <span className="hidden sm:inline opacity-50">|</span>
+              <div className="flex items-center gap-2">
+                <RefreshCw className="w-4 h-4" />
+                <span>Easy exchange within 7 days</span>
+              </div>
             </div>
           </div>
-        </div>
-      </section>
+        </section>
+      </AnimatedSection>
       
       {/* Hero Section */}
       <section className="relative min-h-[80vh] lg:min-h-[90vh] overflow-hidden">
@@ -320,19 +331,21 @@ const Home = () => {
       </section>
 
       {/* Brand trust strip */}
-      <section aria-label="trusted-brands" className="bg-white/60 backdrop-blur-sm border-t border-rose-100/60">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-            <p className="text-sm text-gray-600 font-medium">Trusted by shoppers across Algeria</p>
-            <div className="flex flex-wrap items-center gap-2 sm:gap-3">
-              <span className="px-3 py-1.5 text-xs font-semibold rounded-full bg-gradient-to-r from-rose-50 to-pink-50 text-rose-600 border border-rose-100">Top Quality</span>
-              <span className="px-3 py-1.5 text-xs font-semibold rounded-full bg-gradient-to-r from-purple-50 to-indigo-50 text-purple-700 border border-purple-100">Curated Styles</span>
-              <span className="px-3 py-1.5 text-xs font-semibold rounded-full bg-gradient-to-r from-emerald-50 to-teal-50 text-emerald-700 border border-emerald-100">Verified COD</span>
-              <span className="px-3 py-1.5 text-xs font-semibold rounded-full bg-gradient-to-r from-amber-50 to-orange-50 text-amber-700 border border-amber-100">5★ Support</span>
+      <AnimatedSection animation="fadeInUp" delay={100}>
+        <section aria-label="trusted-brands" className="bg-white/60 backdrop-blur-sm border-t border-rose-100/60">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+              <p className="text-sm text-gray-600 font-medium">Trusted by shoppers across Algeria</p>
+              <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+                <span className="px-3 py-1.5 text-xs font-semibold rounded-full bg-gradient-to-r from-rose-50 to-pink-50 text-rose-600 border border-rose-100">Top Quality</span>
+                <span className="px-3 py-1.5 text-xs font-semibold rounded-full bg-gradient-to-r from-purple-50 to-indigo-50 text-purple-700 border border-purple-100">Curated Styles</span>
+                <span className="px-3 py-1.5 text-xs font-semibold rounded-full bg-gradient-to-r from-emerald-50 to-teal-50 text-emerald-700 border border-emerald-100">Verified COD</span>
+                <span className="px-3 py-1.5 text-xs font-semibold rounded-full bg-gradient-to-r from-amber-50 to-orange-50 text-amber-700 border border-amber-100">5★ Support</span>
+              </div>
             </div>
           </div>
-        </div>
-      </section>
+        </section>
+      </AnimatedSection>
 
       {/* Products Grid - Enhanced with Hero-style Design */}
       <section id="featured-collection" className="relative py-20 overflow-hidden">
@@ -355,7 +368,7 @@ const Home = () => {
         
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Enhanced Header with Hero-style Gradient Text */}
-          <div className="text-center mb-16">
+          <AnimatedSection animation="fadeInUp" delay={200} className="text-center mb-16">
             <div className="relative">
               {/* Decorative elements around title */}
               <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 w-20 h-1 bg-gradient-to-r from-transparent via-rose-400 to-transparent rounded-full"></div>
@@ -373,14 +386,19 @@ const Home = () => {
               {/* Decorative line under description */}
               <div className="w-24 h-1 bg-gradient-to-r from-rose-500 to-pink-500 mx-auto rounded-full"></div>
             </div>
-          </div>
+          </AnimatedSection>
           
       {/* Enhanced Product Grid */}
-      <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
+      <div 
+        ref={productsRef}
+        className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6"
+      >
             {products.map((product, index) => (
               <div
                 key={product.id}
-        className="h-auto md:h-[380px] lg:h-[420px] flex flex-col lg:transform lg:hover:scale-[1.02] lg:transition-all lg:duration-300"
+                className={`h-auto md:h-[380px] lg:h-[420px] flex flex-col lg:transform lg:hover:scale-[1.02] lg:transition-all lg:duration-300 ${
+                  visibleProducts[index] ? 'animate-fade-in-up' : 'scroll-animate-hidden'
+                }`}
                 style={{ 
                   animationDelay: `${index * 0.1}s`,
                   filter: 'drop-shadow(0 4px 20px rgba(0,0,0,0.1))'
@@ -392,7 +410,7 @@ const Home = () => {
           </div>
           
           {/* Call-to-action button with Hero styling */}
-          <div className="text-center mt-16">
+          <AnimatedSection animation="scaleIn" delay={300} className="text-center mt-16">
             <button className="group relative inline-flex items-center justify-center px-8 py-4 text-lg font-semibold text-white bg-gradient-to-r from-rose-600 via-pink-600 to-purple-600 rounded-full shadow-xl lg:hover:shadow-2xl lg:transform lg:hover:scale-105 lg:transition-all lg:duration-300 overflow-hidden">
               <span className="absolute inset-0 bg-gradient-to-r from-rose-700 via-pink-700 to-purple-700 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></span>
               <span className="relative flex items-center gap-2">
@@ -402,7 +420,7 @@ const Home = () => {
                 </svg>
               </span>
             </button>
-          </div>
+          </AnimatedSection>
         </div>
       </section>
 
@@ -414,7 +432,7 @@ const Home = () => {
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_80%,rgba(168,85,247,0.1),transparent_40%)] pointer-events-none"></div>
         
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
+          <AnimatedSection animation="fadeInUp" delay={100} className="text-center mb-16">
             <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-rose-500 to-pink-600 rounded-2xl mb-6 shadow-lg">
               <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
@@ -436,63 +454,69 @@ const Home = () => {
               {t('service.subtitle')}
             </p>
             <div className="mt-6 w-24 h-1 bg-gradient-to-r from-rose-500 to-pink-500 mx-auto rounded-full"></div>
-          </div>
+          </AnimatedSection>
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 lg:gap-12">
             {/* Fast Delivery */}
-            <div className="group relative">
-              <div className="absolute inset-0 bg-gradient-to-br from-white/80 to-white/60 lg:from-white/60 lg:to-white/30 lg:backdrop-blur-sm rounded-3xl border border-white/20 shadow-xl lg:transform lg:transition-all lg:duration-500 lg:group-hover:scale-105 lg:group-hover:shadow-2xl"></div>
-              <div className="relative p-8 text-center">
-                <div className="mx-auto w-20 h-20 bg-gradient-to-br from-rose-500 via-pink-500 to-rose-600 rounded-3xl flex items-center justify-center mb-8 shadow-lg lg:transform lg:transition-all lg:duration-500 lg:group-hover:scale-110 lg:group-hover:rotate-3">
-                  <Truck className="h-10 w-10 text-white" />
+            <AnimatedSection animation="fadeInUp" delay={200}>
+              <div className="group relative">
+                <div className="absolute inset-0 bg-gradient-to-br from-white/80 to-white/60 lg:from-white/60 lg:to-white/30 lg:backdrop-blur-sm rounded-3xl border border-white/20 shadow-xl lg:transform lg:transition-all lg:duration-500 lg:group-hover:scale-105 lg:group-hover:shadow-2xl"></div>
+                <div className="relative p-8 text-center">
+                  <div className="mx-auto w-20 h-20 bg-gradient-to-br from-rose-500 via-pink-500 to-rose-600 rounded-3xl flex items-center justify-center mb-8 shadow-lg lg:transform lg:transition-all lg:duration-500 lg:group-hover:scale-110 lg:group-hover:rotate-3">
+                    <Truck className="h-10 w-10 text-white" />
+                  </div>
+                  <h3 className="font-playfair text-2xl font-bold text-gray-800 mb-4 lg:group-hover:text-rose-600 lg:transition-colors lg:duration-300 antialiased">
+                    {t('service.fastDelivery')}
+                  </h3>
+                  <div className="w-12 h-0.5 bg-gradient-to-r from-rose-400 to-pink-400 mx-auto mb-6 rounded-full"></div>
+                  <p className="font-inter text-gray-600 leading-relaxed text-lg antialiased">
+                    {t('service.fastDeliveryDesc')}
+                  </p>
                 </div>
-                <h3 className="font-playfair text-2xl font-bold text-gray-800 mb-4 lg:group-hover:text-rose-600 lg:transition-colors lg:duration-300 antialiased">
-                  {t('service.fastDelivery')}
-                </h3>
-                <div className="w-12 h-0.5 bg-gradient-to-r from-rose-400 to-pink-400 mx-auto mb-6 rounded-full"></div>
-                <p className="font-inter text-gray-600 leading-relaxed text-lg antialiased">
-                  {t('service.fastDeliveryDesc')}
-                </p>
               </div>
-            </div>
+            </AnimatedSection>
 
             {/* Cash on Delivery */}
-            <div className="group relative">
-              <div className="absolute inset-0 bg-gradient-to-br from-white/80 to-white/60 lg:from-white/60 lg:to-white/30 lg:backdrop-blur-sm rounded-3xl border border-white/20 shadow-xl lg:transform lg:transition-all lg:duration-500 lg:group-hover:scale-105 lg:group-hover:shadow-2xl"></div>
-              <div className="relative p-8 text-center">
-                <div className="mx-auto w-20 h-20 bg-gradient-to-br from-emerald-500 via-teal-500 to-emerald-600 rounded-3xl flex items-center justify-center mb-8 shadow-lg lg:transform lg:transition-all lg:duration-500 lg:group-hover:scale-110 lg:group-hover:rotate-3">
-                  <CreditCard className="h-10 w-10 text-white" />
+            <AnimatedSection animation="fadeInUp" delay={350}>
+              <div className="group relative">
+                <div className="absolute inset-0 bg-gradient-to-br from-white/80 to-white/60 lg:from-white/60 lg:to-white/30 lg:backdrop-blur-sm rounded-3xl border border-white/20 shadow-xl lg:transform lg:transition-all lg:duration-500 lg:group-hover:scale-105 lg:group-hover:shadow-2xl"></div>
+                <div className="relative p-8 text-center">
+                  <div className="mx-auto w-20 h-20 bg-gradient-to-br from-emerald-500 via-teal-500 to-emerald-600 rounded-3xl flex items-center justify-center mb-8 shadow-lg lg:transform lg:transition-all lg:duration-500 lg:group-hover:scale-110 lg:group-hover:rotate-3">
+                    <CreditCard className="h-10 w-10 text-white" />
+                  </div>
+                  <h3 className="font-playfair text-2xl font-bold text-gray-800 mb-4 lg:group-hover:text-emerald-600 lg:transition-colors lg:duration-300 antialiased">
+                    {t('service.cod')}
+                  </h3>
+                  <div className="w-12 h-0.5 bg-gradient-to-r from-emerald-400 to-teal-400 mx-auto mb-6 rounded-full"></div>
+                  <p className="font-inter text-gray-600 leading-relaxed text-lg">
+                    {t('service.codDesc')}
+                  </p>
                 </div>
-                <h3 className="font-playfair text-2xl font-bold text-gray-800 mb-4 lg:group-hover:text-emerald-600 lg:transition-colors lg:duration-300 antialiased">
-                  {t('service.cod')}
-                </h3>
-                <div className="w-12 h-0.5 bg-gradient-to-r from-emerald-400 to-teal-400 mx-auto mb-6 rounded-full"></div>
-                <p className="font-inter text-gray-600 leading-relaxed text-lg">
-                  {t('service.codDesc')}
-                </p>
               </div>
-            </div>
+            </AnimatedSection>
 
             {/* Easy Exchange */}
-            <div className="group relative">
-              <div className="absolute inset-0 bg-gradient-to-br from-white/80 to-white/60 lg:from-white/60 lg:to-white/30 lg:backdrop-blur-sm rounded-3xl border border-white/20 shadow-xl lg:transform lg:transition-all lg:duration-500 lg:group-hover:scale-105 lg:group-hover:shadow-2xl"></div>
-              <div className="relative p-8 text-center">
-                <div className="mx-auto w-20 h-20 bg-gradient-to-br from-purple-500 via-indigo-500 to-purple-600 rounded-3xl flex items-center justify-center mb-8 shadow-lg lg:transform lg:transition-all lg:duration-500 lg:group-hover:scale-110 lg:group-hover:rotate-3">
-                  <RefreshCw className="h-10 w-10 text-white" />
+            <AnimatedSection animation="fadeInUp" delay={500}>
+              <div className="group relative">
+                <div className="absolute inset-0 bg-gradient-to-br from-white/80 to-white/60 lg:from-white/60 lg:to-white/30 lg:backdrop-blur-sm rounded-3xl border border-white/20 shadow-xl lg:transform lg:transition-all lg:duration-500 lg:group-hover:scale-105 lg:group-hover:shadow-2xl"></div>
+                <div className="relative p-8 text-center">
+                  <div className="mx-auto w-20 h-20 bg-gradient-to-br from-purple-500 via-indigo-500 to-purple-600 rounded-3xl flex items-center justify-center mb-8 shadow-lg lg:transform lg:transition-all lg:duration-500 lg:group-hover:scale-110 lg:group-hover:rotate-3">
+                    <RefreshCw className="h-10 w-10 text-white" />
+                  </div>
+                  <h3 className="font-playfair text-2xl font-bold text-gray-800 mb-4 lg:group-hover:text-purple-600 lg:transition-colors lg:duration-300">
+                    {t('service.exchange')}
+                  </h3>
+                  <div className="w-12 h-0.5 bg-gradient-to-r from-purple-400 to-indigo-400 mx-auto mb-6 rounded-full"></div>
+                  <p className="font-inter text-gray-600 leading-relaxed text-lg">
+                    {t('service.exchangeDesc')}
+                  </p>
                 </div>
-                <h3 className="font-playfair text-2xl font-bold text-gray-800 mb-4 lg:group-hover:text-purple-600 lg:transition-colors lg:duration-300">
-                  {t('service.exchange')}
-                </h3>
-                <div className="w-12 h-0.5 bg-gradient-to-r from-purple-400 to-indigo-400 mx-auto mb-6 rounded-full"></div>
-                <p className="font-inter text-gray-600 leading-relaxed text-lg">
-                  {t('service.exchangeDesc')}
-                </p>
               </div>
-            </div>
+            </AnimatedSection>
           </div>
 
           {/* Additional trust indicators */}
-          <div className="mt-16 text-center">
+          <AnimatedSection animation="fadeInUp" delay={300} className="mt-16 text-center">
             <div className="inline-flex items-center gap-8 text-gray-500 text-sm font-medium">
               <div className="flex items-center gap-2">
                 <div className="w-2 h-2 bg-rose-500 rounded-full animate-pulse"></div>
@@ -507,7 +531,7 @@ const Home = () => {
                 <span>24/7 Customer support</span>
               </div>
             </div>
-          </div>
+          </AnimatedSection>
         </div>
       </section>
 
@@ -515,12 +539,12 @@ const Home = () => {
       <section aria-label="testimonials" className="relative py-20 overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-rose-50/80 via-white to-pink-50/70"></div>
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
+          <AnimatedSection animation="fadeInUp" delay={100} className="text-center mb-12">
             <h2 className="font-playfair text-3xl md:text-4xl font-bold">
               <span className="bg-gradient-to-r from-rose-600 via-pink-600 to-purple-600 bg-clip-text text-transparent">What customers say</span>
             </h2>
             <p className="font-inter text-gray-600 mt-3">Real stories from happy shoppers</p>
-          </div>
+          </AnimatedSection>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8">
             {[1,2,3].map((i) => (
@@ -558,7 +582,7 @@ const Home = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-12">
             
             {/* Brand Section */}
-            <div className="lg:col-span-2">
+            <AnimatedSection animation="fadeInLeft" delay={100} className="lg:col-span-2">
               <div className="mb-6">
                 <h3 
                   className="font-playfair text-3xl font-bold bg-gradient-to-r from-rose-400 via-pink-400 to-purple-400 bg-clip-text text-transparent mb-4 antialiased"
@@ -598,37 +622,41 @@ const Home = () => {
                   </svg>
                 </a>
               </div>
-            </div>
+            </AnimatedSection>
 
             {/* Quick Links */}
-            <div>
-              <h4 className="font-semibold text-lg mb-6 text-white">Quick Links</h4>
-              <ul className="space-y-3">
-                <li><a href="#" className="text-gray-300 hover:text-rose-400 transition-colors duration-200">About Us</a></li>
-                <li><a href="#" className="text-gray-300 hover:text-rose-400 transition-colors duration-200">Collections</a></li>
-                <li><a href="#" className="text-gray-300 hover:text-rose-400 transition-colors duration-200">New Arrivals</a></li>
-                <li><a href="#" className="text-gray-300 hover:text-rose-400 transition-colors duration-200">Sale</a></li>
-                <li><a href="#" className="text-gray-300 hover:text-rose-400 transition-colors duration-200">Size Guide</a></li>
-                <li><a href="#" className="text-gray-300 hover:text-rose-400 transition-colors duration-200">Contact</a></li>
-              </ul>
-            </div>
+            <AnimatedSection animation="fadeInUp" delay={250}>
+              <div>
+                <h4 className="font-semibold text-lg mb-6 text-white">Quick Links</h4>
+                <ul className="space-y-3">
+                  <li><a href="#" className="text-gray-300 hover:text-rose-400 transition-colors duration-200">About Us</a></li>
+                  <li><a href="#" className="text-gray-300 hover:text-rose-400 transition-colors duration-200">Collections</a></li>
+                  <li><a href="#" className="text-gray-300 hover:text-rose-400 transition-colors duration-200">New Arrivals</a></li>
+                  <li><a href="#" className="text-gray-300 hover:text-rose-400 transition-colors duration-200">Sale</a></li>
+                  <li><a href="#" className="text-gray-300 hover:text-rose-400 transition-colors duration-200">Size Guide</a></li>
+                  <li><a href="#" className="text-gray-300 hover:text-rose-400 transition-colors duration-200">Contact</a></li>
+                </ul>
+              </div>
+            </AnimatedSection>
 
             {/* Customer Service */}
-            <div>
-              <h4 className="font-semibold text-lg mb-6 text-white">Customer Care</h4>
-              <ul className="space-y-3">
-                <li><a href="#" className="text-gray-300 hover:text-rose-400 transition-colors duration-200">Shipping Info</a></li>
-                <li><a href="#" className="text-gray-300 hover:text-rose-400 transition-colors duration-200">Returns & Exchanges</a></li>
-                <li><a href="#" className="text-gray-300 hover:text-rose-400 transition-colors duration-200">Privacy Policy</a></li>
-                <li><a href="#" className="text-gray-300 hover:text-rose-400 transition-colors duration-200">Terms of Service</a></li>
-                <li><a href="#" className="text-gray-300 hover:text-rose-400 transition-colors duration-200">FAQ</a></li>
-                <li><a href="#" className="text-gray-300 hover:text-rose-400 transition-colors duration-200">Track Your Order</a></li>
-              </ul>
-            </div>
+            <AnimatedSection animation="fadeInRight" delay={400}>
+              <div>
+                <h4 className="font-semibold text-lg mb-6 text-white">Customer Care</h4>
+                <ul className="space-y-3">
+                  <li><a href="#" className="text-gray-300 hover:text-rose-400 transition-colors duration-200">Shipping Info</a></li>
+                  <li><a href="#" className="text-gray-300 hover:text-rose-400 transition-colors duration-200">Returns & Exchanges</a></li>
+                  <li><a href="#" className="text-gray-300 hover:text-rose-400 transition-colors duration-200">Privacy Policy</a></li>
+                  <li><a href="#" className="text-gray-300 hover:text-rose-400 transition-colors duration-200">Terms of Service</a></li>
+                  <li><a href="#" className="text-gray-300 hover:text-rose-400 transition-colors duration-200">FAQ</a></li>
+                  <li><a href="#" className="text-gray-300 hover:text-rose-400 transition-colors duration-200">Track Your Order</a></li>
+                </ul>
+              </div>
+            </AnimatedSection>
           </div>
 
           {/* Newsletter Signup */}
-          <div className="mt-12 pt-8 border-t border-gray-700">
+          <AnimatedSection animation="fadeInUp" delay={200} className="mt-12 pt-8 border-t border-gray-700">
             <div className="max-w-2xl mx-auto text-center">
               <h4 className="font-playfair text-2xl font-bold text-white mb-4">Stay in Style</h4>
               <p className="text-gray-300 mb-6">Subscribe to our newsletter for exclusive offers, style tips, and new arrivals.</p>
@@ -643,7 +671,7 @@ const Home = () => {
                 </button>
               </div>
             </div>
-          </div>
+          </AnimatedSection>
 
           {/* Bottom Footer */}
           <div className="mt-12 pt-8 border-t border-gray-700">
