@@ -7,19 +7,8 @@ import { Link, useNavigate } from "react-router-dom";
 import { wilayasData } from "@/lib/locations";
 // Language hook
 import { useLanguage } from "@/hooks/useLanguage";
-
-// Product type definition
-interface Product {
-  id: string;
-  title: string;
-  price: number;
-  oldprice?: number; // Optional old price for sale display (lowercase as in Supabase)
-  image?: string; // Keep for backward compatibility
-  images?: string[];
-  description: string;
-  colors?: string[];
-  sizes?: string[];
-}
+// Shared product type
+import { Product } from "@/types/product";
 
 // Props for ProductCard component
 interface ProductCardProps {
@@ -82,8 +71,7 @@ export const ProductCard = ({ product }: ProductCardProps) => {
   }
 
   // Use a fallback image if none exists
-  // Use a fallback image if none exists
-  const imageUrl = images[0] || product.image || "https://images.unsplash.com/photo-1551488831-00ddcb6c6bd3?w=800&h=800&fit=crop";
+  const imageUrl = images[0] || "https://images.unsplash.com/photo-1551488831-00ddcb6c6bd3?w=800&h=800&fit=crop";
   // Main render for product card
   const [showOrderForm, setShowOrderForm] = React.useState(false);
   const [communes, setCommunes] = useState<string[]>([]);

@@ -1,7 +1,7 @@
 // React hooks for state and lifecycle
-import { useState, useEffect } from "react";
-// Supabase client for database operations
-import { supabase } from "@/lib/supabaseClient";
+import { useState } from "react";
+// Product hook with React Query
+import { useProducts } from "@/hooks/useProducts";
 // Top navigation bar
 import { Navigation } from "@/components/Navigation";
 // Product card component
@@ -20,8 +20,8 @@ import { useScrollAnimation, useStaggeredScrollAnimation } from "@/hooks/useScro
 
 // Main component for homepage
 const Home = () => {
-  // State for products list
-  const [products, setProducts] = useState([]);
+  // Fetch products using React Query - this will cache the data across navigation
+  const { data: products = [], isLoading, error } = useProducts();
   // Language context
   const { t, isRTL } = useLanguage();
   // Staggered animation for products
@@ -30,35 +30,8 @@ const Home = () => {
     150
   );
 
-  // Fetch products from Supabase when component mounts
-  useEffect(() => {
-    // Async function to get products
-    const fetchProducts = async () => {
-      const { data, error } = await supabase
-        .from('products')
-        .select('*')
-        .order('created_at', { ascending: false });
-      if (!error) {
-        // Ensure images field is always a valid array of URLs for each product
-        const cleanArrayField = (field) => {
-          if (Array.isArray(field)) {
-            return field.filter(img => typeof img === 'string' && img.trim() !== '');
-          }
-          if (typeof field === 'string' && field) {
-            return field.replace(/[[\]"'\\]/g, "").split(',').map(img => img.trim()).filter(Boolean);
-          }
-          return [];
-        };
-        const productsWithImages = (data || []).map(product => ({
-      ...product,
-      images: cleanArrayField(product.images),
-      colors: typeof product.colors === 'string' ? product.colors.split(',').map(c => c.trim()).filter(Boolean) : Array.isArray(product.colors) ? product.colors.filter(c => typeof c === 'string' && c.trim() !== '') : []
-    }));
-        setProducts(productsWithImages);
-      }
-    };
-    fetchProducts();
-  }, []);
+  // Debug logging
+  console.log('Home component render:', { products, isLoading, error });
 
   // Main render for homepage
   return (
@@ -388,26 +361,78 @@ const Home = () => {
             </div>
           </AnimatedSection>
           
-      {/* Enhanced Product Grid */}
-      <div 
-        ref={productsRef}
-        className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6"
-      >
-            {products.map((product, index) => (
-              <div
-                key={product.id}
-                className={`h-auto md:h-[380px] lg:h-[420px] flex flex-col lg:transform lg:hover:scale-[1.02] lg:transition-all lg:duration-300 ${
-                  visibleProducts[index] ? 'animate-fade-in-up' : 'scroll-animate-hidden'
-                }`}
-                style={{ 
-                  animationDelay: `${index * 0.1}s`,
-                  filter: 'drop-shadow(0 4px 20px rgba(0,0,0,0.1))'
-                }}
-              >
-                <ProductCard product={product} />
+          {/* Enhanced Product Grid with Loading and Error States */}
+          {error && (
+            <div className="text-center py-16">
+              <div className="inline-flex items-center justify-center w-16 h-16 bg-red-100 rounded-full mb-4">
+                <svg className="w-8 h-8 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
               </div>
-            ))}
-          </div>
+              <p className="text-gray-600 mb-4">Sorry, we couldn't load the products right now.</p>
+              <button
+                onClick={() => window.location.reload()}
+                className="px-6 py-3 bg-gradient-to-r from-rose-500 to-pink-600 text-white font-semibold rounded-xl hover:from-rose-600 hover:to-pink-700 transition-all duration-300"
+              >
+                Try Again
+              </button>
+            </div>
+          )}
+
+          {isLoading && (
+            <div 
+              className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6"
+            >
+              {[...Array(8)].map((_, index) => (
+                <div key={index} className="h-auto md:h-[380px] lg:h-[420px] flex flex-col">
+                  <div className="relative group cursor-pointer bg-white rounded-3xl overflow-hidden shadow-lg animate-pulse">
+                    <div className="aspect-[4/5] bg-gray-200"></div>
+                    <div className="p-4">
+                      <div className="h-4 bg-gray-200 rounded mb-2"></div>
+                      <div className="h-4 bg-gray-200 rounded w-3/4 mb-3"></div>
+                      <div className="flex items-center justify-between">
+                        <div className="h-6 bg-gray-200 rounded w-20"></div>
+                        <div className="h-8 bg-gray-200 rounded w-24"></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {!isLoading && !error && products.length === 0 && (
+            <div className="text-center py-16">
+              <div className="inline-flex items-center justify-center w-16 h-16 bg-gray-100 rounded-full mb-4">
+                <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2M4 13h2m13-8l-4 4 4 4M3 13l4-4-4-4" />
+                </svg>
+              </div>
+              <p className="text-gray-600">No products available at the moment.</p>
+            </div>
+          )}
+
+          {!isLoading && !error && products.length > 0 && (
+            <div 
+              ref={productsRef}
+              className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6"
+            >
+              {products.map((product, index) => (
+                <div
+                  key={product.id}
+                  className={`h-auto md:h-[380px] lg:h-[420px] flex flex-col lg:transform lg:hover:scale-[1.02] lg:transition-all lg:duration-300 ${
+                    visibleProducts[index] ? 'animate-fade-in-up' : 'scroll-animate-hidden'
+                  }`}
+                  style={{ 
+                    animationDelay: `${index * 0.1}s`,
+                    filter: 'drop-shadow(0 4px 20px rgba(0,0,0,0.1))'
+                  }}
+                >
+                  <ProductCard product={product} />
+                </div>
+              ))}
+            </div>
+          )}
           
           {/* Call-to-action button with Hero styling */}
           <AnimatedSection animation="scaleIn" delay={300} className="text-center mt-16">
