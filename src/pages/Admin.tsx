@@ -1302,7 +1302,7 @@ const Admin = () => {
                       {t('admin.welcome')}
                     </span>
                     <span className="text-lg sm:text-xl font-semibold bg-gradient-to-r from-blue-600 to-blue-700 bg-clip-text text-transparent">
-                      Anis
+                      Admin
                     </span>
                   </div>
                 </div>
