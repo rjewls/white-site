@@ -154,10 +154,6 @@ const ProductDetail = () => {
           images: cleanImagesArray(data.images) // Keep as array for carousel
         };
         
-        // Debug logging
-        console.log('ProductDetail - Raw data.images:', data.images);
-        console.log('ProductDetail - Processed images:', processedProduct.images);
-        
         setProduct(processedProduct);
       }
     };
@@ -502,11 +498,11 @@ const ProductDetail = () => {
                   {product.title}
                 </h1>
                 <div className="flex flex-col items-start sm:items-end gap-2">
-                  <div className="flex items-center gap-1 bg-gradient-to-r from-yellow-50 to-orange-50 px-3 py-1.5 rounded-full border border-yellow-200/50 shadow-sm">
+                  <div className="flex items-center gap-1 bg-gradient-to-r from-blue-50 to-sky-50 px-3 py-1.5 rounded-full border border-blue-200/50 shadow-sm">
                     {[...Array(5)].map((_, i) => (
                       <Star 
                         key={i} 
-                        className="w-4 h-4 text-yellow-500 fill-yellow-400" 
+                        className="w-4 h-4 text-blue-600 fill-blue-500" 
                         style={i === 4 ? { fill: 'url(#half-star)' } : {}}
                       />
                     ))}
@@ -626,11 +622,11 @@ const ProductDetail = () => {
                   {product.title}
                 </h1>
                 <div className="flex flex-col items-end gap-2">
-                  <div className="flex items-center gap-1.5 bg-gradient-to-r from-yellow-50 to-orange-50 px-4 py-2 rounded-full border border-yellow-200/50 shadow-lg lg:backdrop-blur-sm">
+                  <div className="flex items-center gap-1.5 bg-gradient-to-r from-blue-50 to-sky-50 px-4 py-2 rounded-full border border-blue-200/50 shadow-lg lg:backdrop-blur-sm">
                     {[...Array(5)].map((_, i) => (
                       <Star 
                         key={i} 
-                        className="w-5 h-5 text-yellow-500 fill-yellow-400 lg:transition-transform lg:hover:scale-110" 
+                        className="w-5 h-5 text-blue-600 fill-blue-500 lg:transition-transform lg:hover:scale-110" 
                         style={i === 4 ? { fill: 'url(#half-star)' } : {}}
                       />
                     ))}
@@ -724,7 +720,7 @@ const ProductDetail = () => {
       <svg width="0" height="0" style={{ position: 'absolute' }}>
         <defs>
           <linearGradient id="half-star" x1="0%" y1="0%" x2="100%" y2="0%">
-            <stop offset="90%" stopColor="#f59e0b" />
+            <stop offset="90%" stopColor="#3b82f6" />
             <stop offset="90%" stopColor="rgba(249, 250, 251, 0.3)" />
           </linearGradient>
         </defs>
