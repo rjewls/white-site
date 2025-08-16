@@ -632,41 +632,38 @@ const Admin = () => {
     }
   }, [toast]);
 
+  // Fetch Noest Express config from Supabase on mount
+  useEffect(() => {
+    fetchNoestExpressConfig();
+  }, [fetchNoestExpressConfig]);
+
   const saveNoestExpressConfig = async () => {
     try {
       console.log('Saving Noest config:', noestExpressConfig);
       
-      // First, try to update existing record
-      const { data: existingData, error: selectError } = await supabase
+      // Delete all existing records to start fresh
+      console.log('Deleting all existing records...');
+      const { error: deleteError } = await supabase
         .from('noest_express_config')
-        .select('id')
-        .limit(1)
-        .single();
+        .delete()
+        .neq('id', 0); // Delete all records (using neq with impossible value to delete all)
 
-      console.log('Existing data query result:', { existingData, selectError });
-
-      let result;
-      if (existingData) {
-        // Update existing record
-        console.log('Updating existing record with ID:', existingData.id);
-        result = await supabase
-          .from('noest_express_config')
-          .update({
-            api_token: noestExpressConfig.api_token.trim(),
-            guid: noestExpressConfig.guid.trim(),
-            updated_at: new Date().toISOString()
-          })
-          .eq('id', existingData.id);
+      if (deleteError) {
+        console.error('Error deleting existing records:', deleteError);
+        // Continue anyway - maybe there were no records to delete
       } else {
-        // Insert new record
-        console.log('Inserting new record');
-        result = await supabase
-          .from('noest_express_config')
-          .insert({
-            api_token: noestExpressConfig.api_token.trim(),
-            guid: noestExpressConfig.guid.trim()
-          });
+        console.log('Successfully deleted existing records');
       }
+
+      // Insert new record with fresh data
+      console.log('Inserting new record');
+      const result = await supabase
+        .from('noest_express_config')
+        .insert({
+          id: 1, // Set explicit ID
+          api_token: noestExpressConfig.api_token.trim(),
+          guid: noestExpressConfig.guid.trim()
+        });
 
       console.log('Save result:', result);
 
@@ -1431,7 +1428,10 @@ const Admin = () => {
             </Button>
             
             <Button
-              onClick={() => setShowNoestExpressForm(true)}
+              onClick={() => {
+                setShowNoestExpressForm(true);
+                fetchNoestExpressConfig();
+              }}
               variant="outline"
               className="flex items-center justify-center gap-2 py-3 border-purple-200 text-purple-600 hover:bg-purple-50 hover:border-purple-300"
             >
@@ -1475,7 +1475,10 @@ const Admin = () => {
             </Button>
             
             <Button
-              onClick={() => setShowNoestExpressForm(true)}
+              onClick={() => {
+                setShowNoestExpressForm(true);
+                fetchNoestExpressConfig();
+              }}
               variant="outline"
               className="flex items-center justify-center gap-2 px-4 py-2 border-purple-200 text-purple-600 hover:bg-purple-50 hover:border-purple-300"
             >

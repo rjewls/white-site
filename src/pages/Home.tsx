@@ -64,19 +64,25 @@ const Home = () => {
       
       {/* Hero Section */}
       <section className="relative min-h-[80vh] lg:min-h-[90vh] overflow-hidden bg-white">
-        {/* Clean Modern Background */}
+        {/* Running Shoes Background */}
         <div className="absolute inset-0">
-          {/* Base white background with subtle gradient */}
-          <div className="absolute inset-0 bg-gradient-to-br from-gray-50 via-white to-gray-100"></div>
+          {/* Background Image */}
+          <div 
+            className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+            style={{
+              backgroundImage: `url('https://images.unsplash.com/photo-1549298916-b41d501d3772?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2012&q=80')`,
+              backgroundPosition: 'center center',
+            }}
+          ></div>
           
-          {/* Minimal geometric shapes */}
-          <div className="absolute inset-0 opacity-30">
-            <div className="hidden lg:block absolute top-1/4 right-1/4 w-32 h-32 bg-gradient-to-br from-blue-100/50 to-gray-100/30 rounded-full blur-xl"></div>
-            <div className="hidden lg:block absolute bottom-1/3 left-1/4 w-40 h-40 bg-gradient-to-br from-gray-100/40 to-blue-50/30 rounded-full blur-2xl"></div>
-          </div>
+          {/* Lighter Gradient Overlay for Text Readability */}
+          <div className="absolute inset-0 bg-gradient-to-r from-white/75 via-white/45 to-white/25"></div>
           
-          {/* Clean grid pattern overlay */}
-          <div className="absolute inset-0 opacity-[0.02]">
+          {/* Additional subtle overlay for better text contrast */}
+          <div className="absolute inset-0 bg-gradient-to-b from-transparent via-white/10 to-white/20"></div>
+          
+          {/* Clean grid pattern overlay (subtle) */}
+          <div className="absolute inset-0 opacity-[0.01]">
             <div className="w-full h-full" style={{
               backgroundImage: `
                 linear-gradient(90deg, #000 1px, transparent 1px),
