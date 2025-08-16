@@ -515,17 +515,26 @@ const Admin = () => {
     }
   }, [initializeDeliveryFees]);
 
+  // Fetch delivery fees from Supabase on mount
+  useEffect(() => {
+    fetchDeliveryFees();
+  }, [fetchDeliveryFees]);
+
   const updateDeliveryFee = async (wilayaCode, homeDelivery, stopdeskDelivery) => {
     try {
-      const { error } = await supabase
+      console.log('Updating delivery fee:', { wilayaCode, homeDelivery, stopdeskDelivery });
+      
+      const { data, error } = await supabase
         .from('delivery_fees')
         .update({
           home_delivery: parseInt(homeDelivery),
           stopdesk_delivery: parseInt(stopdeskDelivery)
         })
-        .eq('wilaya_code', wilayaCode);
+        .eq('wilaya_code', wilayaCode)
+        .select(); // Add select to see what was updated
 
       if (error) {
+        console.error('Supabase error:', error);
         toast({
           title: "Error updating delivery fee",
           description: error.message,
@@ -533,6 +542,8 @@ const Admin = () => {
         });
         return false;
       }
+
+      console.log('Successfully updated delivery fee:', data);
 
       // Update local state
       setDeliveryFees(prev => prev.map(fee => 

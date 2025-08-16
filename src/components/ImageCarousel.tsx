@@ -430,7 +430,7 @@ const ImageCarousel = ({ images, title, autoPlay = true, showThumbnails = true }
                 key={`extended-${index}`}
                 src={image}
                 alt={`${title} ${index + 1}`}
-                className="w-full h-full object-cover flex-shrink-0 select-none cursor-pointer"
+                className="w-full h-full object-contain flex-shrink-0 select-none cursor-pointer bg-gray-50"
                 draggable={false}
                 onLoad={(e) => {
                   console.log('ImageCarousel - Image loaded successfully:', image);
@@ -502,7 +502,7 @@ const ImageCarousel = ({ images, title, autoPlay = true, showThumbnails = true }
               <img
                 src={image}
                 alt={`${title} thumbnail ${index + 1}`}
-                className="w-full h-full object-cover"
+                className="w-full h-full object-contain bg-gray-50"
                 onError={e => { e.currentTarget.src = "https://images.unsplash.com/photo-1551488831-00ddcb6c6bd3?w=800&h=800&fit=crop"; }}
               />
             </button>

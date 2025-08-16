@@ -1,5 +1,5 @@
 import { UseFormReturn } from "react-hook-form";
-import { Loader2, Plus, Minus } from "lucide-react";
+import { Loader2, Plus, Minus, ShoppingCart } from "lucide-react";
 import { useMemo, useRef } from "react";
 import {
   Form,
@@ -722,9 +722,15 @@ export function OrderFormFields({
               {t('placing_order')}
             </span>
           ) : !isFormValid ? (
-            'Complete all fields'
+            <span className="flex items-center justify-center">
+              <ShoppingCart className="mr-2 h-4 w-4 animate-wiggle" />
+              Complete all fields
+            </span>
           ) : (
-            t('place_order')
+            <span className="flex items-center justify-center">
+              <ShoppingCart className="mr-2 h-4 w-4" />
+              {t('place_order')}
+            </span>
           )}
         </Button>
       </form>

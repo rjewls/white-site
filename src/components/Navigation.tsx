@@ -2,10 +2,36 @@
 import { Button } from "@/components/ui/button";
 // Link component for navigation
 import { Link } from "react-router-dom";
-// Icon components
-import { ShoppingBag } from "lucide-react";
 // Language hook
 import { useLanguage } from "@/hooks/useLanguage";
+
+// Custom Running Footprint Icon Component
+const RunningFootprintIcon = ({ className }: { className?: string }) => (
+  <svg 
+    className={className}
+    viewBox="0 0 24 24" 
+    fill="none" 
+    xmlns="http://www.w3.org/2000/svg"
+  >
+    {/* Main footprint shape */}
+    <ellipse cx="8" cy="12" rx="3" ry="6" fill="currentColor" opacity="0.9" />
+    
+    {/* Toe prints */}
+    <circle cx="6" cy="6" r="1" fill="currentColor" />
+    <circle cx="8" cy="5.5" r="0.8" fill="currentColor" />
+    <circle cx="10" cy="6" r="0.7" fill="currentColor" />
+    <circle cx="11.5" cy="6.5" r="0.6" fill="currentColor" />
+    
+    {/* Second footprint (offset for running motion) */}
+    <ellipse cx="16" cy="16" rx="2.5" ry="5" fill="currentColor" opacity="0.6" />
+    <circle cx="14.5" cy="11" r="0.8" fill="currentColor" opacity="0.6" />
+    <circle cx="16" cy="10.5" r="0.7" fill="currentColor" opacity="0.6" />
+    <circle cx="17.5" cy="11" r="0.6" fill="currentColor" opacity="0.6" />
+    
+    {/* Motion lines for running effect */}
+    <path d="M4 20 L7 19 M19 8 L22 7" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" opacity="0.4" />
+  </svg>
+);
 
 // Main Navigation component for the top bar
 export const Navigation = () => {
@@ -18,7 +44,7 @@ export const Navigation = () => {
         <div className="flex justify-between items-center h-16">
           <Link to="/" className="flex items-center space-x-3 group">
             <div className="relative">
-              <ShoppingBag className="h-8 w-8 text-blue-600 group-hover:text-blue-700 transition-colors duration-300" />
+              <RunningFootprintIcon className="h-8 w-8 text-blue-600 group-hover:text-blue-700 transition-colors duration-300" />
               <div className="absolute inset-0 bg-blue-300/20 rounded-full blur-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
             </div>
             <span 
