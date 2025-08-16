@@ -1,3 +1,9 @@
+// Interface for image focal point data
+export interface FocalPoint {
+  x: number; // 0-100 (percentage from left)
+  y: number; // 0-100 (percentage from top)
+}
+
 // Shared Product type definition used across the application
 export interface Product {
   id: string;
@@ -5,6 +11,7 @@ export interface Product {
   price: number;
   oldprice?: number;
   images?: string[];
+  image_focal_points?: FocalPoint[]; // Array of focal points corresponding to images
   description: string;
   colors?: string[];
   sizes?: string[];
@@ -19,6 +26,7 @@ export interface RawProduct {
   price: number;
   oldprice?: number;
   images?: unknown;
+  image_focal_points?: unknown; // Raw focal point data from database
   description: string;
   colors?: unknown;
   sizes?: unknown;

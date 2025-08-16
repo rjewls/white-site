@@ -9,7 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/hooks/useLanguage";
-import { Plus, Edit, Trash2, Save, X, LogOut, User, ImageIcon, Truck, Package, Upload, Eye, CheckCircle } from "lucide-react";
+import { Plus, Edit, Trash2, Save, X, LogOut, User, ImageIcon, Truck, Package, Upload, Eye, CheckCircle, Crosshair } from "lucide-react";
 import { compressImages, formatFileSize, supportsWebP } from "@/lib/imageCompression";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { wilayaDeliveryFees } from "@/lib/deliveryFees";
@@ -18,6 +18,7 @@ import { noestApiService } from "@/lib/noestApi";
 import { isValidCommune, suggestCommune, getDefaultCommune } from '../lib/communeMapping';
 import { VALID_WILAYA_IDS } from '../lib/communeMapping';
 import { parseColorEntry, getDisplayColorText, createLabeledColor, getColorValue, normalizeColorValue } from '@/lib/colorUtils';
+import ImageFocalPointSelector from '@/components/ImageFocalPointSelector';
 
 // Products will be fetched from Supabase
 
@@ -27,6 +28,7 @@ interface FormData {
   oldPrice?: string; // Optional old price for sale display
   weight?: string; // Product weight in kg
   images: (File | string)[];
+  image_focal_points: { x: number; y: number }[]; // Focal points for each image
   description: string;
   colors: string | string[];
   sizes: string;
@@ -42,6 +44,7 @@ interface ProductFormProps {
   compressionProgress: number;
   compressionStatus: string;
   t: (key: string) => string;
+  onSetFocalPoint: (index: number, url: string) => void;
 }
 
 const Admin = () => {
@@ -100,6 +103,9 @@ const Admin = () => {
   const [showNoestExpressForm, setShowNoestExpressForm] = useState(false);
   const [noestExpressConfig, setNoestExpressConfig] = useState({ api_token: '', guid: '' });
   
+  // Focal point selector state
+  const [selectedImageForFocalPoint, setSelectedImageForFocalPoint] = useState<{index: number, url: string} | null>(null);
+  
   // Orders state
   const [orders, setOrders] = useState([]);
   const [showOrdersSection, setShowOrdersSection] = useState(false);
@@ -112,6 +118,7 @@ const Admin = () => {
     oldPrice: "",
     weight: "1", // Default 1kg
     images: [],
+    image_focal_points: [], // Initialize empty focal points array
     description: "",
     colors: "",
     sizes: ""
@@ -124,6 +131,7 @@ const Admin = () => {
       oldPrice: "",
       weight: "1", // Default 1kg
       images: [],
+      image_focal_points: [], // Reset focal points
       description: "",
       colors: "",
       sizes: ""
@@ -131,6 +139,49 @@ const Admin = () => {
     setIsCompressing(false);
     setCompressionProgress(0);
     setCompressionStatus("");
+  };
+
+  // Handle saving focal point for a specific image
+  const handleSaveFocalPoint = async (focalPoint: { x: number; y: number }) => {
+    if (selectedImageForFocalPoint === null) return;
+    
+    try {
+      const newFocalPoints = [...formData.image_focal_points];
+      // Ensure we have enough focal points for the current image index
+      while (newFocalPoints.length <= selectedImageForFocalPoint.index) {
+        newFocalPoints.push({ x: 50, y: 50 }); // Default center
+      }
+      // Update the focal point for this specific image
+      newFocalPoints[selectedImageForFocalPoint.index] = focalPoint;
+      
+      setFormData({
+        ...formData,
+        image_focal_points: newFocalPoints
+      });
+      
+      // Add a small delay to show the loading state
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      setSelectedImageForFocalPoint(null);
+      
+      toast({
+        title: "Focus Point Saved",
+        description: "Image focus point has been updated successfully.",
+      });
+    } catch (error) {
+      console.error('Error saving focal point:', error);
+      toast({
+        title: "Error",
+        description: "Failed to save focus point. Please try again.",
+        variant: "destructive"
+      });
+      throw error; // Re-throw to prevent dialog from closing
+    }
+  };
+
+  // Handle opening focal point selector
+  const handleSetFocalPoint = (index: number, url: string) => {
+    setSelectedImageForFocalPoint({ index, url });
   };
 
   // Handle image file selection and compression
@@ -194,10 +245,12 @@ const Admin = () => {
         }
       );
 
-      // Add compressed files to form data
+      // Add compressed files to form data with default focal points (center)
+      const newFocalPoints = compressedFiles.map(() => ({ x: 50, y: 50 }));
       setFormData(prev => ({
         ...prev,
-        images: [...prev.images, ...compressedFiles]
+        images: [...prev.images, ...compressedFiles],
+        image_focal_points: [...prev.image_focal_points, ...newFocalPoints]
       }));
 
       // Show compression results
@@ -250,12 +303,28 @@ const Admin = () => {
     } else if (typeof product.images === "string" && product.images.trim() !== "") {
       imagesArr = product.images.split(",").map(img => img.trim()).filter(Boolean);
     }
+
+    // Handle focal points - ensure we have focal points for each image
+    let focalPointsArr = [];
+    if (product.image_focal_points && Array.isArray(product.image_focal_points)) {
+      focalPointsArr = product.image_focal_points;
+    }
+    // If we have fewer focal points than images, fill with default center points
+    while (focalPointsArr.length < imagesArr.length) {
+      focalPointsArr.push({ x: 50, y: 50 });
+    }
+    // If we have more focal points than images, trim the excess
+    if (focalPointsArr.length > imagesArr.length) {
+      focalPointsArr = focalPointsArr.slice(0, imagesArr.length);
+    }
+
     setFormData({
       title: product.title,
       price: product.price?.toString(),
       oldPrice: product.oldprice?.toString() || "",
       weight: product.weight?.toString() || "1",
       images: imagesArr,
+      image_focal_points: focalPointsArr,
       description: product.description,
       colors: cleanArrayField(product.colors),
       sizes: cleanArrayField(product.sizes)
@@ -315,6 +384,7 @@ const Admin = () => {
       oldprice: formData.oldPrice && formData.oldPrice.trim() ? parseFloat(formData.oldPrice) : null,
       weight: formData.weight && formData.weight.trim() ? parseFloat(formData.weight) : 1, // Default 1kg
       images: imageUrls,
+      image_focal_points: formData.image_focal_points.slice(0, imageUrls.length), // Only include focal points for existing images
       description: formData.description,
       colors: Array.isArray(formData.colors)
         ? formData.colors.filter(c => c)
@@ -1440,6 +1510,7 @@ const Admin = () => {
                 compressionProgress={compressionProgress}
                 compressionStatus={compressionStatus}
                 t={t}
+                onSetFocalPoint={handleSetFocalPoint}
               />
             </CardContent>
           </Card>
@@ -2031,6 +2102,7 @@ const Admin = () => {
                         compressionProgress={compressionProgress}
                         compressionStatus={compressionStatus}
                         t={t}
+                        onSetFocalPoint={handleSetFocalPoint}
                       />
                     </div>
                   ) : (
@@ -2291,6 +2363,18 @@ const Admin = () => {
           )}
         </div>
       </div>
+      
+      {/* Image Focal Point Selector */}
+      {selectedImageForFocalPoint && (
+        <ImageFocalPointSelector
+          imageUrl={selectedImageForFocalPoint.url}
+          imageName={`Image ${selectedImageForFocalPoint.index + 1}`}
+          currentFocalPoint={formData.image_focal_points[selectedImageForFocalPoint.index] || { x: 50, y: 50 }}
+          isOpen={true}
+          onClose={() => setSelectedImageForFocalPoint(null)}
+          onSave={handleSaveFocalPoint}
+        />
+      )}
     </div>
   );
 };
@@ -2304,7 +2388,8 @@ const ProductForm: React.FC<ProductFormProps> = ({
   isCompressing,
   compressionProgress,
   compressionStatus,
-  t
+  t,
+  onSetFocalPoint
 }) => {
   // Import compression utilities for use in this component
   // (formatFileSize is already imported at the top level)
@@ -2457,6 +2542,21 @@ const ProductForm: React.FC<ProductFormProps> = ({
                         {formatFileSize(img.size)}
                       </div>
                     )}
+                    
+                    {/* Focal point button - only show for uploaded/saved images */}
+                    {typeof img === "string" && (
+                      <button
+                        type="button"
+                        className="absolute bottom-1 right-1 bg-blue-600/90 hover:bg-blue-700 text-white rounded p-1 shadow-md transition-colors"
+                        title="Set focus point"
+                        onClick={() => {
+                          onSetFocalPoint(idx, src);
+                        }}
+                      >
+                        <Crosshair className="h-3 w-3 sm:h-4 sm:w-4" />
+                      </button>
+                    )}
+                    
                     <button
                       type="button"
                       className="absolute top-1 right-1 bg-white/90 rounded-full p-1 shadow-md group-hover:bg-red-500 group-hover:text-white transition-colors sm:opacity-75 sm:hover:opacity-100 opacity-100"
@@ -2467,9 +2567,14 @@ const ProductForm: React.FC<ProductFormProps> = ({
                           const success = await deleteImageFromSupabase(src);
                           if (!success) return;
                         }
-                        // Remove from local array
+                        // Remove from local arrays (both images and focal points)
                         const newImages = formData.images.filter((_, i) => i !== idx);
-                        setFormData({ ...formData, images: newImages });
+                        const newFocalPoints = formData.image_focal_points.filter((_, i) => i !== idx);
+                        setFormData({ 
+                          ...formData, 
+                          images: newImages,
+                          image_focal_points: newFocalPoints
+                        });
                       }}
                     >
                       <X className="h-3 w-3 sm:h-4 sm:w-4" />

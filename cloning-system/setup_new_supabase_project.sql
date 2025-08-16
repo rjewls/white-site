@@ -285,6 +285,7 @@ CREATE TABLE products (
     "title" text NULL DEFAULT '0'::text,
     "price" numeric NULL,
     "images" text NULL,
+    "image_focal_points" jsonb NULL DEFAULT '[]'::jsonb,
     "description" text NULL,
     "colors" text NULL,
     "sizes" text NULL,
@@ -303,9 +304,15 @@ CREATE INDEX idx_products_title ON products(title);
 CREATE INDEX idx_products_price ON products(price);
 CREATE INDEX idx_products_stock ON products(stock);
 
+-- Create index for image focal points (JSONB)
+CREATE INDEX idx_products_focal_points ON products USING gin(image_focal_points);
+
 -- Create index for text search on title and description
 CREATE INDEX idx_products_title_search ON products USING gin(to_tsvector('english', title));
 CREATE INDEX idx_products_description_search ON products USING gin(to_tsvector('english', description));
+
+-- Add comment explaining the image_focal_points column
+COMMENT ON COLUMN products.image_focal_points IS 'Array of focal point objects {x: 0-100, y: 0-100} corresponding to images array. Controls which part of image is visible in product cards.';
 
 -- Note: No RLS policies are set on this table
 -- This allows public access to the product catalog for browsing
