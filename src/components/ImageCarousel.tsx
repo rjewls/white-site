@@ -29,6 +29,12 @@ const ImageCarousel = ({ images, title, autoPlay = true, showThumbnails = true }
     : typeof images === "string" && images
       ? (images as string).split(",").map(i => i.trim()).filter(Boolean)
       : [];
+  
+  // Debug logging
+  console.log('ImageCarousel - Input images:', images);
+  console.log('ImageCarousel - Safe images:', safeImages);
+  console.log('ImageCarousel - Safe images length:', safeImages.length);
+  
   const [isDragging, setIsDragging] = useState(false);
   const [dragOffset, setDragOffset] = useState(0);
   
@@ -57,8 +63,11 @@ const ImageCarousel = ({ images, title, autoPlay = true, showThumbnails = true }
     ? [safeImages[safeImages.length - 1], ...safeImages, safeImages[0]]
     : safeImages;
   
+  console.log('ImageCarousel - Extended images:', extendedImages);
+  console.log('ImageCarousel - Extended images length:', extendedImages.length);
+  
   // Adjust current index for extended array (add 1 because we added one image at the start)
-  const [displayIndex, setDisplayIndex] = useState(1);
+  const [displayIndex, setDisplayIndex] = useState(safeImages.length > 1 ? 1 : 0);
   const [actualIndex, setActualIndex] = useState(0);
 
   // Continuous auto-play animation that starts immediately
@@ -392,7 +401,11 @@ const ImageCarousel = ({ images, title, autoPlay = true, showThumbnails = true }
     }
   };
 
+  console.log('ImageCarousel - About to check safeImages.length:', safeImages.length);
+  console.log('ImageCarousel - Boolean check !safeImages.length:', !safeImages.length);
+
   if (!safeImages.length) {
+    console.log('ImageCarousel - Returning "No images available" because !safeImages.length');
     return (
       <div className="aspect-square bg-muted rounded-lg flex items-center justify-center">
         <p className="text-muted-foreground">No images available</p>
@@ -409,6 +422,16 @@ const ImageCarousel = ({ images, title, autoPlay = true, showThumbnails = true }
         onMouseEnter={() => setIsPaused(true)}
         onMouseLeave={() => setIsPaused(false)}
         onTouchStart={() => setIsPaused(true)}
+        ref={(el) => {
+          if (el) {
+            console.log('ImageCarousel - Container dimensions:', {
+              width: el.offsetWidth,
+              height: el.offsetHeight,
+              clientWidth: el.clientWidth,
+              clientHeight: el.clientHeight
+            });
+          }
+        }}
       >
         <div 
           className={`flex h-full ${isDragging || !isTransitioning ? 'transition-none' : 'transition-transform duration-700 ease-in-out'}`}
@@ -422,26 +445,43 @@ const ImageCarousel = ({ images, title, autoPlay = true, showThumbnails = true }
           onTouchStart={handleTouchStart}
           onTouchMove={handleTouchMove}
           onTouchEnd={handleTouchEnd}
+          ref={(el) => {
+            if (el) {
+              console.log('ImageCarousel - Transform style:', el.style.transform);
+              console.log('ImageCarousel - DisplayIndex:', displayIndex);
+              console.log('ImageCarousel - DragOffset:', dragOffset);
+            }
+          }}
         >
-          {extendedImages.map((image, index) => (
-            <img
-              key={`extended-${index}`}
-              src={image}
-              alt={`${title} ${index + 1}`}
-              className="w-full h-full object-cover flex-shrink-0 select-none cursor-pointer"
-              draggable={false}
-              onClick={() => {
-                // Calculate the actual image index for modal
-                const actualImageIndex = index === 0 
-                  ? safeImages.length - 1  // Last image duplicate
-                  : index === extendedImages.length - 1 
-                    ? 0  // First image duplicate
-                    : index - 1;  // Normal images
-                openModal(actualImageIndex);
-              }}
-              onError={e => { e.currentTarget.src = "https://images.unsplash.com/photo-1551488831-00ddcb6c6bd3?w=800&h=800&fit=crop"; }}
-            />
-          ))}
+          {extendedImages.map((image, index) => {
+            console.log(`ImageCarousel - Rendering image ${index}:`, image);
+            return (
+              <img
+                key={`extended-${index}`}
+                src={image}
+                alt={`${title} ${index + 1}`}
+                className="w-full h-full object-cover flex-shrink-0 select-none cursor-pointer"
+                draggable={false}
+                onLoad={(e) => {
+                  console.log('ImageCarousel - Image loaded successfully:', image);
+                  console.log('ImageCarousel - Image element:', e.currentTarget);
+                }}
+                onError={(e) => { 
+                  console.error('ImageCarousel - Image failed to load:', image);
+                  e.currentTarget.src = "https://images.unsplash.com/photo-1551488831-00ddcb6c6bd3?w=800&h=800&fit=crop"; 
+                }}
+                onClick={() => {
+                  // Calculate the actual image index for modal
+                  const actualImageIndex = index === 0 
+                    ? safeImages.length - 1  // Last image duplicate
+                    : index === extendedImages.length - 1 
+                      ? 0  // First image duplicate
+                      : index - 1;  // Normal images
+                  openModal(actualImageIndex);
+                }}
+              />
+            );
+          })}
         </div>
         
         // Navigation arrows removed from main carousel (thumbnails below are used for navigation)

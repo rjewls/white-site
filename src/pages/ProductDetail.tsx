@@ -147,12 +147,18 @@ const ProductDetail = () => {
           return [];
         };
         
-        setProduct({
+        const processedProduct = {
           ...data,
           colors: cleanArrayField(data.colors),
           sizes: cleanArrayField(data.sizes),
           images: cleanImagesArray(data.images) // Keep as array for carousel
-        });
+        };
+        
+        // Debug logging
+        console.log('ProductDetail - Raw data.images:', data.images);
+        console.log('ProductDetail - Processed images:', processedProduct.images);
+        
+        setProduct(processedProduct);
       }
     };
     fetchProduct();
