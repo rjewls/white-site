@@ -1324,7 +1324,10 @@ const Admin = () => {
             
             {/* Logout button - only visible on desktop, moved to mobile section below */}
             <Button
-              onClick={signOut}
+              onClick={() => {
+                console.log('Logout button clicked');
+                signOut();
+              }}
               variant="outline"
               className="hidden sm:flex items-center justify-center gap-2 px-4 py-2 border-red-200 text-red-600 hover:bg-red-50 hover:border-red-300"
             >
@@ -1366,7 +1369,10 @@ const Admin = () => {
           </div>
           
           <Button
-            onClick={signOut}
+            onClick={() => {
+              console.log('Mobile logout button clicked');
+              signOut();
+            }}
             variant="outline"
             className="w-full flex items-center justify-center gap-2 py-3 border-red-200 text-red-600 hover:bg-red-50 hover:border-red-300"
           >

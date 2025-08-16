@@ -55,9 +55,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       // Ensure session persists
       if (session) {
-        localStorage.setItem('belle-elle-session', JSON.stringify(session));
+        const storageKey = import.meta.env.VITE_SUPABASE_STORAGE_KEY || 'belle-elle-auth';
+        localStorage.setItem(`${storageKey}-session`, JSON.stringify(session));
       } else {
-        localStorage.removeItem('belle-elle-session');
+        const storageKey = import.meta.env.VITE_SUPABASE_STORAGE_KEY || 'belle-elle-auth';
+        localStorage.removeItem(`${storageKey}-session`);
       }
     });
 
@@ -74,8 +76,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const signOut = async () => {
-    await supabase.auth.signOut();
-    localStorage.removeItem('belle-elle-session');
+    try {
+      console.log('Attempting to sign out...');
+      const { error } = await supabase.auth.signOut();
+      
+      if (error) {
+        console.error('Error signing out:', error);
+        throw error;
+      }
+      
+      const storageKey = import.meta.env.VITE_SUPABASE_STORAGE_KEY || 'belle-elle-auth';
+      localStorage.removeItem(`${storageKey}-session`);
+      localStorage.removeItem(storageKey);
+      console.log('Successfully signed out');
+    } catch (error) {
+      console.error('Sign out failed:', error);
+    }
   };
 
   const value = {

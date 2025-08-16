@@ -1181,7 +1181,246 @@ I'll help you update the meta descriptions and Open Graph tags for the running/a
 ```
 
 ```
-Now let me search for a suitable running shoe favicon icon: 
+Now let me search for a suitable running shoe favicon icon: Great! I found good resources for running shoe icons. Let me create a suitable favicon based on a simple running shoe design. I'll create an SVG favicon that we can save as both SVG and convert to ICO format: Now let me also add the favicon link to the HTML and update it to use both SVG and ICO formats: 
+```
+
+```
+Now let me create a simple ICO version using a command to convert the SVG (or I'll create a simple PNG version that can work as favicon): Let me also create a simple backup ICO by replacing the existing one with a basic running shoe design: Perfect! I've successfully updated your site's metadata and created a custom running shoe favicon. Here's what I've accomplished:
+
+## ✅ **Updated Meta Descriptions & Open Graph Tags**
+
+**Browser Tab Title:** 
+- Changed from "Belle Elle Boutique" to "Running Store - Premium Athletic Footwear"
+
+**Meta Descriptions:**
+- Updated to reflect running/athletic theme: "Discover premium running shoes and athletic footwear. Quality, comfort, and performance for every runner."
+
+**Open Graph Tags for Social Media:**
+- `og:title`: "Running Store - Premium Athletic Footwear"
+- `og:description`: Athletic-focused description
+- `og:image`: Updated to point to "/og-running-store.jpg" 
+
+**Twitter Cards:**
+- Added specific Twitter title and description
+- Updated Twitter image reference
+
+## ✅ **Created Custom Running Shoe Favicon**
+
+**New Files Created:**
+- `favicon.svg` - Custom blue running shoe icon with gradient and motion lines
+- `favicon-generator.html` - Helper file for creating additional formats
+
+**Favicon Features:**
+- Blue gradient design matching your site's theme
+- Running shoe silhouette with laces
+- Motion/speed lines for athletic feel
+- Scalable SVG format for crisp display
+- Fallback ICO support maintained
+
+**HTML Updates:**
+- Added proper favicon links for SVG, ICO, and Apple touch icon
+- Modern browsers will prefer the SVG version
+- Older browsers will fall back to ICO
+
+The browser tab will now show "Running Store - Premium Athletic Footwear" as the title and display a blue running shoe icon that matches your site's athletic theme. When shared on social media, it will show the updated athletic-focused descriptions and branding.
+
+**Note:** For the social media Open Graph image (`og-running-store.jpg`), you may want to create a 1200x630px image featuring your running shoes to complete the social sharing experience.
+
+---
+
+_**User**_
+
+take a look at the .env.local file and tell me what to add in the netlify Environment variables
+
+---
+
+_**Assistant**_
+
+Let me check if there's a `.env.local` file in your project and see what environment variables you have configured: Now let me check if there's an actual `.env.local` file in your project: Great! You do have a `.env.local` file. Let me read it to see what environment variables you currently have configured: Perfect! Based on your `.env.local` file, here are the **environment variables you need to add to Netlify**:
+
+## 🚀 Netlify Environment Variables Configuration
+
+### **Required Variables (Must Add These):**
+
+```
+VITE_SITE_NAME=white-site
+VITE_SITE_DESCRIPTION=Premium fashion and accessories  
+VITE_SITE_URL=https://myboutique.com
+VITE_BUSINESS_NAME=My Boutique LLC
+VITE_BUSINESS_EMAIL=contact@myboutique.com
+VITE_BUSINESS_PHONE=+213-XXX-XXX-XXX
+VITE_BUSINESS_ADDRESS=123 Fashion Street, Algiers
+VITE_SUPABASE_URL=https://bzjdckqlosuoucvosusp.supabase.co
+VITE_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ6amRja3Fsb3N1b3Vjdm9zdXNwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTUxODgyNzUsImV4cCI6MjA3MDc2NDI3NX0.Z1FyNAfwBtnjsBZ5JXv-JlmGbNLK0Agxe9wBrPJsD4M
+VITE_SUPABASE_STORAGE_KEY=white-site-session
+```
+
+### **Optional Variables (Recommended to Add):**
+
+```
+VITE_FACEBOOK_URL=https://facebook.com/myboutique
+VITE_INSTAGRAM_URL=https://instagram.com/myboutique
+VITE_WHATSAPP_NUMBER=+213XXXXXXXXX
+VITE_DISCORD_WEBHOOK_URL=https://discord.com/api/webhooks/1406036179727679629/qtgSRfpPFr3bgAFkkssgdvFMTIpnqSuFcGYVLoWFVLZxAXBMpYhWkVP9N5qqPIFYK73j
+VITE_GOOGLE_ANALYTICS_ID=G-XXXXXXXXXX
+VITE_DEV_MODE=false
+VITE_DEBUG_MODE=false
+```
+
+## 📝 How to Add These to Netlify:
+
+### **Step 1: Access Environment Variables**
+1. Go to your [Netlify Dashboard](https://app.netlify.com)
+2. Select your site
+3. Go to **Site Settings** → **Environment Variables**
+4. Click **Add a variable**
+
+### **Step 2: Add Each Variable**
+For each variable above:
+1. **Key**: Enter the variable name (e.g., `VITE_SITE_NAME`)
+2. **Value**: Enter the corresponding value (e.g., `white-site`)
+3. Click **Create variable**
+
+### **Step 3: Update Site URL**
+**Important**: Update `VITE_SITE_URL` to your actual Netlify domain:
+```
+VITE_SITE_URL=https://your-site-name.netlify.app
+```
+(Replace with your actual Netlify URL)
+
+### **Step 4: Production Settings**
+Set these for production:
+```
+NODE_ENV=production
+VITE_DEV_MODE=false
+VITE_DEBUG_MODE=false
+```
+
+## ⚠️ Important Notes:
+
+1. **Remove quotes** when adding to Netlify - just paste the value without the quotes
+2. **VITE_SITE_URL** should be your actual Netlify domain, not `myboutique.com`
+3. **VITE_SUPABASE_ANON_KEY** is safe to expose (it's designed to be public)
+4. **Discord webhook** is optional but recommended for order notifications
+5. After adding variables, **trigger a new deploy** for changes to take effect
+
+## 🔄 After Adding Variables:
+
+1. **Redeploy your site** (Netlify will automatically rebuild)
+2. **Test your live site** to ensure everything works
+3. **Verify** that orders save to Supabase correctly
+4. **Check** that Discord notifications work (if configured)
+
+Your site should now work properly in production with all the same functionality as your local development environment!
+
+---
+
+_**User**_
+
+in the admin login page the login icon is still pink and the login button and border , make sure th theme and styling matches the rest of the sit
+
+---
+
+_**Assistant**_
+
+I'll check the admin login page and update any remaining pink styling to match the blue theme. Let me find and examine the admin login components: Let me search for login-related components and styling: Let me look for the actual login form component. It might be in a separate component or further down in the `Admin.tsx` file: Let me check if there's a ProtectedRoute component that handles the login: Perfect! Now let me check the LoginForm component where the login styling is likely defined: Found it! The LoginForm component still has pink/rose styling. Let me update it to use the blue theme to match the rest of the site: 
+```
+
+```
+
+```
+
+```
+
+```
+
+```
+
+```
+
+```
+
+```
+
+```
+Perfect! I've successfully updated the admin login page to match the blue theme of your running shoes store. Here's a summary of the changes I made to the LoginForm component:
+
+## ✅ **Updated Login Page Styling**
+
+### **Background & Decorations:**
+- Changed background gradient from `from-rose-100 via-pink-50 to-purple-100` to `from-blue-100 via-sky-50 to-slate-100`
+- Updated background decorative elements from pink/purple to blue/sky colors
+
+### **Login Icon:**
+- Changed the lock icon background from `from-rose-500 to-pink-600` to `from-blue-500 to-sky-600`
+- Icon remains white but now sits on a blue gradient background
+
+### **Title Text:**
+- Updated title gradient from `from-rose-600 via-pink-500 to-purple-600` to `from-blue-600 via-sky-500 to-slate-600`
+- Changed description from "Access Belle Elle Boutique Admin Panel" to "Access Running Store Admin Panel"
+
+### **Input Field Focus States:**
+- Email field: Changed focus colors from `focus:border-rose-400 focus:ring-rose-400` to `focus:border-blue-400 focus:ring-blue-400`
+- Password field: Same blue focus color updates
+
+### **Login Button:**
+- Changed button gradient from `from-rose-500 to-pink-600` to `from-blue-500 to-sky-600`
+- Updated hover states from `from-rose-600 to-pink-700` to `from-blue-600 to-sky-700`
+
+## 🎨 **Result:**
+The admin login page now has a consistent blue theme that matches your running shoes store:
+- Blue gradient background and decorative elements
+- Blue login icon in the header
+- Blue gradient title text
+- Blue focus states on input fields
+- Blue gradient login button
+- Updated branding text for "Running Store"
+
+The login page now seamlessly integrates with the rest of your site's blue color scheme, completing the theme transformation from the original pink boutique design to your athletic running shoes store aesthetic!
+
+---
+
+_**User**_
+
+the logout button isnt working$
+
+---
+
+_**Assistant**_
+
+Let me check the current `LoginForm.tsx` file to see its state after your undo, and then look into the logout button issue: I see the LoginForm is back to its original pink state. Now let me check the logout button functionality. The logout button would be in the Admin page, not the LoginForm. Let me search for the logout button in the Admin component: Let me look at the logout button implementation around those line numbers: The logout buttons look correctly implemented with `onClick={signOut}`. Now let me check the AuthContext to see if there's an issue with the signOut function: The signOut function looks correct. Let me check if there might be any console errors. Let me also check if the signOut function is properly handling errors. Let me update it to add some error handling and logging: 
+```
+
+```
+The lint error is not related to our change. Now let me also check if there might be an issue with the logout button event handling. Let me modify the Admin page to add some debugging to the logout button: 
+```
+
+```
+
+```
+
+```
+Let me also check if there are any issues with the Supabase client configuration that might affect authentication: The Supabase client looks properly configured. Let me check if there's a potential issue with session storage keys. I notice in the AuthContext we're using `belle-elle-session` but in the Supabase client we might be using a different storage key. Let me update the AuthContext to use the same storage key: 
+```
+
+```
+
+```
+
+```
+Now let me test and make sure that the logout functionality works by starting the development server: 
+
+---
+
+_**User**_
+
+i have uploaded my project as it is to netlify and its live, and on the netlify version the logout button works
+
+---
+
+_**Assistant**_
+
+That's great news! The logout button working on the Netlify version 
 
 ---
 
