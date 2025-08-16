@@ -450,7 +450,7 @@ const ProductDetail = () => {
   // Show loading spinner/message while fetching
   if (product === null) {
     return (
-      <div className="min-h-screen bg-gradient-soft">
+      <div className="min-h-screen bg-white">
         <Navigation />
         <div className="flex items-center justify-center h-[60vh]">
           <p className="text-lg text-muted-foreground animate-pulse">Loading product...</p>
@@ -462,7 +462,7 @@ const ProductDetail = () => {
   // Show not found only if Supabase query returned nothing
   if (product === false) {
     return (
-      <div className="min-h-screen bg-gradient-soft">
+      <div className="min-h-screen bg-white">
         <Navigation />
         <div className="flex items-center justify-center h-[60vh]">
           <p className="text-lg text-muted-foreground">Product not found</p>
@@ -474,7 +474,7 @@ const ProductDetail = () => {
   // Main render for product detail page
   return (
     <>
-      <div className="min-h-screen bg-gradient-soft">
+      <div className="min-h-screen bg-white">
         <Navigation />
         <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8 py-4 sm:py-6 lg:py-8">
           {/* Mobile Layout */}
@@ -492,7 +492,7 @@ const ProductDetail = () => {
             {/* Product Info - Mobile */}
             <div className="bg-white/90 lg:bg-white/50 lg:backdrop-blur-sm border border-white/20 rounded-xl p-4 shadow-lg">
               <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 mb-3">
-                <h1 className="font-playfair text-2xl sm:text-3xl font-bold text-rose-600 flex-1">
+                <h1 className="font-playfair text-2xl sm:text-3xl font-bold text-blue-600 flex-1">
                   {product.title}
                 </h1>
                 <div className="flex flex-col items-start sm:items-end gap-2">
@@ -544,7 +544,7 @@ const ProductDetail = () => {
               {/* Description - Mobile */}
               {product.description && (
                 <div className="mt-3">
-                  <h3 className="font-playfair text-lg font-semibold text-rose-600 mb-2">
+                  <h3 className="font-playfair text-lg font-semibold text-blue-600 mb-2">
                     Description
                   </h3>
                   <RichContentRenderer 
@@ -602,7 +602,7 @@ const ProductDetail = () => {
               {/* Product Description - Desktop */}
               {product.description && (
                 <div className="bg-white/90 lg:bg-white/50 lg:backdrop-blur-sm border border-white/20 rounded-2xl p-6 shadow-lg">
-                  <h3 className="font-playfair text-xl font-semibold text-rose-600 mb-4">
+                  <h3 className="font-playfair text-xl font-semibold text-blue-600 mb-4">
                     Description
                   </h3>
                   <RichContentRenderer 
@@ -616,7 +616,7 @@ const ProductDetail = () => {
             {/* Product Info & Purchase Form - Desktop */}
             <div className="space-y-8">            <div>
               <div className="flex items-start justify-between gap-4 mb-4">
-                <h1 className="font-playfair text-3xl font-bold text-rose-600 flex-1">
+                <h1 className="font-playfair text-3xl font-bold text-blue-600 flex-1">
                   {product.title}
                 </h1>
                 <div className="flex flex-col items-end gap-2">
@@ -706,7 +706,7 @@ const ProductDetail = () => {
         <div className="fixed bottom-6 right-6 z-50 lg:hidden">
           <button
             onClick={scrollToOrderForm}
-            className="bg-pink-500 hover:bg-pink-600 text-white font-bold py-4 px-6 rounded-full shadow-2xl transform transition-all duration-300 hover:scale-110 animate-shake flex items-center gap-2"
+            className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 px-6 rounded-full shadow-2xl transform transition-all duration-300 hover:scale-110 animate-shake flex items-center gap-2"
           >
             <ShoppingCart className="w-5 h-5" />
             <span>Order Now</span>

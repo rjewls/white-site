@@ -78,7 +78,7 @@ export const OrderForm: React.FC<OrderFormProps> = ({ productId, productTitle, p
         },
         body: JSON.stringify({
           embeds: [{
-            color: 0xec4899, // Pink color
+            color: 0x3b82f6, // Blue color
             description: "🛍️ **NEW ORDER** 🛍️\n\n" +
                         "📦 **" + orderData.productTitle + "**\n\n" +
                         "👤 " + orderData.name + " | 📱 " + orderData.phone + "\n" +
@@ -114,15 +114,15 @@ export const OrderForm: React.FC<OrderFormProps> = ({ productId, productTitle, p
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
-      <Card className="w-full max-w-md rounded-2xl shadow-lg bg-pink-50 border-2 border-rose-300 ring-1 ring-rose-200">
+      <Card className="w-full max-w-md rounded-2xl shadow-lg bg-blue-50 border-2 border-blue-300 ring-1 ring-blue-200">
         <CardContent className="p-6 flex flex-col gap-4">
-          <h2 className="text-xl font-playfair font-bold text-pink-700 mb-2 text-center">Order: {productTitle}</h2>
+          <h2 className="text-xl font-playfair font-bold text-blue-700 mb-2 text-center">Order: {productTitle}</h2>
           <form onSubmit={handleSubmit} className="flex flex-col gap-3">
             <input
               type="text"
               required
               placeholder="Your Name"
-              className="rounded-lg border-pink-300 focus:border-pink-500 px-3 py-2 bg-white text-pink-700 font-inter"
+              className="rounded-lg border-blue-300 focus:border-blue-500 px-3 py-2 bg-white text-blue-700 font-inter"
               value={name}
               onChange={e => setName(e.target.value)}
             />
@@ -130,13 +130,13 @@ export const OrderForm: React.FC<OrderFormProps> = ({ productId, productTitle, p
               type="tel"
               required
               placeholder="Phone Number"
-              className="rounded-lg border-pink-300 focus:border-pink-500 px-3 py-2 bg-white text-pink-700 font-inter"
+              className="rounded-lg border-blue-300 focus:border-blue-500 px-3 py-2 bg-white text-blue-700 font-inter"
               value={phone}
               onChange={e => setPhone(e.target.value)}
             />
             <select
               required
-              className="rounded-lg border-pink-300 focus:border-pink-500 px-3 py-2 bg-white text-pink-700 font-inter"
+              className="rounded-lg border-blue-300 focus:border-blue-500 px-3 py-2 bg-white text-blue-700 font-inter"
               value={wilaya}
               onChange={e => { setWilaya(e.target.value); setCommune(""); }}
             >
@@ -147,7 +147,7 @@ export const OrderForm: React.FC<OrderFormProps> = ({ productId, productTitle, p
             </select>
             <select
               required
-              className="rounded-lg border-pink-300 focus:border-pink-500 px-3 py-2 bg-white text-pink-700 font-inter"
+              className="rounded-lg border-blue-300 focus:border-blue-500 px-3 py-2 bg-white text-blue-700 font-inter"
               value={commune}
               onChange={e => setCommune(e.target.value)}
               disabled={!wilaya}
@@ -162,7 +162,7 @@ export const OrderForm: React.FC<OrderFormProps> = ({ productId, productTitle, p
                 <Button
                   key={dt.value}
                   type="button"
-                  className={`flex-1 rounded-full font-inter ${deliveryType === dt.value ? "bg-pink-400 text-white" : "bg-pink-100 text-pink-700"}`}
+                  className={`flex-1 rounded-full font-inter ${deliveryType === dt.value ? "bg-blue-500 text-white" : "bg-blue-100 text-blue-700"}`}
                   onClick={() => setDeliveryType(dt.value)}
                 >
                   {dt.label}
@@ -172,7 +172,7 @@ export const OrderForm: React.FC<OrderFormProps> = ({ productId, productTitle, p
             {deliveryType === "station" ? (
               <select
                 required
-                className="rounded-lg border-pink-300 focus:border-pink-500 px-3 py-2 bg-white text-pink-700 font-inter"
+                className="rounded-lg border-blue-300 focus:border-blue-500 px-3 py-2 bg-white text-blue-700 font-inter"
                 value={station}
                 onChange={e => setStation(e.target.value)}
               >
@@ -186,27 +186,27 @@ export const OrderForm: React.FC<OrderFormProps> = ({ productId, productTitle, p
                 type="text"
                 required
                 placeholder="Delivery Address"
-                className="rounded-lg border-pink-300 focus:border-pink-500 px-3 py-2 bg-white text-pink-700 font-inter"
+                className="rounded-lg border-blue-300 focus:border-blue-500 px-3 py-2 bg-white text-blue-700 font-inter"
                 value={address}
                 onChange={e => setAddress(e.target.value)}
               />
             )}
-            <div className="text-center text-pink-700 font-semibold mt-2">
+            <div className="text-center text-blue-700 font-semibold mt-2">
               Delivery Fee: {deliveryFee} DZD
             </div>
-            <div className="text-center text-pink-700 font-semibold">
+            <div className="text-center text-blue-700 font-semibold">
               Total Price: {totalPrice} DZD
             </div>
             <Button
               type="submit"
-              className="w-full rounded-full bg-gradient-to-r from-rose-500 to-pink-600 text-white font-bold py-2 mt-2 shadow-md hover:from-rose-600 hover:to-pink-700 hover:scale-105 transition-all duration-200"
+              className="w-full rounded-full bg-gradient-to-r from-blue-500 to-sky-600 text-white font-bold py-2 mt-2 shadow-md hover:from-blue-600 hover:to-sky-700 hover:scale-105 transition-all duration-200"
               disabled={loading}
             >
               {loading ? "Sending..." : "Place Order"}
             </Button>
             <Button
               type="button"
-              className="w-full rounded-full bg-white text-pink-600 border border-pink-300 mt-1"
+              className="w-full rounded-full bg-white text-blue-600 border border-blue-300 mt-1"
               onClick={onClose}
             >
               Cancel

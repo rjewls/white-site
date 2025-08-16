@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+canvas { border: 1px solid #ccc; }
+</style>
+</head>
+<body>
+<canvas id="canvas" width="32" height="32"></canvas>
+<script>
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+
+// Clear canvas with white background
+ctx.fillStyle = 'white';
+ctx.fillRect(0, 0, 32, 32);
+
+// Create gradient for shoe
+const gradient = ctx.createLinearGradient(0, 0, 32, 32);
+gradient.addColorStop(0, '#3b82f6');
+gradient.addColorStop(1, '#1d4ed8');
+
+// Draw main shoe body
+ctx.fillStyle = gradient;
+ctx.beginPath();
+ctx.ellipse(16, 20, 12, 6, 0, 0, 2 * Math.PI);
+ctx.fill();
+
+// Draw shoe sole
+ctx.fillStyle = '#1e40af';
+ctx.beginPath();
+ctx.ellipse(16, 24, 12, 3, 0, 0, 2 * Math.PI);
+ctx.fill();
+
+// Draw laces (white dots)
+ctx.fillStyle = 'white';
+ctx.beginPath();
+ctx.arc(12, 18, 1.5, 0, 2 * Math.PI);
+ctx.fill();
+ctx.beginPath();
+ctx.arc(16, 17, 1.5, 0, 2 * Math.PI);
+ctx.fill();
+ctx.beginPath();
+ctx.arc(20, 18, 1.5, 0, 2 * Math.PI);
+ctx.fill();
+
+// Draw speed lines
+ctx.strokeStyle = '#60a5fa';
+ctx.lineWidth = 1;
+ctx.beginPath();
+ctx.moveTo(2, 16); ctx.lineTo(6, 16);
+ctx.moveTo(1, 19); ctx.lineTo(4, 19);
+ctx.moveTo(2, 22); ctx.lineTo(6, 22);
+ctx.stroke();
+</script>
+</body>
+</html>

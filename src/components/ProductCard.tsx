@@ -7,19 +7,8 @@ import { Link, useNavigate } from "react-router-dom";
 import { wilayasData } from "@/lib/locations";
 // Language hook
 import { useLanguage } from "@/hooks/useLanguage";
-
-// Product type definition
-interface Product {
-  id: string;
-  title: string;
-  price: number;
-  oldprice?: number; // Optional old price for sale display (lowercase as in Supabase)
-  image?: string; // Keep for backward compatibility
-  images?: string[];
-  description: string;
-  colors?: string[];
-  sizes?: string[];
-}
+// Shared product type
+import { Product } from "@/types/product";
 
 // Props for ProductCard component
 interface ProductCardProps {
@@ -82,8 +71,17 @@ export const ProductCard = ({ product }: ProductCardProps) => {
   }
 
   // Use a fallback image if none exists
-  // Use a fallback image if none exists
-  const imageUrl = images[0] || product.image || "https://images.unsplash.com/photo-1551488831-00ddcb6c6bd3?w=800&h=800&fit=crop";
+  const imageUrl = images[0] || "https://images.unsplash.com/photo-1551488831-00ddcb6c6bd3?w=800&h=800&fit=crop";
+  
+  // Get focal point for the first image (primary image)
+  const getFocalPoint = () => {
+    if (product.image_focal_points && Array.isArray(product.image_focal_points) && product.image_focal_points[0]) {
+      const fp = product.image_focal_points[0];
+      return `${fp.x}% ${fp.y}%`;
+    }
+    // Default to center if no focal point set
+    return '50% 50%';
+  };
   // Main render for product card
   const [showOrderForm, setShowOrderForm] = React.useState(false);
   const [communes, setCommunes] = useState<string[]>([]);
@@ -120,65 +118,66 @@ export const ProductCard = ({ product }: ProductCardProps) => {
   return (
     <div className="h-full">
       <Link to={`/product/${product.id}`} className="block h-full group">
-        <Card className="relative h-full bg-white rounded-lg overflow-hidden border-2 border-transparent group-hover:border-pink-500 transition-all duration-300 flex flex-col">
-          {/* Image Container with fixed aspect ratio for consistent card height */}
-          <div className="relative w-full aspect-[3/4] md:aspect-[4/5] overflow-hidden border-2 border-pink-400 group-hover:border-transparent transition-all duration-300">
+        <Card className="relative h-full bg-white rounded-lg overflow-hidden border-2 border-gray-200 group-hover:border-blue-500 transition-all duration-300 flex flex-col shadow-sm hover:shadow-lg">
+          {/* Image Container with optimized aspect ratio for mobile */}
+          <div className="relative w-full aspect-[4/3] sm:aspect-[3/4] md:aspect-[4/5] overflow-hidden">
             <img
               src={imageUrl}
               alt={product.title}
-              className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+              style={{ objectPosition: getFocalPoint() }}
               onError={e => { e.currentTarget.src = 'https://images.unsplash.com/photo-1551488831-00ddcb6c6bd3?w=800&h=800&fit=crop'; }}
             />
           </div>
 
-          {/* Content Container */}
-          <CardContent className="flex-1 flex flex-col justify-center items-center text-center p-3 sm:p-4 space-y-2 sm:space-y-3">
-            {/* Product Title */}
-            <h3 className="font-semibold text-base sm:text-lg text-gray-900 line-clamp-2">
+          {/* Content Container - Reduced padding and spacing on mobile */}
+          <CardContent className="flex-1 flex flex-col justify-center items-center text-center p-2 sm:p-4 space-y-1 sm:space-y-3">
+            {/* Product Title - Optimized for mobile */}
+            <h3 className="font-semibold text-sm sm:text-lg text-gray-900 line-clamp-1 sm:line-clamp-2">
               {product.title}
             </h3>
 
-            {/* Product Price */}
-            <div className="space-y-1 min-h-[54px] sm:min-h-[60px] flex flex-col justify-center">
+            {/* Product Price - Reduced spacing on mobile */}
+            <div className="space-y-0 sm:space-y-1 min-h-[32px] sm:min-h-[60px] flex flex-col justify-center">
               {product.oldprice ? (
                 <div className="flex flex-col items-center">
-                  {/* Old Price with red strikethrough */}
+                  {/* Old Price with red strikethrough - Smaller on mobile */}
                   <div className="relative">
-                    <span className="text-base sm:text-lg font-semibold text-gray-400">
+                    <span className="text-sm sm:text-lg font-semibold text-gray-400">
                       {product.oldprice.toLocaleString()} DZD
                     </span>
                     <div className="absolute inset-0 flex items-center justify-center">
                       <div className="w-full h-0.5 bg-red-500 transform -rotate-12"></div>
                     </div>
                   </div>
-                  {/* New Price - Pink */}
+                  {/* New Price - Blue, Smaller on mobile */}
                   <div className="flex items-baseline gap-1">
-                    <span className="text-lg sm:text-xl font-bold text-pink-500">
+                    <span className="text-base sm:text-xl font-bold text-blue-600">
                       {product.price.toLocaleString()}
                     </span>
-                    <span className="text-xs sm:text-sm font-medium text-pink-400">DZD</span>
+                    <span className="text-xs sm:text-sm font-medium text-blue-500">DZD</span>
                   </div>
                 </div>
               ) : (
                 <div className="flex items-baseline gap-1 justify-center">
-                  <span className="text-lg sm:text-xl font-bold text-pink-500">
+                  <span className="text-base sm:text-xl font-bold text-blue-600">
                     {product.price.toLocaleString()}
                   </span>
-                  <span className="text-xs sm:text-sm font-medium text-pink-400">DZD</span>
+                  <span className="text-xs sm:text-sm font-medium text-blue-500">DZD</span>
                 </div>
               )}
             </div>
 
-            {/* Add to Cart Button */}
+            {/* Add to Cart Button - Smaller on mobile */}
             <button
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
                 navigate(`/product/${product.id}`);
               }}
-              className="bg-pink-500 text-white font-semibold py-2 px-4 sm:px-6 rounded-lg border-2 border-pink-500 hover:bg-white hover:text-pink-500 hover:border-pink-500 transition-all duration-200 flex items-center justify-center gap-2 w-full sm:w-auto"
+              className="bg-blue-600 text-white font-semibold py-1.5 sm:py-2 px-3 sm:px-6 rounded-lg border-2 border-blue-600 hover:bg-white hover:text-blue-600 hover:border-blue-600 transition-all duration-200 flex items-center justify-center gap-2 w-full sm:w-auto text-sm sm:text-base"
             >
-              <ShoppingCart className="w-4 h-4" />
+              <ShoppingCart className="w-3 h-3 sm:w-4 sm:h-4" />
               <span>Add to Cart</span>
             </button>
           </CardContent>

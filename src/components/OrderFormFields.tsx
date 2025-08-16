@@ -1,5 +1,5 @@
 import { UseFormReturn } from "react-hook-form";
-import { Loader2 } from "lucide-react";
+import { Loader2, Plus, Minus } from "lucide-react";
 import { useMemo, useRef } from "react";
 import {
   Form,
@@ -465,33 +465,7 @@ export function OrderFormFields({
 
         {/* Product Options Section */}
         <div className="space-y-3 sm:space-y-4">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-            <FormField
-              control={form.control}
-              name="quantity"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel className="text-sm font-medium">Quantity (Max 3)</FormLabel>
-                  <Select 
-                    onValueChange={(value) => field.onChange(parseInt(value))} 
-                    value={field.value?.toString()}
-                  >
-                    <FormControl>
-                      <SelectTrigger className="h-10 text-sm">
-                        <SelectValue placeholder="Select quantity" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="1">1</SelectItem>
-                      <SelectItem value="2">2</SelectItem>
-                      <SelectItem value="3">3</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
+          <div className="grid grid-cols-1 gap-3 sm:gap-4">
             {/* Color Selection */}
             {availableColors.length > 0 && (
               <div className="space-y-3">
@@ -643,11 +617,64 @@ export function OrderFormFields({
                 )}
               </div>
             )}
+
+            {/* Quantity Controls */}
+            <div className="space-y-3">
+              <Label className="text-base font-medium">Quantity (Max 3)</Label>
+              <FormField
+                control={form.control}
+                name="quantity"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormControl>
+                      <div className="flex items-center justify-between bg-white border border-gray-200 rounded-lg p-3">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          className="h-8 w-8 rounded-full p-0 border-blue-200 hover:bg-blue-50"
+                          onClick={() => {
+                            const currentValue = field.value || 1;
+                            if (currentValue > 1) {
+                              field.onChange(currentValue - 1);
+                            }
+                          }}
+                          disabled={(field.value || 1) <= 1}
+                        >
+                          <Minus className="h-4 w-4 text-blue-600" />
+                        </Button>
+                        
+                        <span className="text-lg font-semibold text-gray-800 min-w-[40px] text-center">
+                          {field.value || 1}
+                        </span>
+                        
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          className="h-8 w-8 rounded-full p-0 border-blue-200 hover:bg-blue-50"
+                          onClick={() => {
+                            const currentValue = field.value || 1;
+                            if (currentValue < 3) {
+                              field.onChange(currentValue + 1);
+                            }
+                          }}
+                          disabled={(field.value || 1) >= 3}
+                        >
+                          <Plus className="h-4 w-4 text-blue-600" />
+                        </Button>
+                      </div>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
           </div>
         </div>
 
         {/* Order Summary */}
-        <div className="p-4 sm:p-6 bg-gradient-to-br from-pink-50 to-rose-50 rounded-xl border border-pink-200">
+        <div className="p-4 sm:p-6 bg-gradient-to-br from-blue-50 to-sky-50 rounded-xl border border-blue-200">
           <h3 className="text-lg font-semibold text-gray-800 mb-4">Order Summary</h3>
           <div className="space-y-3">
             <div className="flex justify-between items-center text-sm sm:text-base">
@@ -662,20 +689,20 @@ export function OrderFormFields({
               <span className="text-gray-600">
                 Delivery Fee{watchDeliveryOption ? ` (${watchDeliveryOption === "home" ? "Home" : "Stopdesk"})` : ""}:
               </span>
-              <span className={`font-medium ${deliveryFee > 0 ? "text-pink-600" : "text-gray-400 italic"}`}>
+              <span className={`font-medium ${deliveryFee > 0 ? "text-blue-600" : "text-gray-400 italic"}`}>
                 {deliveryFee > 0 ? `${deliveryFee} DZD` : (watchWilaya && watchDeliveryOption ? "0 DZD" : "— Select options —")}
               </span>
             </div>
-            <div className="flex justify-between items-center text-base sm:text-lg font-bold border-t pt-2 border-pink-200">
+            <div className="flex justify-between items-center text-base sm:text-lg font-bold border-t pt-2 border-blue-200">
               <span className="text-gray-800">Total Price:</span>
-              <span className="text-pink-700">{totalPrice} DZD</span>
+              <span className="text-blue-700">{totalPrice} DZD</span>
             </div>
           </div>
         </div>
 
         <Button 
           type="submit" 
-          className="w-full h-11 sm:h-10 text-sm font-medium bg-gradient-to-r from-rose-500 to-pink-600 hover:from-rose-600 hover:to-pink-700 text-white border-0 shadow-md hover:shadow-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed" 
+          className="w-full h-11 sm:h-10 text-sm font-medium bg-gradient-to-r from-blue-500 to-sky-600 hover:from-blue-600 hover:to-sky-700 text-white border-0 shadow-md hover:shadow-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed" 
           disabled={isSubmitting}
           onClick={(e) => {
             if (!isFormValid) {
