@@ -647,7 +647,7 @@ export function OrderFormFields({
         </div>
 
         {/* Order Summary */}
-        <div className="p-4 sm:p-6 bg-gradient-to-br from-pink-50 to-rose-50 rounded-xl border border-pink-200">
+        <div className="p-4 sm:p-6 bg-gradient-to-br from-blue-50 to-sky-50 rounded-xl border border-blue-200">
           <h3 className="text-lg font-semibold text-gray-800 mb-4">Order Summary</h3>
           <div className="space-y-3">
             <div className="flex justify-between items-center text-sm sm:text-base">
@@ -662,20 +662,20 @@ export function OrderFormFields({
               <span className="text-gray-600">
                 Delivery Fee{watchDeliveryOption ? ` (${watchDeliveryOption === "home" ? "Home" : "Stopdesk"})` : ""}:
               </span>
-              <span className={`font-medium ${deliveryFee > 0 ? "text-pink-600" : "text-gray-400 italic"}`}>
+              <span className={`font-medium ${deliveryFee > 0 ? "text-blue-600" : "text-gray-400 italic"}`}>
                 {deliveryFee > 0 ? `${deliveryFee} DZD` : (watchWilaya && watchDeliveryOption ? "0 DZD" : "— Select options —")}
               </span>
             </div>
-            <div className="flex justify-between items-center text-base sm:text-lg font-bold border-t pt-2 border-pink-200">
+            <div className="flex justify-between items-center text-base sm:text-lg font-bold border-t pt-2 border-blue-200">
               <span className="text-gray-800">Total Price:</span>
-              <span className="text-pink-700">{totalPrice} DZD</span>
+              <span className="text-blue-700">{totalPrice} DZD</span>
             </div>
           </div>
         </div>
 
         <Button 
           type="submit" 
-          className="w-full h-11 sm:h-10 text-sm font-medium bg-gradient-to-r from-rose-500 to-pink-600 hover:from-rose-600 hover:to-pink-700 text-white border-0 shadow-md hover:shadow-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed" 
+          className="w-full h-11 sm:h-10 text-sm font-medium bg-gradient-to-r from-blue-500 to-sky-600 hover:from-blue-600 hover:to-sky-700 text-white border-0 shadow-md hover:shadow-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed" 
           disabled={isSubmitting}
           onClick={(e) => {
             if (!isFormValid) {

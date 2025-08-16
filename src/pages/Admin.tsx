@@ -1281,7 +1281,7 @@ const Admin = () => {
   }, [fetchOrders]);
 
   return (
-    <div className={`min-h-screen bg-gradient-soft ${isRTL ? 'rtl' : 'ltr'}`} dir={isRTL ? 'rtl' : 'ltr'}>
+    <div className={`min-h-screen bg-white ${isRTL ? 'rtl' : 'ltr'}`} dir={isRTL ? 'rtl' : 'ltr'}>
       <Navigation />
       
       <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-3 sm:py-8">
@@ -1292,21 +1292,21 @@ const Admin = () => {
               {t('admin.dashboard')}
             </h1>
             <div className="relative">
-              <div className="bg-gradient-to-r from-rose-50 to-pink-50 border border-rose-200 rounded-lg p-3 sm:p-4 shadow-sm backdrop-blur-sm">
+              <div className="bg-gradient-to-r from-blue-50 to-gray-50 border border-blue-200 rounded-lg p-3 sm:p-4 shadow-sm backdrop-blur-sm">
                 <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-gradient-to-r from-rose-400 to-pink-500 flex items-center justify-center shadow-lg">
+                  <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-gradient-to-r from-blue-500 to-blue-600 flex items-center justify-center shadow-lg">
                     <User className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
                   </div>
                   <div className="flex flex-col">
                     <span className="text-sm sm:text-base font-medium text-gray-700">
                       {t('admin.welcome')}
                     </span>
-                    <span className="text-lg sm:text-xl font-semibold bg-gradient-to-r from-rose-600 to-pink-600 bg-clip-text text-transparent">
+                    <span className="text-lg sm:text-xl font-semibold bg-gradient-to-r from-blue-600 to-blue-700 bg-clip-text text-transparent">
                       Anis
                     </span>
                   </div>
                 </div>
-                <div className="absolute top-0 right-0 w-16 h-16 bg-gradient-to-br from-rose-200/30 to-pink-200/30 rounded-full blur-xl"></div>
+                <div className="absolute top-0 right-0 w-16 h-16 bg-gradient-to-br from-blue-200/30 to-gray-200/30 rounded-full blur-xl"></div>
               </div>
             </div>
           </div>
@@ -1643,14 +1643,6 @@ const Admin = () => {
                   Orders Management
                 </CardTitle>
                 <div className="flex gap-2">
-                  <Button
-                    onClick={createTestOrder}
-                    variant="outline"
-                    size="sm"
-                    className="text-xs"
-                  >
-                    🧪 Test API
-                  </Button>
                   <Button
                     onClick={() => setShowOrdersSection(false)}
                     variant="ghost"

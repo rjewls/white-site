@@ -178,35 +178,35 @@ All colors MUST be HSL.
     --popover: 0 0% 100%;
     --popover-foreground: 340 15% 15%;
 
-    --primary: 340 75
+    --primary: 217 75% 55%;
     --primary-foreground: 0 0% 98%;
 
-    --secondary: 340 25% 92%;
-    --secondary-foreground: 340 15% 15%;
+    --secondary: 217 25% 92%;
+    --secondary-foreground: 217 15% 15%;
 
-    --muted: 340 15% 95%;
-    --muted-foreground: 340 10% 45%;
+    --muted: 217 15% 95%;
+    --muted-foreground: 217 10% 45%;
 
-    --accent: 15 100% 90%;
-    --accent-foreground: 340 15% 15%;
+    --accent: 210 100% 90%;
+    --accent-foreground: 217 15% 15%;
 
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
 
-    --border: 340 20% 88%;
-    --input: 340 20% 88%;
-    --ring: 340 75% 55%;
+    --border: 217 20% 88%;
+    --input: 217 20% 88%;
+    --ring: 217 75% 55%;
 
     /* Custom design tokens */
-    --rose-gold: 25 50% 75%;
-    --blush: 340 45% 85%;
-    --soft-pink: 340 25% 92%;
-    --elegant-shadow: 340 20% 85%;
+    --blue-primary: 217 75% 55%;
+    --sky-light: 217 45% 85%;
+    --soft-blue: 217 25% 92%;
+    --elegant-shadow: 217 20% 85%;
 
     /* Gradients */
-    --gradient-primary: linear-gradient(135deg, hsl(340 75% 55%) 0%, hsl(15 100% 75%) 100%);
-    --gradient-soft: linear-gradient(180deg, hsl(355 100% 97%) 0%, hsl(340 25% 92%) 100%);
-    --gradient-card: linear-gradient(145deg, hsl(0 0% 100%) 0%, hsl(340 15% 95%) 100%);
+    --gradient-primary: linear-gradient(135deg, hsl(217 75% 55%) 0%, hsl(210 100% 75%) 100%);
+    --gradient-soft: linear-gradient(180deg, hsl(220 100% 97%) 0%, hsl(217 25% 92%) 100%);
+    --gradient-card: linear-gradient(145deg, hsl(0 0% 100%) 0%, hsl(217 15% 95%) 100%);
 
     /* Animations */
     --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -302,6 +302,19 @@ All colors MUST be HSL.
     text-rendering: optimizeLegibility;
   }
 
+  /* Custom gradient utilities */
+  .bg-gradient-soft {
+    background: var(--gradient-soft);
+  }
+
+  .bg-gradient-primary {
+    background: var(--gradient-primary);
+  }
+
+  .bg-gradient-card {
+    background: var(--gradient-card);
+  }
+
   /* Performance optimizations for mobile */
   @media (max-width: 768px) {
     /* Disable expensive effects on mobile for better performance */
@@ -327,3 +340,78 @@ All colors MUST be HSL.
     }
   }
 }
+
+/* Force blue theme for all input and select elements */
+input, select, [data-radix-select-trigger] {
+  border-color: hsl(217 20% 88%) !important;
+  background-color: hsl(0 0% 100%) !important;
+}
+
+input:focus, select:focus, [data-radix-select-trigger]:focus,
+input:focus-visible, select:focus-visible, [data-radix-select-trigger]:focus-visible {
+  border-color: hsl(217 75% 55%) !important;
+  box-shadow: 0 0 0 2px hsl(217 75% 55%) !important;
+  outline: none !important;
+}
+
+/* Specific targeting for Radix Select components */
+[data-radix-select-trigger], 
+button[role="combobox"],
+.select-trigger {
+  border-color: hsl(217 20% 88%) !important;
+  background-color: hsl(0 0% 100%) !important;
+}
+
+[data-radix-select-trigger]:focus,
+[data-radix-select-trigger][data-state="open"],
+button[role="combobox"]:focus,
+.select-trigger:focus {
+  border-color: hsl(217 75% 55%) !important;
+  box-shadow: 0 0 0 2px hsl(217 75% 55%) !important;
+  outline: none !important;
+}
+
+/* Target select content dropdown */
+[data-radix-select-content] {
+  border-color: hsl(217 20% 88%) !important;
+  background-color: hsl(0 0% 100%) !important;
+}
+
+/* Ensure all form elements use blue theme */
+[class*="border-pink"], [class*="border-rose"] {
+  border-color: hsl(217 20% 88%) !important;
+}
+
+[class*="focus:border-pink"], [class*="focus:border-rose"] {
+  border-color: hsl(217 75% 55%) !important;
+}
+
+[class*="text-pink"], [class*="text-rose"] {
+  color: hsl(217 75% 55%) !important;
+}
+
+/* Override any remaining pink/rose colors in selects and buttons */
+button, select, [role="combobox"], [role="button"] {
+  border-color: hsl(217 20% 88%) !important;
+}
+
+button:focus, select:focus, [role="combobox"]:focus, [role="button"]:focus {
+  border-color: hsl(217 75% 55%) !important;
+  outline: 2px solid hsl(217 75% 55%) !important;
+  outline-offset: 2px !important;
+}
+
+/* Target any element with ring focus styles */
+.focus\:ring-2:focus,
+.focus-visible\:ring-2:focus-visible,
+[data-state="open"] {
+  --tw-ring-color: hsl(217 75% 55%) !important;
+  box-shadow: 0 0 0 2px hsl(217 75% 55%) !important;
+}
+
+/* Override Tailwind pink/rose utilities */
+.border-pink-300, .border-rose-300 { border-color: hsl(217 20% 88%) !important; }
+.border-pink-500, .border-rose-500 { border-color: hsl(217 75% 55%) !important; }
+.text-pink-700, .text-rose-700 { color: hsl(217 75% 55%) !important; }
+.bg-pink-100, .bg-rose-100 { background-color: hsl(217 25% 92%) !important; }
+.bg-pink-500, .bg-rose-500 { background-color: hsl(217 75% 55%) !important; }

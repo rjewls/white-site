@@ -28,9 +28,9 @@ export default {
 				'gradient-card': 'var(--gradient-card)',
 			},
 			colors: {
-				'rose-gold': 'hsl(var(--rose-gold))',
-				'blush': 'hsl(var(--blush))',
-				'soft-pink': 'hsl(var(--soft-pink))',
+				'blue-primary': 'hsl(var(--blue-primary))',
+				'sky-light': 'hsl(var(--sky-light))',
+				'soft-blue': 'hsl(var(--soft-blue))',
 				'elegant-shadow': 'hsl(var(--elegant-shadow))',
 				border: 'hsl(var(--border))',
 				input: 'hsl(var(--input))',

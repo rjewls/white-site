@@ -108,13 +108,13 @@ export const ProductCard = ({ product }: ProductCardProps) => {
   return (
     <div className="h-full">
       <Link to={`/product/${product.id}`} className="block h-full group">
-        <Card className="relative h-full bg-white rounded-lg overflow-hidden border-2 border-transparent group-hover:border-pink-500 transition-all duration-300 flex flex-col">
+        <Card className="relative h-full bg-white rounded-lg overflow-hidden border-2 border-gray-200 group-hover:border-blue-500 transition-all duration-300 flex flex-col shadow-sm hover:shadow-lg">
           {/* Image Container with fixed aspect ratio for consistent card height */}
-          <div className="relative w-full aspect-[3/4] md:aspect-[4/5] overflow-hidden border-2 border-pink-400 group-hover:border-transparent transition-all duration-300">
+          <div className="relative w-full aspect-[3/4] md:aspect-[4/5] overflow-hidden">
             <img
               src={imageUrl}
               alt={product.title}
-              className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
               onError={e => { e.currentTarget.src = 'https://images.unsplash.com/photo-1551488831-00ddcb6c6bd3?w=800&h=800&fit=crop'; }}
             />
           </div>
@@ -139,20 +139,20 @@ export const ProductCard = ({ product }: ProductCardProps) => {
                       <div className="w-full h-0.5 bg-red-500 transform -rotate-12"></div>
                     </div>
                   </div>
-                  {/* New Price - Pink */}
+                  {/* New Price - Blue */}
                   <div className="flex items-baseline gap-1">
-                    <span className="text-lg sm:text-xl font-bold text-pink-500">
+                    <span className="text-lg sm:text-xl font-bold text-blue-600">
                       {product.price.toLocaleString()}
                     </span>
-                    <span className="text-xs sm:text-sm font-medium text-pink-400">DZD</span>
+                    <span className="text-xs sm:text-sm font-medium text-blue-500">DZD</span>
                   </div>
                 </div>
               ) : (
                 <div className="flex items-baseline gap-1 justify-center">
-                  <span className="text-lg sm:text-xl font-bold text-pink-500">
+                  <span className="text-lg sm:text-xl font-bold text-blue-600">
                     {product.price.toLocaleString()}
                   </span>
-                  <span className="text-xs sm:text-sm font-medium text-pink-400">DZD</span>
+                  <span className="text-xs sm:text-sm font-medium text-blue-500">DZD</span>
                 </div>
               )}
             </div>
@@ -164,7 +164,7 @@ export const ProductCard = ({ product }: ProductCardProps) => {
                 e.stopPropagation();
                 navigate(`/product/${product.id}`);
               }}
-              className="bg-pink-500 text-white font-semibold py-2 px-4 sm:px-6 rounded-lg border-2 border-pink-500 hover:bg-white hover:text-pink-500 hover:border-pink-500 transition-all duration-200 flex items-center justify-center gap-2 w-full sm:w-auto"
+              className="bg-blue-600 text-white font-semibold py-2 px-4 sm:px-6 rounded-lg border-2 border-blue-600 hover:bg-white hover:text-blue-600 hover:border-blue-600 transition-all duration-200 flex items-center justify-center gap-2 w-full sm:w-auto"
             >
               <ShoppingCart className="w-4 h-4" />
               <span>Add to Cart</span>
