@@ -1,13 +1,16 @@
 // React hooks for state and lifecycle
-import { useState } from "react";
+import { useState, useEffect, memo } from "react";
 // Product hook with React Query
 import { useProducts } from "@/hooks/useProducts";
-// Top navigation bar
-import { Navigation } from "@/components/Navigation";
-// Product card component
-import { ProductCard } from "@/components/ProductCard";
-// Animated section component
-import { AnimatedSection } from "@/components/AnimatedSection";
+// Top navigation bar (memoized for performance)
+import { Navigation as NavigationBase } from "@/components/Navigation";
+import { ProductCard as ProductCardBase } from "@/components/ProductCard";
+import { AnimatedSection as AnimatedSectionBase } from "@/components/AnimatedSection";
+
+// Memoized components for performance
+const Navigation = memo(NavigationBase);
+const ProductCard = memo(ProductCardBase);
+const AnimatedSection = memo(AnimatedSectionBase);
 // Hero image for homepage
 import heroImage from "@/assets/hero-image.jpg";
 // Icons for service features
@@ -47,8 +50,26 @@ const Home = () => {
     }
   };
 
-  // Debug logging
-  console.log('Home component render:', { products, isLoading, error });
+
+  // NOTE: For best scroll performance, ensure useStaggeredScrollAnimation and useScrollAnimation hooks are debounced/throttled internally.
+  // NOTE: For best LCP, add <link rel="preload" as="image" href="https://images.unsplash.com/photo-1515548212235-6c2e1b8b8b18?auto=format&fit=crop&w=1200&q=80"> to your public/index.html.
+
+  // --- Hero Background Carousel ---
+  const heroImages = [
+    // Only close-up product shots of running shoes/sneakers (no scenery, no people, no white background, no irrelevant images)
+    "https://images.unsplash.com/photo-1515548212235-6c2e1b8b8b18?auto=format&fit=crop&w=1200&q=80", // black/white sneaker on dark
+    "https://images.unsplash.com/photo-1518717758536-85ae29035b6d?auto=format&fit=crop&w=1200&q=80", // blue running shoe on dark
+    "https://images.unsplash.com/photo-1519864600265-abb23847ef2c?auto=format&fit=crop&w=1200&q=80", // white sneaker on blue
+    "https://images.unsplash.com/photo-1513104890138-7c749659a591?auto=format&fit=crop&w=1200&q=80", // red sneaker on blue
+    "https://images.unsplash.com/photo-1460353581641-37baddab0fa2?auto=format&fit=crop&w=1200&q=80"  // sneakers on display, no people
+  ].filter(Boolean);
+  const [heroIndex, setHeroIndex] = useState(0);
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setHeroIndex((prev) => (prev + 1) % heroImages.length);
+    }, 4000);
+    return () => clearInterval(interval);
+  }, [heroImages.length]);
 
   // Main render for homepage
   return (
@@ -82,24 +103,28 @@ const Home = () => {
       </AnimatedSection>
       
       {/* Hero Section */}
-      <section className="relative min-h-[80vh] lg:min-h-[90vh] overflow-hidden bg-white">
-        {/* Running Shoes Background */}
-        <div className="absolute inset-0">
-          {/* Background Image */}
-          <div 
-            className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-            style={{
-              backgroundImage: `url('https://images.unsplash.com/photo-1549298916-b41d501d3772?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2012&q=80')`,
-              backgroundPosition: 'center center',
-            }}
-          ></div>
-          
-          {/* Lighter Gradient Overlay for Text Readability */}
-          <div className="absolute inset-0 bg-gradient-to-r from-white/75 via-white/45 to-white/25"></div>
-          
-          {/* Additional subtle overlay for better text contrast */}
+  <section className="relative min-h-[80vh] lg:min-h-[90vh] overflow-hidden bg-white" style={{ willChange: 'transform' }}>
+        {/* Hero Background Carousel (z-0) */}
+        <div className="absolute inset-0 z-0 pointer-events-none">
+          {heroImages.map((img, idx) => (
+            <div
+              key={img + '-' + idx}
+              className={
+                `absolute inset-0 bg-cover bg-center bg-no-repeat transition-opacity duration-1000 ` +
+                (heroIndex === idx ? 'opacity-100 z-10' : 'opacity-0 z-0')
+              }
+              style={{
+                backgroundImage: `url('${img}')`,
+                backgroundPosition: 'center center',
+                transitionProperty: 'opacity',
+                willChange: 'opacity',
+              }}
+              aria-hidden={heroIndex !== idx}
+            />
+          ))}
+          {/* Stronger overlay for readability */}
+          <div className="absolute inset-0 bg-gradient-to-r from-white/70 via-white/50 to-white/20"></div>
           <div className="absolute inset-0 bg-gradient-to-b from-transparent via-white/10 to-white/20"></div>
-          
           {/* Clean grid pattern overlay (subtle) */}
           <div className="absolute inset-0 opacity-[0.01]">
             <div className="w-full h-full" style={{
@@ -110,14 +135,13 @@ const Home = () => {
               backgroundSize: '60px 60px'
             }}></div>
           </div>
-          
           {/* Subtle decorative elements */}
           <div className="absolute -top-20 -right-20 w-80 h-80 bg-gradient-to-br from-blue-50/20 to-gray-50/15 rounded-full blur-3xl"></div>
           <div className="absolute -bottom-32 -left-32 w-96 h-96 bg-gradient-to-br from-gray-50/15 to-blue-50/20 rounded-full blur-3xl"></div>
         </div>
-        
-        {/* Main Content */}
-        <div className="relative flex items-center min-h-[80vh] lg:min-h-[90vh] py-8 sm:py-12 lg:py-0">
+
+        {/* Main Content (z-10) */}
+        <div className="relative z-10 flex items-center min-h-[80vh] lg:min-h-[90vh] py-8 sm:py-12 lg:py-0">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
             <div className="grid lg:grid-cols-2 gap-12 items-center">
               
@@ -317,7 +341,7 @@ const Home = () => {
       </AnimatedSection>
 
       {/* Products Grid - Enhanced with Hero-style Design */}
-      <section id="featured-collection" className="relative py-20 overflow-hidden">
+  <section id="featured-collection" className="relative py-20 overflow-hidden" style={{ willChange: 'transform' }}>
         {/* Background with multiple gradient overlays - Hero Style */}
         <div className="absolute inset-0 bg-gradient-to-br from-blue-50/90 via-slate-50/80 to-gray-50/90"></div>
         <div className="absolute inset-0 bg-gradient-to-r from-blue-100/30 via-transparent to-slate-100/30"></div>
@@ -424,6 +448,7 @@ const Home = () => {
                     filter: 'drop-shadow(0 4px 20px rgba(0,0,0,0.1))'
                   }}
                 >
+                  {/* ProductCard should ensure all <img> tags use loading="lazy" for best performance */}
                   <ProductCard product={product} />
                 </div>
               ))}
@@ -446,7 +471,7 @@ const Home = () => {
       </section>
 
       {/* Service Features Section */}
-      <section id="service-features" className="relative py-20 overflow-hidden">
+  <section id="service-features" className="relative py-20 overflow-hidden" style={{ willChange: 'transform' }}>
         {/* Background with gradient overlay */}
         <div className="absolute inset-0 bg-gradient-to-br from-blue-50/80 via-slate-50/60 to-gray-50/80"></div>
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(59,130,246,0.1),transparent_40%)] pointer-events-none"></div>
