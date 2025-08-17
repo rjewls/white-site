@@ -2572,6 +2572,206 @@ Admin.tsx:526  Uncaught ReferenceError: Cannot access 'fetchNoestExpressConfig' 
 
 _**Assistant**_
 
+I see the same issue again! The useEffect that calls `fetchNoestExpressConfig` is being used before the function is declared. I need to move this useEffect to after the `fetchNoestExpressConfig` function is defined. Let me fix this: I need to remove this useEffect and place it after the `fetchNoestExpressConfig` function is declared. Let me first remove it: 
+```
+
+```
+Now let me find where the `fetchNoestExpressConfig` function ends and add the useEffect there: Perfect! I can see that `fetchNoestExpressConfig` ends on line 633. Let me add the useEffect right after it: 
+```
+
+```
+Perfect! I've fixed the JavaScript error by moving the useEffect that calls `fetchNoestExpressConfig` to after the function is declared.
+
+🔧 **Fix Applied:**
+- **Moved the useEffect** from line 524 (before `fetchNoestExpressConfig` was declared) to line 638 (after `fetchNoestExpressConfig` is declared)
+- **Preserved the dependency array** `[fetchNoestExpressConfig]` to ensure proper re-execution when needed
+
+✅ **Problem Resolved:**
+The "Cannot access 'fetchNoestExpressConfig' before initialization" error was caused by the same temporal dead zone issue - using a function in a useEffect before it's been declared. Now the useEffect is properly placed after the function declaration.
+
+🎯 **What this enables:**
+- **Automatic config loading** when the admin page mounts
+- **Current values displayed** in the Noest Express form input fields
+- **Pre-populated form** with existing API Token and GUID from Supabase
+- **Fresh data** fetched every time the form is opened
+
+The Noest Express configuration section should now work correctly, automatically fetching and displaying your saved API Token and GUID as input field values!
+
+---
+
+_**User**_
+
+in the homepage in the "Stay Updated" section there an input to put an email and register, no need to make the functionality, just make so that it does a quick check to see if the text the user inputed is actually an email by checking for structure and symbols like "@" and then when the user hits the subscribe button it should change to show a thank you for registering text with a green checkmark
+
+---
+
+_**Assistant**_
+
+I'll help you add email validation and a thank you message to the "Stay Updated" section. Let me first find the "Stay Updated" section in the homepage. Perfect! I found the newsletter section. Let me read that section to see the current structure: Now I need to add state for email validation and subscription status. Let me first check the existing imports and state at the top of the component: Perfect! I can see `useState` is already imported and I need to import the `CheckCircle` icon for the success state. Let me update the imports and add the email functionality: 
+```
+
+```
+Now let me add the state variables for email and subscription status. Let me find where the existing state is defined: Let me add the email state right after the existing state definitions: 
+```
+
+```
+Now let me update the newsletter section to include the email validation and thank you message: 
+```
+
+```
+Perfect! I've successfully implemented the email validation and thank you message functionality for the "Stay Updated" section. Here's what I've added:
+
+📧 **Email Validation:**
+- **Regex validation** that checks for proper email structure (`user@domain.com`)
+- **Real-time validation** - the subscribe button is disabled until a valid email is entered
+- **Visual feedback** - disabled state styling when email is invalid
+
+✨ **Interactive Features:**
+- **Controlled input** - tracks email value in state
+- **Smart button** - only enabled when email format is correct
+- **Smooth transitions** - maintains the existing hover and animation effects
+
+🎉 **Thank You State:**
+- **Green checkmark icon** - large, prominent success indicator
+- **Thank you message** - friendly confirmation text
+- **Email confirmation** - shows the submitted email address
+- **Professional appearance** - matches the existing design aesthetic
+
+🔧 **User Experience:**
+1. **User types email** - input validates in real-time
+2. **Button enables** - only when valid email format is detected
+3. **User clicks Subscribe** - validation runs one more time
+4. **Success state** - shows thank you message with green checkmark
+5. **Confirmation** - displays the registered email address
+
+The system now provides immediate visual feedback, ensures only valid emails can be submitted, and gives users a satisfying confirmation experience without any backend functionality needed!
+
+---
+
+_**User**_
+
+where this text is "Fast shipping 24–48h
+|
+Cash on delivery
+|
+Easy exchange within 7 days" the background color is too dark make it something else that matches the site and grabs attention
+
+---
+
+_**Assistant**_
+
+I'll help you change the background color of the announcement bar to something that matches the site better and grabs attention. Let me find that section first. Perfect! Let me check the announcement bar section to see the current styling: I can see the current background is `bg-gradient-to-r from-gray-900 to-gray-800` which is indeed quite dark. Let me change it to a more eye-catching gradient that matches the site's blue theme: 
+```
+
+```
+Perfect! I've updated the announcement bar with a much more eye-catching and brand-appropriate background. Here's what I changed:
+
+🎨 **New Background Design:**
+- **Changed from dark gray** (`from-gray-900 to-gray-800`) to vibrant blue gradient
+- **Applied blue gradient** (`from-blue-600 via-sky-500 to-blue-600`) that matches your site's color scheme
+- **Enhanced separator opacity** from 50% to 70% for better visibility against the new background
+
+✨ **Visual Improvements:**
+- **More attention-grabbing** - the bright blue stands out much better
+- **Brand consistency** - matches the blue theme used throughout your site (buttons, links, etc.)
+- **Professional appearance** - maintains the premium look while being more vibrant
+- **Better contrast** - white text still reads perfectly on the blue background
+
+🚀 **Benefits:**
+- **Increased visibility** - users will notice the key selling points more easily
+- **Brand reinforcement** - consistent with your site's blue color palette
+- **Modern look** - the gradient gives it a contemporary, dynamic feel
+- **Trust building** - the professional blue conveys reliability and trustworthiness
+
+The announcement bar now uses an attractive blue gradient that perfectly complements your running store's branding while ensuring maximum visibility for your key selling points!
+
+---
+
+_**User**_
+
+also on mobile the text "Fast shipping 24–48h
+|
+Cash on delivery
+|
+Easy exchange within 7 days" is not aligned perfectly one under the other  and it should be
+
+---
+
+_**Assistant**_
+
+I'll fix the mobile alignment issue for the announcement bar text. The problem is likely that the separators ("|") are showing on mobile when they should be hidden, and the text items need better vertical alignment. I can see the issue. The layout uses `flex-col` on mobile and `flex-row` on desktop (`sm:flex-row`), but the alignment and spacing need improvement for mobile. Let me fix this: 
+```
+
+```
+Perfect! I've fixed the mobile alignment issues for the announcement bar. Here are the improvements I made:
+
+📱 **Mobile Alignment Fixes:**
+- **Added `justify-center`** to each text item div for perfect center alignment
+- **Added `w-full sm:w-auto`** to ensure each item takes full width on mobile and auto width on desktop
+- **Reduced gap** from `gap-3` to `gap-2` on mobile for tighter spacing
+- **Increased padding** from `py-2` to `py-3` for better visual balance
+
+✨ **Enhanced Layout:**
+- **Perfect vertical stacking** - each item is now perfectly centered and aligned
+- **Consistent spacing** - uniform gaps between items on mobile
+- **Responsive design** - maintains desktop layout while fixing mobile issues
+- **Clean appearance** - separators ("|") remain hidden on mobile as intended
+
+🎯 **Mobile Result:**
+Now on mobile, the text will appear as:
+```
+Fast shipping 24–48h
+Cash on delivery  
+Easy exchange within 7 days
+```
+
+Each line will be perfectly centered and aligned vertically, creating a clean, professional appearance that matches your site's design standards.
+
+---
+
+_**User**_
+
+good but now each line starts from a different place their start isnt lined up with one another
+
+---
+
+_**Assistant**_
+
+You're right! The issue is that each text item has different lengths, so when they're centered individually, their starting positions don't align. I need to align them to the left while keeping them centered as a group. Let me fix this: 
+```
+
+```
+Perfect! I've fixed the alignment issue by changing the justification strategy:
+
+📱 **Mobile Alignment Fix:**
+- **Changed from `justify-center`** to `justify-start sm:justify-center`
+- **Mobile**: All lines now start from the same left position (`justify-start`)
+- **Desktop**: Items remain centered as intended (`justify-center`)
+
+✨ **Result:**
+Now on mobile, the text will appear perfectly aligned:
+```
+🚚 Fast shipping 24–48h
+💳 Cash on delivery
+🔄 Easy exchange within 7 days
+```
+
+All lines will start from the same left position (with the icons aligned), creating a clean, organized appearance while maintaining the centered layout on desktop screens. The icons and text will all line up perfectly on the left side!
+
+---
+
+_**User**_
+
+now they are line up with one another but all of them are stuck to the left side of the site, i want them centered horizontaly while still having their vertical alignement with each other
+
+---
+
+_**Assistant**_
+
+I understand! You want the group of text lines to be centered horizontally on the page, but each individual line should start from the same position so they're aligned with each other vertically. Let me fix this by centering the container while keeping the items left-aligned within it: 
+```
+
+```
 
 
 ---

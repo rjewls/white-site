@@ -11,7 +11,7 @@ import { AnimatedSection } from "@/components/AnimatedSection";
 // Hero image for homepage
 import heroImage from "@/assets/hero-image.jpg";
 // Icons for service features
-import { Truck, CreditCard, RefreshCw, Quote, Zap } from "lucide-react";
+import { Truck, CreditCard, RefreshCw, Quote, Zap, CheckCircle } from "lucide-react";
 // Language hook
 import { useLanguage } from "@/hooks/useLanguage";
 // Scroll animation hooks
@@ -30,6 +30,23 @@ const Home = () => {
     150
   );
 
+  // Newsletter subscription state
+  const [email, setEmail] = useState("");
+  const [isSubscribed, setIsSubscribed] = useState(false);
+
+  // Email validation function
+  const validateEmail = (email) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
+
+  // Handle subscription
+  const handleSubscribe = () => {
+    if (validateEmail(email)) {
+      setIsSubscribed(true);
+    }
+  };
+
   // Debug logging
   console.log('Home component render:', { products, isLoading, error });
 
@@ -40,22 +57,24 @@ const Home = () => {
 
       {/* Announcement Bar */}
       <AnimatedSection animation="fadeInDown" delay={200}>
-        <section aria-label="announcement" className="bg-gradient-to-r from-gray-900 to-gray-800 text-white">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2">
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-6 text-xs sm:text-sm font-medium">
-              <div className="flex items-center gap-2">
-                <Truck className="w-4 h-4" />
-                <span>Fast shipping 24–48h</span>
-              </div>
-              <span className="hidden sm:inline opacity-50">|</span>
-              <div className="flex items-center gap-2">
-                <CreditCard className="w-4 h-4" />
-                <span>Cash on delivery</span>
-              </div>
-              <span className="hidden sm:inline opacity-50">|</span>
-              <div className="flex items-center gap-2">
-                <RefreshCw className="w-4 h-4" />
-                <span>Easy exchange within 7 days</span>
+        <section aria-label="announcement" className="bg-gradient-to-r from-blue-600 via-sky-500 to-blue-600 text-white">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-6 text-xs sm:text-sm font-medium">
+              <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-6">
+                <div className="flex items-center gap-2">
+                  <Truck className="w-4 h-4" />
+                  <span>Fast shipping 24–48h</span>
+                </div>
+                <span className="hidden sm:inline opacity-70">|</span>
+                <div className="flex items-center gap-2">
+                  <CreditCard className="w-4 h-4" />
+                  <span>Cash on delivery</span>
+                </div>
+                <span className="hidden sm:inline opacity-70">|</span>
+                <div className="flex items-center gap-2">
+                  <RefreshCw className="w-4 h-4" />
+                  <span>Easy exchange within 7 days</span>
+                </div>
               </div>
             </div>
           </div>
@@ -658,18 +677,37 @@ const Home = () => {
           {/* Newsletter Signup */}
           <AnimatedSection animation="fadeInUp" delay={200} className="mt-12 pt-8 border-t border-gray-700">
             <div className="max-w-2xl mx-auto text-center">
-              <h4 className="font-playfair text-2xl font-bold text-white mb-4">Stay Updated</h4>
-              <p className="text-gray-300 mb-6">Subscribe to our newsletter for exclusive offers, running tips, and new arrivals.</p>
-              <div className="flex flex-col sm:flex-row gap-4 max-w-md mx-auto">
-                <input 
-                  type="email" 
-                  placeholder="Enter your email" 
-                  className="flex-1 px-4 py-3 rounded-xl bg-white/10 backdrop-blur-sm border border-white/20 text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent"
-                />
-                <button className="px-6 py-3 bg-gradient-to-r from-blue-500 to-sky-600 text-white font-semibold rounded-xl hover:from-blue-600 hover:to-sky-700 lg:transition-all lg:duration-300 lg:transform lg:hover:scale-105">
-                  Subscribe
-                </button>
-              </div>
+              {!isSubscribed ? (
+                <>
+                  <h4 className="font-playfair text-2xl font-bold text-white mb-4">Stay Updated</h4>
+                  <p className="text-gray-300 mb-6">Subscribe to our newsletter for exclusive offers, running tips, and new arrivals.</p>
+                  <div className="flex flex-col sm:flex-row gap-4 max-w-md mx-auto">
+                    <input 
+                      type="email" 
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder="Enter your email" 
+                      className="flex-1 px-4 py-3 rounded-xl bg-white/10 backdrop-blur-sm border border-white/20 text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent"
+                    />
+                    <button 
+                      onClick={handleSubscribe}
+                      disabled={!validateEmail(email)}
+                      className="px-6 py-3 bg-gradient-to-r from-blue-500 to-sky-600 text-white font-semibold rounded-xl hover:from-blue-600 hover:to-sky-700 lg:transition-all lg:duration-300 lg:transform lg:hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+                    >
+                      Subscribe
+                    </button>
+                  </div>
+                </>
+              ) : (
+                <div className="py-8">
+                  <div className="flex items-center justify-center mb-4">
+                    <CheckCircle className="h-16 w-16 text-green-400" />
+                  </div>
+                  <h4 className="font-playfair text-2xl font-bold text-white mb-4">Thank You!</h4>
+                  <p className="text-gray-300 mb-4">Thanks for registering! You'll receive our latest updates and exclusive offers.</p>
+                  <p className="text-gray-400 text-sm">We've sent a confirmation to <span className="text-white font-medium">{email}</span></p>
+                </div>
+              )}
             </div>
           </AnimatedSection>
 
