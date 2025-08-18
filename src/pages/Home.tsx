@@ -20,6 +20,36 @@ import { useLanguage } from "@/hooks/useLanguage";
 // Scroll animation hooks
 import { useScrollAnimation, useStaggeredScrollAnimation } from "@/hooks/useScrollAnimation";
 
+// Custom hook for counting animation
+const useCountUp = (endValue: number, duration: number = 3000, startWhen: boolean = false) => {
+  const [count, setCount] = useState(0);
+  
+  useEffect(() => {
+    if (!startWhen) return;
+    
+    let currentCount = 0;
+    const totalSteps = Math.ceil(endValue / 10); // Reduce total steps for faster animation
+    const stepValue = endValue / totalSteps;
+    const stepTime = duration / totalSteps; // Fixed interval for consistent timing
+    
+    const incrementCounter = () => {
+      if (currentCount < endValue) {
+        currentCount = Math.min(currentCount + stepValue, endValue);
+        setCount(Math.floor(currentCount));
+        setTimeout(incrementCounter, stepTime);
+      }
+    };
+    
+    incrementCounter();
+    
+    return () => {
+      currentCount = endValue; // Stop animation on cleanup
+    };
+  }, [endValue, duration, startWhen]);
+  
+  return count;
+};
+
 
 // Main component for homepage
 const Home = () => {
@@ -182,36 +212,16 @@ const Home = () => {
         </section>
       </AnimatedSection>
       
-      {/* Hero Section */}
-  <section className="relative min-h-[80vh] lg:min-h-[90vh] overflow-hidden bg-white" style={{ willChange: 'transform' }}>
-        {/* Hero Background Carousel (z-0) */}
-        <div className="absolute inset-0 z-0 pointer-events-none">
-          {heroImages.map((img, idx) => (
-            <div
-              key={img + '-' + idx}
-              className={
-                `absolute inset-0 bg-cover bg-center bg-no-repeat transition-opacity duration-1000 ` +
-                (heroIndex === idx ? 'opacity-100 z-10' : 'opacity-0 z-0')
-              }
-              style={{
-                backgroundImage: `url('${img}')`,
-                backgroundPosition: 'center center',
-                transitionProperty: 'opacity',
-                willChange: 'opacity',
-              }}
-              aria-hidden={heroIndex !== idx}
-            />
-          ))}
-          {/* Overlays and blur/gradient elements removed for image clarity */}
-        </div>
+    {/* Hero Section (split panels) */}
+  <section className="relative min-h-[70vh] lg:min-h-[80vh] bg-white" style={{ willChange: 'transform' }}>
 
         {/* Main Content (z-10) */}
         <div className="relative z-10 flex items-center min-h-[80vh] lg:min-h-[90vh] py-8 sm:py-12 lg:py-0">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
-            <div className="grid lg:grid-cols-2 gap-12 items-center">
+            <div className="grid md:grid-cols-2 gap-10 lg:gap-14 items-center">
               
               {/* Left Content */}
-              <div className="max-w-2xl pt-4 pb-8 sm:pt-6 sm:pb-12 lg:pt-0 lg:pb-0">
+              <div className="w-full pt-4 pb-8 sm:pt-6 sm:pb-12 lg:pt-0 lg:pb-0">
                 {/* Subtitle */}
                 <div className="flex flex-col gap-3 mb-6 animate-fade-in">
                   <div className="flex items-center gap-3">
@@ -305,60 +315,24 @@ const Home = () => {
                 </div>
               </div>
 
-              {/* Right Content - Stats/Features */}
-              <div className="hidden lg:block">
-                <div className="grid grid-cols-2 gap-6 max-w-md ml-auto">
-                  <div className="group relative">
-                    <div className="absolute inset-0 bg-white/30 lg:bg-white/20 lg:backdrop-blur-sm rounded-3xl border border-white/30 shadow-xl lg:transition-all lg:duration-500 lg:group-hover:bg-white/30 lg:group-hover:scale-105"></div>
-                    <div className="relative p-6 text-center">
-                      <div className="w-12 h-12 bg-gradient-to-br from-blue-600 to-sky-700 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg">
-                        <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                        </svg>
-                      </div>
-                      <p className="text-2xl font-bold text-gray-800 mb-1 drop-shadow-sm">24-48h</p>
-                      <p className="text-gray-700 text-sm font-medium">Fast Delivery</p>
-                    </div>
-                  </div>
-
-                  <div className="group relative">
-                    <div className="absolute inset-0 bg-white/30 lg:bg-white/20 lg:backdrop-blur-sm rounded-3xl border border-white/30 shadow-xl lg:transition-all lg:duration-500 lg:group-hover:bg-white/30 lg:group-hover:scale-105"></div>
-                    <div className="relative p-6 text-center">
-                      <div className="w-12 h-12 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg">
-                        <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
-                        </svg>
-                      </div>
-                      <p className="text-2xl font-bold text-gray-800 mb-1 drop-shadow-sm">COD</p>
-                      <p className="text-gray-700 text-sm font-medium">Cash on Delivery</p>
-                    </div>
-                  </div>
-
-                  <div className="group relative">
-                    <div className="absolute inset-0 bg-white/30 lg:bg-white/20 lg:backdrop-blur-sm rounded-3xl border border-white/30 shadow-xl lg:transition-all lg:duration-500 lg:group-hover:bg-white/30 lg:group-hover:scale-105"></div>
-                    <div className="relative p-6 text-center">
-                      <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg">
-                        <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                        </svg>
-                      </div>
-                      <p className="text-2xl font-bold text-gray-800 mb-1 drop-shadow-sm">100%</p>
-                      <p className="text-gray-700 text-sm font-medium">Satisfaction</p>
-                    </div>
-                  </div>
-
-                  <div className="group relative">
-                    <div className="absolute inset-0 bg-white/30 lg:bg-white/20 lg:backdrop-blur-sm rounded-3xl border border-white/30 shadow-xl lg:transition-all lg:duration-500 lg:group-hover:bg-white/30 lg:group-hover:scale-105"></div>
-                    <div className="relative p-6 text-center">
-                      <div className="w-12 h-12 bg-gradient-to-br from-amber-500 to-orange-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg">
-                        <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                      </div>
-                      <p className="text-2xl font-bold text-gray-800 mb-1 drop-shadow-sm">1000+</p>
-                      <p className="text-gray-700 text-sm font-medium">Happy Customers</p>
-                    </div>
-                  </div>
+              {/* Right Content - Image Panel */}
+              <div className="relative w-full">
+                <div className="relative w-full h-64 sm:h-80 lg:h-[70vh] rounded-3xl overflow-hidden shadow-2xl ring-1 ring-blue-100">
+                  {/* Subtle gradient border glow */}
+                  <div className="pointer-events-none absolute -inset-[1px] rounded-[1.6rem] bg-gradient-to-br from-blue-500/20 via-sky-400/10 to-indigo-500/20"></div>
+                  {/* Fade carousel inside panel */}
+                  {heroImages.map((img, idx) => (
+                    <img
+                      key={img + '-' + idx + '-panel'}
+                      src={img}
+                      alt={`Hero ${idx + 1}`}
+                      className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-700 ${heroIndex === idx ? 'opacity-100' : 'opacity-0'}`}
+                      loading="eager"
+                    />
+                  ))}
+                  {/* Decorative light */}
+                  <div className="pointer-events-none absolute -top-10 -right-10 w-56 h-56 bg-blue-400/20 blur-3xl rounded-full"></div>
+                  <div className="pointer-events-none absolute -bottom-10 -left-10 w-64 h-64 bg-sky-400/20 blur-3xl rounded-full"></div>
                 </div>
               </div>
             </div>
@@ -373,6 +347,75 @@ const Home = () => {
         </div>
       </section>
 
+      {/* Trust/Benefits Cards Section */}
+      <AnimatedSection animation="fadeInUp" delay={200}>
+        <section className="relative py-16 bg-gradient-to-br from-slate-50 to-blue-50/30">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              {/* Fast Delivery */}
+              <div className="group relative bg-white rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100">
+                <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-sky-500/5 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                <div className="relative">
+                  <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center mb-4 shadow-lg group-hover:scale-110 transition-transform duration-300">
+                    <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                    </svg>
+                  </div>
+                  <h3 className="text-lg font-bold text-gray-900 mb-2">Fast Delivery</h3>
+                  <p className="text-gray-600 text-sm leading-relaxed">Get your shoes delivered within 24-48 hours across Algeria</p>
+                  <div className="mt-3 text-blue-600 font-semibold text-sm">24-48h delivery</div>
+                </div>
+              </div>
+
+              {/* Cash on Delivery */}
+              <div className="group relative bg-white rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100">
+                <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/5 to-teal-500/5 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                <div className="relative">
+                  <div className="w-12 h-12 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-xl flex items-center justify-center mb-4 shadow-lg group-hover:scale-110 transition-transform duration-300">
+                    <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
+                    </svg>
+                  </div>
+                  <h3 className="text-lg font-bold text-gray-900 mb-2">Cash on Delivery</h3>
+                  <p className="text-gray-600 text-sm leading-relaxed">Pay when you receive your order. No advance payment required</p>
+                  <div className="mt-3 text-emerald-600 font-semibold text-sm">100% Secure</div>
+                </div>
+              </div>
+
+              {/* Satisfaction Guarantee */}
+              <div className="group relative bg-white rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100">
+                <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 to-indigo-500/5 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                <div className="relative">
+                  <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl flex items-center justify-center mb-4 shadow-lg group-hover:scale-110 transition-transform duration-300">
+                    <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                    </svg>
+                  </div>
+                  <h3 className="text-lg font-bold text-gray-900 mb-2">100% Satisfaction</h3>
+                  <p className="text-gray-600 text-sm leading-relaxed">Easy 7-day exchange policy if you're not completely satisfied</p>
+                  <div className="mt-3 text-purple-600 font-semibold text-sm">7-day exchange</div>
+                </div>
+              </div>
+
+              {/* Happy Customers */}
+              <div className="group relative bg-white rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100">
+                <div className="absolute inset-0 bg-gradient-to-br from-amber-500/5 to-orange-500/5 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                <div className="relative">
+                  <div className="w-12 h-12 bg-gradient-to-br from-amber-500 to-amber-600 rounded-xl flex items-center justify-center mb-4 shadow-lg group-hover:scale-110 transition-transform duration-300">
+                    <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  </div>
+                  <h3 className="text-lg font-bold text-gray-900 mb-2">1000+ Customers</h3>
+                  <p className="text-gray-600 text-sm leading-relaxed">Join thousands of satisfied runners across Algeria</p>
+                  <div className="mt-3 text-amber-600 font-semibold text-sm">4.9/5 rating</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      </AnimatedSection>
+
       {/* Brand trust strip */}
       <AnimatedSection animation="fadeInUp" delay={100}>
         <section aria-label="trusted-brands" className="bg-white/60 backdrop-blur-sm border-t border-blue-100/60">
@@ -385,6 +428,79 @@ const Home = () => {
                 <span className="px-3 py-1.5 text-xs font-semibold rounded-full bg-gradient-to-r from-emerald-50 to-teal-50 text-emerald-700 border border-emerald-100">Verified COD</span>
                 <span className="px-3 py-1.5 text-xs font-semibold rounded-full bg-gradient-to-r from-amber-50 to-orange-50 text-amber-700 border border-amber-100">5★ Support</span>
               </div>
+            </div>
+          </div>
+        </section>
+      </AnimatedSection>
+
+      {/* Animated Stats Section */}
+      <AnimatedSection animation="fadeInUp" delay={300}>
+        <section className="relative py-20 bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-800 text-white overflow-hidden">
+          {/* Background decorations */}
+          <div className="absolute inset-0 bg-gradient-to-r from-blue-600/20 via-transparent to-purple-600/20"></div>
+          <div className="absolute top-0 left-1/4 w-72 h-72 bg-blue-400/10 rounded-full blur-3xl"></div>
+          <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-purple-400/10 rounded-full blur-3xl"></div>
+          
+          <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="text-center mb-16">
+              <h2 className="text-3xl md:text-4xl font-bold mb-4">
+                Trusted by <span className="text-blue-300">Thousands</span> of Runners
+              </h2>
+              <p className="text-blue-100 max-w-2xl mx-auto text-lg">
+                Join our growing community of satisfied customers across Algeria
+              </p>
+            </div>
+            
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-8">
+              <StatsCard
+                icon={
+                  <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                  </svg>
+                }
+                endValue={1247}
+                suffix="+"
+                label="Happy Customers"
+                delay={200}
+              />
+              
+              <StatsCard
+                icon={
+                  <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                  </svg>
+                }
+                endValue={3450}
+                suffix="+"
+                label="Successful Deliveries"
+                delay={400}
+              />
+              
+              <StatsCard
+                icon={
+                  <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+                  </svg>
+                }
+                endValue={98}
+                suffix="%"
+                label="Customer Satisfaction"
+                delay={600}
+                animated={false}
+              />
+              
+              <StatsCard
+                icon={
+                  <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                }
+                endValue={24}
+                suffix="h"
+                label="Average Delivery Time"
+                delay={800}
+                animated={false}
+              />
             </div>
           </div>
         </section>
@@ -879,6 +995,56 @@ const Home = () => {
           </div>
         </div>
       </footer>
+    </div>
+  );
+};
+
+// Stats Card Component with Count-up Animation
+interface StatsCardProps {
+  icon: React.ReactNode;
+  endValue: number;
+  suffix?: string;
+  label: string;
+  delay?: number;
+  animated?: boolean;
+}
+
+const StatsCard: React.FC<StatsCardProps> = ({ icon, endValue, suffix = '', label, delay = 0, animated = true }) => {
+  const [inView, setInView] = useState(false);
+  const countValue = useCountUp(endValue, 3000, inView && animated);
+  const cardRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setTimeout(() => setInView(true), delay);
+        }
+      },
+      { threshold: 0.3 }
+    );
+
+    if (cardRef.current) {
+      observer.observe(cardRef.current);
+    }
+
+    return () => observer.disconnect();
+  }, [delay]);
+
+  return (
+    <div 
+      ref={cardRef}
+      className="text-center transform transition-all duration-500 hover:scale-105"
+    >
+      <div className="inline-flex items-center justify-center w-16 h-16 bg-white/10 backdrop-blur-sm rounded-full mb-4 text-blue-200 group-hover:text-white transition-colors">
+        {icon}
+      </div>
+      <div className="text-3xl md:text-4xl font-bold mb-2 text-white">
+        {animated ? Math.floor(countValue) : endValue}{suffix}
+      </div>
+      <div className="text-blue-200 font-medium text-sm md:text-base">
+        {label}
+      </div>
     </div>
   );
 };
