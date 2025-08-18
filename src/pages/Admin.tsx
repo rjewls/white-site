@@ -2389,6 +2389,28 @@ const Admin = () => {
           onSave={handleSaveFocalPoint}
         />
       )}
+
+      {/* Professional Footer */}
+      <footer className="mt-16 border-t border-gray-200 bg-gradient-to-r from-gray-50 to-gray-100">
+        <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-8">
+          <div className="flex flex-col items-center justify-center space-y-4">
+            <div className="flex items-center space-x-2">
+              <div className="w-8 h-8 rounded-full bg-gradient-to-r from-blue-600 to-blue-700 flex items-center justify-center">
+                <span className="text-white font-bold text-sm">R</span>
+              </div>
+              <span className="text-lg font-semibold text-gray-800">RJW Tech DZ</span>
+            </div>
+            <div className="text-center">
+              <p className="text-sm text-gray-600 font-medium">
+                © {new Date().getFullYear()} RJW Tech DZ. All rights reserved.
+              </p>
+              <p className="text-xs text-gray-500 mt-1">
+                Professional e-commerce solutions & technology services
+              </p>
+            </div>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 };

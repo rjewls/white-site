@@ -27,10 +27,13 @@ const Home = () => {
   const lastDirection = useRef<'next' | 'prev'>('next');
   // Separate image array for the featured carousel (above products grid)
   const featuredCarouselImages = [
-    // Add your own image URLs here
-    "https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=1200&q=80", // example 1
-    "https://images.unsplash.com/photo-1513104890138-7c749659a591?auto=format&fit=crop&w=1200&q=80", // example 2
-    "https://images.unsplash.com/photo-1465101046530-73398c7f28ca?auto=format&fit=crop&w=1200&q=80", // example 3
+    // Running shoes images from Unsplash
+    "https://images.unsplash.com/photo-1551107696-a4b0c5a0d9a2?auto=format&fit=crop&w=1200&h=600&q=80", // White running shoes
+    "https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=1200&h=600&q=80", // Black Nike shoes
+    "https://images.unsplash.com/photo-1562183241-b937e95585b6?auto=format&fit=crop&w=1200&h=600&q=80", // Red running shoes
+    "https://images.unsplash.com/photo-1539185441755-769473a23570?auto=format&fit=crop&w=1200&h=600&q=80", // Blue athletic shoes
+    "https://images.unsplash.com/photo-1606107557195-0e29a4b5b4aa?auto=format&fit=crop&w=1200&h=600&q=80", // Colorful running shoes
+    "https://images.unsplash.com/photo-1549298916-b41d501d3772?auto=format&fit=crop&w=1200&h=600&q=80", // Modern sneakers
   ].filter(Boolean);
   // For true infinite loop, add a duplicate last image at the start and a duplicate first image at the end
   const [featuredIndex, setFeaturedIndex] = useState(1); // Start at 1 (first real image)
@@ -258,13 +261,7 @@ const Home = () => {
                   </span>
                 </h1>
 
-                {/* Description */}
-                <div className="relative mb-8 animate-fade-in max-w-lg">
-                  <div className="absolute inset-0 bg-white/30 backdrop-blur-sm rounded-2xl border border-white/30 shadow-xl -z-10"></div>
-                  <p className="font-inter text-lg md:text-xl text-white font-medium leading-relaxed relative z-10 px-6 py-4">
-                    {t('hero.description')}
-                  </p>
-                </div>
+                {/* Description removed as requested */}
 
                 {/* Action Buttons */}
                 <div className="flex flex-col sm:flex-row gap-4 mb-8 animate-fade-in">
@@ -873,7 +870,7 @@ const Home = () => {
             <div className="flex flex-col md:flex-row justify-between items-center gap-4">
               <div className="text-center md:text-left">
                 <p className="text-gray-400 text-sm">
-                  © 2025 Running Store. All rights reserved.
+                  © 2025 RJW Tech DZ. All rights reserved.
                 </p>
                 <p className="text-gray-500 text-xs mt-1">
                   Designed for runners who love performance
