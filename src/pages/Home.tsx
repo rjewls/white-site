@@ -1,5 +1,5 @@
 // React hooks for state and lifecycle
-import { useState, useEffect, memo } from "react";
+import { useState, useEffect, useRef, memo } from "react";
 // Product hook with React Query
 import { useProducts } from "@/hooks/useProducts";
 // Top navigation bar (memoized for performance)
@@ -23,6 +23,84 @@ import { useScrollAnimation, useStaggeredScrollAnimation } from "@/hooks/useScro
 
 // Main component for homepage
 const Home = () => {
+  // Track last direction to ensure correct reset after loop
+  const lastDirection = useRef<'next' | 'prev'>('next');
+  // Separate image array for the featured carousel (above products grid)
+  const featuredCarouselImages = [
+    // Add your own image URLs here
+    "https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=1200&q=80", // example 1
+    "https://images.unsplash.com/photo-1513104890138-7c749659a591?auto=format&fit=crop&w=1200&q=80", // example 2
+    "https://images.unsplash.com/photo-1465101046530-73398c7f28ca?auto=format&fit=crop&w=1200&q=80", // example 3
+  ].filter(Boolean);
+  // For true infinite loop, add a duplicate last image at the start and a duplicate first image at the end
+  const [featuredIndex, setFeaturedIndex] = useState(1); // Start at 1 (first real image)
+  const carouselInterval = 4000;
+  const carouselTimer = useRef<NodeJS.Timeout | null>(null);
+  const [isTransitioning, setIsTransitioning] = useState(false);
+  const [noTransition, setNoTransition] = useState(false);
+
+  // Arrow handler with timer reset (only moves forward, never reverses)
+  // Infinite left-to-right loop effect
+  // Arrow handlers for both directions
+  const handleCarouselArrow = (direction: 'next' | 'prev') => {
+    if (isTransitioning) return;
+    lastDirection.current = direction;
+    setNoTransition(false);
+    setFeaturedIndex((prev) => {
+      if (direction === 'next') {
+        return prev + 1;
+      } else {
+        return prev - 1;
+      }
+    });
+    setIsTransitioning(true);
+    // Reset timer
+    if (carouselTimer.current) clearInterval(carouselTimer.current);
+    carouselTimer.current = setInterval(() => {
+      lastDirection.current = 'next';
+      setIsTransitioning(true);
+      setNoTransition(false);
+      setFeaturedIndex((prev) => prev + 1);
+    }, carouselInterval);
+  };
+
+  useEffect(() => {
+    // Start auto-slide
+    carouselTimer.current = setInterval(() => {
+      setIsTransitioning(true);
+      setNoTransition(false);
+      setFeaturedIndex((prev) => prev + 1);
+    }, carouselInterval);
+    return () => {
+      if (carouselTimer.current) clearInterval(carouselTimer.current);
+    };
+  }, [featuredCarouselImages.length]);
+
+  // Handle seamless transition
+  useEffect(() => {
+    if (!isTransitioning) return;
+    let timeout: NodeJS.Timeout;
+    if (featuredIndex === featuredCarouselImages.length) {
+      timeout = setTimeout(() => {
+        setNoTransition(true);
+        setFeaturedIndex(0);
+        setIsTransitioning(false);
+        setTimeout(() => {
+          setNoTransition(false);
+        }, 20); // allow DOM to update, then re-enable transition
+      }, 700); // match transition duration
+    } else if (featuredIndex > featuredCarouselImages.length) {
+      // Defensive: never allow index to exceed length
+      setFeaturedIndex(0);
+      setIsTransitioning(false);
+      setNoTransition(false);
+    } else {
+      timeout = setTimeout(() => {
+        setIsTransitioning(false);
+      }, 700);
+    }
+    return () => clearTimeout(timeout);
+  }, [featuredIndex, isTransitioning, featuredCarouselImages.length]);
   // Fetch products using React Query - this will cache the data across navigation
   const { data: products = [], isLoading, error } = useProducts();
   // Language context
@@ -57,11 +135,10 @@ const Home = () => {
   // --- Hero Background Carousel ---
   const heroImages = [
     // Only close-up product shots of running shoes/sneakers (no scenery, no people, no white background, no irrelevant images)
-    "https://images.unsplash.com/photo-1515548212235-6c2e1b8b8b18?auto=format&fit=crop&w=1200&q=80", // black/white sneaker on dark
-    "https://images.unsplash.com/photo-1518717758536-85ae29035b6d?auto=format&fit=crop&w=1200&q=80", // blue running shoe on dark
-    "https://images.unsplash.com/photo-1519864600265-abb23847ef2c?auto=format&fit=crop&w=1200&q=80", // white sneaker on blue
-    "https://images.unsplash.com/photo-1513104890138-7c749659a591?auto=format&fit=crop&w=1200&q=80", // red sneaker on blue
-    "https://images.unsplash.com/photo-1460353581641-37baddab0fa2?auto=format&fit=crop&w=1200&q=80"  // sneakers on display, no people
+    "https://images.unsplash.com/photo-1460353581641-37baddab0fa2?auto=format&fit=crop&w=1200&q=80"
+    
+     // black/white sneaker on dark
+
   ].filter(Boolean);
   const [heroIndex, setHeroIndex] = useState(0);
   useEffect(() => {
@@ -122,22 +199,7 @@ const Home = () => {
               aria-hidden={heroIndex !== idx}
             />
           ))}
-          {/* Stronger overlay for readability */}
-          <div className="absolute inset-0 bg-gradient-to-r from-white/70 via-white/50 to-white/20"></div>
-          <div className="absolute inset-0 bg-gradient-to-b from-transparent via-white/10 to-white/20"></div>
-          {/* Clean grid pattern overlay (subtle) */}
-          <div className="absolute inset-0 opacity-[0.01]">
-            <div className="w-full h-full" style={{
-              backgroundImage: `
-                linear-gradient(90deg, #000 1px, transparent 1px),
-                linear-gradient(180deg, #000 1px, transparent 1px)
-              `,
-              backgroundSize: '60px 60px'
-            }}></div>
-          </div>
-          {/* Subtle decorative elements */}
-          <div className="absolute -top-20 -right-20 w-80 h-80 bg-gradient-to-br from-blue-50/20 to-gray-50/15 rounded-full blur-3xl"></div>
-          <div className="absolute -bottom-32 -left-32 w-96 h-96 bg-gradient-to-br from-gray-50/15 to-blue-50/20 rounded-full blur-3xl"></div>
+          {/* Overlays and blur/gradient elements removed for image clarity */}
         </div>
 
         {/* Main Content (z-10) */}
@@ -151,7 +213,7 @@ const Home = () => {
                 <div className="flex flex-col gap-3 mb-6 animate-fade-in">
                   <div className="flex items-center gap-3">
                     <div className="w-12 h-0.5 bg-gradient-to-r from-blue-600 to-gray-600 rounded-full"></div>
-                    <span className="font-inter text-sm md:text-base font-medium text-gray-600 tracking-widest uppercase">
+                    <span className="font-inter text-sm md:text-base font-medium tracking-widest uppercase bg-blue-600 text-white px-3 py-1 rounded-lg shadow-md">
                       {t('hero.subtitle')}
                     </span>
                   </div>
@@ -197,9 +259,12 @@ const Home = () => {
                 </h1>
 
                 {/* Description */}
-                <p className="font-inter text-lg md:text-xl text-gray-600 mb-8 animate-fade-in font-medium leading-relaxed max-w-lg">
-                  {t('hero.description')}
-                </p>
+                <div className="relative mb-8 animate-fade-in max-w-lg">
+                  <div className="absolute inset-0 bg-white/30 backdrop-blur-sm rounded-2xl border border-white/30 shadow-xl -z-10"></div>
+                  <p className="font-inter text-lg md:text-xl text-white font-medium leading-relaxed relative z-10 px-6 py-4">
+                    {t('hero.description')}
+                  </p>
+                </div>
 
                 {/* Action Buttons */}
                 <div className="flex flex-col sm:flex-row gap-4 mb-8 animate-fade-in">
@@ -212,18 +277,6 @@ const Home = () => {
                       {t('hero.shopCollection')}
                       <svg className="w-5 h-5 transition-transform duration-300 group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
-                      </svg>
-                    </span>
-                  </button>
-                  
-                  <button 
-                    onClick={() => document.getElementById('service-features')?.scrollIntoView({ behavior: 'smooth' })}
-                    className="group px-8 py-4 bg-white text-gray-700 font-semibold rounded-lg border-2 border-gray-200 lg:transition-all lg:duration-300 lg:hover:border-blue-500 lg:hover:text-blue-600 lg:hover:scale-105"
-                  >
-                    <span className="flex items-center justify-center gap-2">
-                      {t('hero.learnMore')}
-                      <svg className="w-5 h-5 transition-transform duration-300 group-hover:rotate-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                       </svg>
                     </span>
                   </button>
@@ -339,6 +392,85 @@ const Home = () => {
           </div>
         </section>
       </AnimatedSection>
+
+      {/* Image Carousel Animation (separate images for featured section) */}
+      <div className="relative h-[60vh] md:h-[70vh] overflow-hidden bg-white" style={{ willChange: 'transform' }}>
+        {/* Sliding Carousel */}
+        <div className="relative w-full h-full">
+          <div className="absolute inset-0 overflow-hidden z-0">
+            <div
+              className={`flex h-full${noTransition ? '' : ' transition-transform duration-700 ease-in-out'}`}
+              style={{
+                transform: `translateX(-${featuredIndex * 100}%)`,
+                willChange: 'transform',
+                height: '100%'
+              }}
+              onTransitionEnd={() => {
+                // If we've moved to the duplicate first image (at the end), reset to real first
+                if (featuredIndex === featuredCarouselImages.length + 1 && lastDirection.current === 'next') {
+                  setNoTransition(true);
+                  setFeaturedIndex(1);
+                  setTimeout(() => setNoTransition(false), 20);
+                  setTimeout(() => setIsTransitioning(false), 20);
+                  return;
+                }
+                // If we've moved to the duplicate last image (at the start), reset to real last
+                if (featuredIndex === 0 && lastDirection.current === 'prev') {
+                  setNoTransition(true);
+                  setFeaturedIndex(featuredCarouselImages.length);
+                  setTimeout(() => setNoTransition(false), 20);
+                  setTimeout(() => setIsTransitioning(false), 20);
+                  return;
+                }
+                setIsTransitioning(false);
+              }}
+            >
+              {featuredCarouselImages.length > 0 &&
+                [
+                  featuredCarouselImages[featuredCarouselImages.length - 1],
+                  ...featuredCarouselImages,
+                  featuredCarouselImages[0],
+                ].map((img, idx) => (
+                  <div
+                    key={img + '-' + idx + '-featured'}
+                    className="min-w-full h-full block"
+                    style={{ height: '100%', background: 'transparent' }}
+                    aria-hidden={featuredIndex !== idx}
+                  >
+                    <img
+                      src={img}
+                      alt={`Featured ${((idx === 0) ? featuredCarouselImages.length : (idx > featuredCarouselImages.length ? 1 : idx))}`}
+                      className="h-full w-full object-cover rounded-2xl shadow-lg"
+                      style={{ maxHeight: '100%' }}
+                      loading="lazy"
+                    />
+                  </div>
+                ))}
+            </div>
+            {/* Overlay removed for image clarity */}
+          </div>
+          {/* Left Arrow */}
+          <button
+            aria-label="Previous image"
+            className={`absolute left-4 top-1/2 -translate-y-1/2 z-20 bg-white/60 hover:bg-white/80 text-blue-600 rounded-full shadow-md p-2 transition-all duration-200 backdrop-blur-sm${isTransitioning ? ' opacity-50 pointer-events-none' : ''}`}
+            onClick={() => { if (!isTransitioning) handleCarouselArrow('prev'); }}
+            style={{ outline: 'none' }}
+            disabled={isTransitioning}
+          >
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" /></svg>
+          </button>
+          {/* Right Arrow */}
+          <button
+            aria-label="Next image"
+            className={`absolute right-4 top-1/2 -translate-y-1/2 z-20 bg-white/60 hover:bg-white/80 text-blue-600 rounded-full shadow-md p-2 transition-all duration-200 backdrop-blur-sm${isTransitioning ? ' opacity-50 pointer-events-none' : ''}`}
+            onClick={() => { if (!isTransitioning) handleCarouselArrow('next'); }}
+            style={{ outline: 'none' }}
+            disabled={isTransitioning}
+          >
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" /></svg>
+          </button>
+        </div>
+      </div>
 
       {/* Products Grid - Enhanced with Hero-style Design */}
   <section id="featured-collection" className="relative py-20 overflow-hidden" style={{ willChange: 'transform' }}>
@@ -712,7 +844,7 @@ const Home = () => {
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       placeholder="Enter your email" 
-                      className="flex-1 px-4 py-3 rounded-xl bg-white/10 backdrop-blur-sm border border-white/20 text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent"
+                      className="flex-1 px-4 py-3 rounded-xl bg-white/10 backdrop-blur-sm border border-white/20 text-black placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent"
                     />
                     <button 
                       onClick={handleSubscribe}
