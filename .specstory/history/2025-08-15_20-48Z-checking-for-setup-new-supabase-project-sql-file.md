@@ -3664,6 +3664,24 @@ good , when the carousel animation is transitioning to the next picture and you 
 _**Assistant**_
 
 
+```
+
+```
+The carousel now disables the arrow buttons while a transition is in progress, preventing rapid clicks from breaking the animation or logic. The buttons will re-enable as soon as the transition completes, ensuring smooth and reliable navigation.
+
+You can no longer break the carousel by clicking arrows quickly. Let me know if this resolves the issue!
+
+---
+
+_**User**_
+
+remove the view all shoes button in the homepage
+
+---
+
+_**Assistant**_
+
+
 
 ---
 

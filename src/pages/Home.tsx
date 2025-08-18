@@ -584,18 +584,7 @@ const Home = () => {
             </div>
           )}
           
-          {/* Call-to-action button with Hero styling */}
-          <AnimatedSection animation="scaleIn" delay={300} className="text-center mt-16">
-            <button className="group relative inline-flex items-center justify-center px-8 py-4 text-lg font-semibold text-white bg-gradient-to-r from-blue-600 via-sky-600 to-slate-600 rounded-full shadow-xl lg:hover:shadow-2xl lg:transform lg:hover:scale-105 lg:transition-all lg:duration-300 overflow-hidden">
-              <span className="absolute inset-0 bg-gradient-to-r from-blue-700 via-sky-700 to-slate-700 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></span>
-              <span className="relative flex items-center gap-2">
-                {t('featured.viewAll')}
-                <svg className="w-5 h-5 transform group-hover:translate-x-1 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
-                </svg>
-              </span>
-            </button>
-          </AnimatedSection>
+          {/* Removed 'View All Shoes' button */}
         </div>
       </section>
 
